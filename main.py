@@ -18,6 +18,45 @@ class Game:
             "n_wind": 3,
         }
 
+        self.strToIndex = {
+            "1_char": 0,
+            "2_char": 1,
+            "3_char": 2,
+            "4_char": 3,
+            "5_char": 4,
+            "6_char": 5,
+            "7_char": 6,
+            "8_char": 7,
+            "9_char": 8,
+            "1_circ": 9,
+            "2_circ": 10,
+            "3_circ": 11,
+            "4_circ": 12,
+            "5_circ": 13,
+            "6_circ": 14,
+            "7_circ": 15,
+            "8_circ": 16,
+            "9_circ": 17,
+            "1_bamb": 18,
+            "2_bamb": 19,
+            "3_bamb": 20,
+            "4_bamb": 21,
+            "5_bamb": 22,
+            "6_bamb": 23,
+            "7_bamb": 24,
+            "8_bamb": 25,
+            "9_bamb": 26,
+            "e_wind": 27,
+            "s_wind": 28,
+            "w_wind": 29,
+            "n_wind": 30,
+            "w_drag": 31,
+            "g_drag": 32,
+            "r_drag": 33
+        }
+
+        self.indexToStr = {v: k for k, v in self.strToIndex.items()}
+
     def setRoundWind(self, wind):
         windNum = self.windDict[wind]
         self.gameState[0][0] = windNum
@@ -79,4 +118,8 @@ class Game:
             print("Invalid Player")
     
 
+testGame = Game()
 
+print(testGame.strToIndex)
+
+print(testGame.indexToStr)
