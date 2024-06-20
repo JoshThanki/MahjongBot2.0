@@ -1,1 +1,1 @@
-.venv/Lib/site-packages/pip
+c:\Users\yaoxi\Downloads\python-3.12.4-amd64.exe
