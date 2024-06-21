@@ -4,70 +4,71 @@ import numpy as np
 from numpy.typing import NDArray
 
 
-with open('tiles.json', 'r') as file:
-    start_tiles = json.load(file) #Creates a dictionary containing an entire set of tiles
+ #Creates a dictionary containing an entire set of tiles
 
 class Game:
+    with open('tiles.json', 'r') as file:
+        start_tiles = json.load(file)
+
+    windDict = {
+        "e_wind": 0,
+        "s_wind": 1,
+        "w_wind": 2,
+        "n_wind": 3,
+    }
+
+    strToIndex = {
+        "1_char": 0,
+        "2_char": 1,
+        "3_char": 2,
+        "4_char": 3,
+        "5_char": 4,
+        "6_char": 5,
+        "7_char": 6,
+        "8_char": 7,
+        "9_char": 8,
+        "1_circ": 9,
+        "2_circ": 10,
+        "3_circ": 11,
+        "4_circ": 12,
+        "5_circ": 13,
+        "6_circ": 14,
+        "7_circ": 15,
+        "8_circ": 16,
+        "9_circ": 17,
+        "1_bamb": 18,
+        "2_bamb": 19,
+        "3_bamb": 20,
+        "4_bamb": 21,
+        "5_bamb": 22,
+        "6_bamb": 23,
+        "7_bamb": 24,
+        "8_bamb": 25,
+        "9_bamb": 26,
+        "e_wind": 27,
+        "s_wind": 28,
+        "w_wind": 29,
+        "n_wind": 30,
+        "w_drag": 31,
+        "g_drag": 32,
+        "r_drag": 33
+    }
+
+    indexToStr = {v: k for k, v in strToIndex.items()}
+
     def __init__(self):
 
         self.gameState = np.zeros((11, 34))
-
-        self.windDict = {
-            "e_wind": 0,
-            "s_wind": 1,
-            "w_wind": 2,
-            "n_wind": 3,
-        }
-
-        self.strToIndex = {
-            "1_char": 0,
-            "2_char": 1,
-            "3_char": 2,
-            "4_char": 3,
-            "5_char": 4,
-            "6_char": 5,
-            "7_char": 6,
-            "8_char": 7,
-            "9_char": 8,
-            "1_circ": 9,
-            "2_circ": 10,
-            "3_circ": 11,
-            "4_circ": 12,
-            "5_circ": 13,
-            "6_circ": 14,
-            "7_circ": 15,
-            "8_circ": 16,
-            "9_circ": 17,
-            "1_bamb": 18,
-            "2_bamb": 19,
-            "3_bamb": 20,
-            "4_bamb": 21,
-            "5_bamb": 22,
-            "6_bamb": 23,
-            "7_bamb": 24,
-            "8_bamb": 25,
-            "9_bamb": 26,
-            "e_wind": 27,
-            "s_wind": 28,
-            "w_wind": 29,
-            "n_wind": 30,
-            "w_drag": 31,
-            "g_drag": 32,
-            "r_drag": 33
-        }
-
-        self.indexToStr = {v: k for k, v in self.strToIndex.items()}
-
-        self._tileWall = start_tiles
+        self._tileWall = Game.start_tiles
     
     #gamestate conversion functions
 
     def setRoundWind(self, wind):
-        windNum = self.windDict[wind]
+        windNum = Game.windDict[wind]
         self.gameState[0][0] = windNum
 
     def getRoundWind(self):
-        reversedWindDict = {v: k for k, v in self.windDict.items()}
+        reversedWindDict = {v: k for k, v in Game.windDict.items()}
         return reversedWindDict[self.gameState[0][0]]
     
 
@@ -128,17 +129,19 @@ class Game:
     def getDoraIndicators(self):
         return self.vectorToReadable(self.gameState[1])
     
-    def readableToVector(self, readableHand: list):
+    @staticmethod
+    def readableToVector(readableHand: list):
         vectorHand = np.zeros(34)
         for i in readableHand:
-            vectorHand[self.strToIndex[i]] += 1
+            vectorHand[Game.strToIndex[i]] += 1
         return vectorHand
     
-    def vectorToReadable(self, vectorHand: NDArray):
+    @staticmethod
+    def vectorToReadable(vectorHand: NDArray):
         readableHand = []
         for i in range(34):
             for j in range(int(vectorHand[i])):
-                readableHand.append(self.indexToStr[i])
+                readableHand.append(Game.indexToStr[i])
         return readableHand
     
     #game action function
@@ -150,14 +153,17 @@ class Game:
         self._tileWall[drawnTile] -= 1
         return drawnTile
     
+if False:
+    testGame = Game()
 
-testGame = Game()
+    testGame.gameState[1][1] = 1
+    testGame.addDoraIndicator("3_char")
+    testGame.addDoraIndicator("3_char")
+    doraIndicators = testGame.getDoraIndicators()
+    print(doraIndicators)
 
-testGame.gameState[1][1] = 1
-testGame.addDoraIndicator("3_char")
-testGame.addDoraIndicator("3_char")
-doraIndicators = testGame.getDoraIndicators()
-print(doraIndicators)
+    doraIndicatorsVectors = testGame.readableToVector(doraIndicators)
+    print(doraIndicatorsVectors)
 
-doraIndicatorsVectors = testGame.readableToVector(doraIndicators)
-print(doraIndicatorsVectors)
+    print(testGame.draw())
+    print(testGame._tileWall)
