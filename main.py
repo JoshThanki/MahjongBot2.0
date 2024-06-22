@@ -4,5 +4,6 @@ from player import Player
 testGame = Game()
 player1 = Player(testGame)
 
-print(player1.getReadableHand())
-print(player1.getVectorHand())
+if True: #add tests here
+    print(player1.getReadableHand())
+    print(player1.getVectorHand())

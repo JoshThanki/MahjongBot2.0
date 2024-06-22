@@ -14,9 +14,23 @@ class Player:
 
     def drawTile(self):
         self._readableHand.append(self.activeGame.draw())
+        self._vectorHand = Game.readableToVector(self._readableHand)
+        self._readableHand = Game.vectorToReadable(self._vectorHand)
 
     def getReadableHand(self):
         return self._readableHand
     
     def getVectorHand(self):
         return self._vectorHand
+
+if True: #add tests here
+    testGame = Game()
+    testPlayer = Player(testGame)
+    print(testPlayer.getReadableHand())
+    print()
+    print(testPlayer.getVectorHand())
+    print()
+    testPlayer.drawTile()
+    print(testPlayer.getReadableHand())
+    print()
+    print(testPlayer.getVectorHand())

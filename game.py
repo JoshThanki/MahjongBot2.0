@@ -61,7 +61,7 @@ class Game:
         self.gameState = np.zeros((11, 34))
         self._tileWall = Game.start_tiles
     
-    #gamestate conversion functions
+    #gamestate conversion functions:
 
     def setRoundWind(self, wind):
         windNum = Game.windDict[wind]
@@ -144,7 +144,8 @@ class Game:
                 readableHand.append(Game.indexToStr[i])
         return readableHand
     
-    #game action function
+    #game action functions:
+
     def draw(self):
         availableTile = list(self._tileWall.keys())
         numAvailable = list(self._tileWall.values())
@@ -153,7 +154,7 @@ class Game:
         self._tileWall[drawnTile] -= 1
         return drawnTile
     
-if False:
+if False: #add tests here
     testGame = Game()
 
     testGame.gameState[1][1] = 1
