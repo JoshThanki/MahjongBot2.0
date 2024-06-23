@@ -1,5 +1,6 @@
 import codecs
 import struct
+from xml.dom import minidom
 import xml.etree.ElementTree as ET
 
 import bz2
@@ -37,9 +38,17 @@ content = decompress(firstBlob)
 
 xml = XML(content, etree.XMLParser(recover=True))
 
-xml_string = ET.tostring(xml, encoding='unicode')
+rough_string = ET.tostring(xml, encoding='unicode')
 
-print(xml_string)
+# Parse the rough string with minidom
+dom = minidom.parseString(rough_string)
+
+# Pretty-print the XML string with indentation
+pretty_xml_string = dom.toprettyxml()
+
+# Print the pretty XML string
+print(pretty_xml_string)
+
 
 
 # def decode(str):
