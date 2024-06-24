@@ -53,62 +53,38 @@ rough_string = ET.tostring(xml, encoding='unicode')
 
 #print(rough_string)
 
-# Parse the rough string with minidom
-dom = minidom.parseString(rough_string)
-
-# Pretty-print the XML string with indentation
-pretty_xml_string = dom.toprettyxml()
-
-# Print the pretty XML string
-# print(pretty_xml_string)
-
-# dic = xmltodict.parse(rough_string)
-
-# # firstGame = [dic[item][0] for item in dic.keys()] 
-
-# with open("out.txt", "w+") as file:
-#     json.dump(dic, file, indent=2)
-
-
-# root = ET.fromstring(rough_string)
-
-# # List to store headers
-# headers = []
-
-# # Iterate through all elements in the XML
-# for elem in root.iter():
-#     # Append the tag of each element to the headers list
-#     headers.append(elem.tag)
-
-# # Print the headers list
-# print(headers)
-
-
-
-# Parse the XML string
 root = ET.fromstring(rough_string)
 
-# List to store headers and their data
-headers_and_data = []
+# Initialize an empty dictionary to store headers and their attributes
+headers_dict = {}
 
-# Iterate through all elements in the XML
-for elem in root.iter():
-    # Get the tag and text of each element
-    tag = elem.tag
-    text = elem.text.strip() if elem.text else ''  # Strip any leading/trailing whitespace
+for element in root:
+
+    header_name = element.tag
     
-    # Append a tuple of tag and text to the list
-    headers_and_data.append((tag, text))
+    attributes_dict = element.attrib
+    
+    headers_dict[header_name] = attributes_dict
 
-# Print the headers and their data
-for tag, text in headers_and_data:
-    print(f'Header: {tag}, Data: {text}')
+# Print the dictionary
+# print(headers_dict)
 
+for key in headers_dict:
+    if headers_dict[key]:
+
+        if key == "INIT":
+            print("Intialise")
+
+        print(key, headers_dict[key])
+    else:
+
+        #tile 
+
+        print(key)
 
 # print("\n ")
 # print(firstGame)
 
-#Creates a dictionary containing an entire set of tiles
 
 class Game:
 
