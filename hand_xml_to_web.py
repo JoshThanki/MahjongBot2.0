@@ -36,5 +36,34 @@ def format_xmlHand(string):
 
 
 
-value="10,68,125,36,44,42,43,45,35,78,56,72,128"
-print(format_xmlHand(value))
+def first6bits(num):
+    # Step 1: Convert integer to 16-bit binary
+    binary_representation = format(num, '016b')  # '016b' ensures 16-bit binary representation
+
+    #print(binary_representation)
+    # Step 2: Extract first 6 bits
+    first_6_bits = binary_representation[:6]
+
+    # Step 3: Convert binary to decimal (base-10)
+    decimal_value = int(first_6_bits, 2)
+
+    return decimal_value
+
+#36,42,47
+
+Base=36/4
+i=0
+
+print(36 - 4 * i - Base * 4)
+
+
+print(first6bits(24007)%3)
+
+def decodeMeld(meld):
+    binary_meld = format(meld, '016b')
+    chi = binary
+
+
+
+#Base = 36/4
+#print(((Base / 9) * 7 + Base % 9) * 3 + 2)

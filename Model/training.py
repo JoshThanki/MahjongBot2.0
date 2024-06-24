@@ -54,7 +54,7 @@ from data import X_train, y_train,X_validate, y_validate
 #training model
 history = model.fit(X_train, y_train, epochs=1, batch_size=256, validation_data=(X_validate, y_validate ))
 
-#saving model
+# saving model
 saved_model_path = 'D:\BOT TRAINING'
 tf.keras.models.save_model(model, saved_model_path)
 print(f"Saved model to {saved_model_path}")
