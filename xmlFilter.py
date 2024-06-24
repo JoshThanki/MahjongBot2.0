@@ -163,7 +163,7 @@ for item in arr:
             player = playerDict[int(attr["who"])]
             meld = attr["m"]
 
-            print("off", player, "discard", "CALLS", meld)
+            print(player, "CALLS", meld)
         
         print(item[0], item[1])
     else:
