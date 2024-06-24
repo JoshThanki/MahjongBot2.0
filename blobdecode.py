@@ -17,10 +17,15 @@ con = sqlite3.connect(dbfile)
 
 cur = con.cursor()
 
+res = cur.execute("SELECT log_id, log_content FROM logs")
 
-res = cur.execute("SELECT log_content FROM logs")
+log = res.fetchone()
 
-firstBlob = res.fetchone()[0]
+firstgame = log[0]
+
+firstBlob = log[1]
+
+print(firstgame)
 
 print("\n")
 
@@ -39,6 +44,8 @@ content = decompress(firstBlob)
 xml = XML(content, etree.XMLParser(recover=True))
 
 rough_string = ET.tostring(xml, encoding='unicode')
+
+#print(rough_string)
 
 # Parse the rough string with minidom
 dom = minidom.parseString(rough_string)
