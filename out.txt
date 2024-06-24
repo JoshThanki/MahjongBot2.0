@@ -1,0 +1,1307 @@
+{
+  "mjloggm": {
+    "@ver": "2.3",
+    "SHUFFLE": {
+      "@seed": "mt19937ar-sha512-n288-base64,7uVp1j7BF26jYzA0xMIgds2FXzv93PKY8nqglbCJRVqxIdpIY9tDU+a873KHSrx3LsYGIeYba+mC0GGfTpkuOrV4JPY52HlbR/rww1tgYyxpkh6WbzwEQnpP7XqsZdys6oDgNkvgZPiKJ9UGaimA5dkj/ali6eMl3FxIKPmaekH0Zf/3IuvSHTIB1YpkwrL/0tc2ZDeqgkCofqreJ4zC596o/FL31jmodZaWMkxnDFOzEYm5kv66QRMEbXzCsUKEvMnV4qPjyD2OuHKDEebYCwE1z9VvgCLYG4rksYCL3BjW+I8ifroxt1Vk2vy0Xyl+d5xfCEQd3qO+8BNzRPvTU3vol0tvXkF5ikxvBkiYgCe5W/ueiiUsReduvO0OLSpfcXJrDKdvvz8IPmI0tUg5XU7R2EvG2wUb2K9w/moG8ZGjWmIfHGVjKjSdNC3BS/If6eIvW5SaXGgKrQECUchyYJkudvl9MGqGFSLezRL0MmXnxA7vQwedH2bST9YvLuHI3ODAo3cLk2MIIM+gGfJe/hBoSe7Ghj+CkFgCtNCe57wLFeAXRKQSd+U6awVNfoO+wAd6mU0pdG7uNOGjkaObAMCQVarD5HVdpJmdhR9gdqwd4r0PFYJVcjIC6TKLV4tKBSmh2cY68Z3DVaewMbFmqRZVDBOvDYEgzR1e8fwjf4LTSRS4BQw3Ik+8h0c9oWEu/biGW/beh2ICsiVzrD+GzZVwO5Np0n/RX1NJr8glgckdNwaStxzcxGiFsfBgaYP1qvg+ZtFNTQKlguZ/WIkQOcrcWeV0ECVN913bOtyMqdy/7aSECRaJRydqQLVVp0lh3IW4BYX9HOoGP2nHT+uQyXEZCzLCrV+YpeWd83oISiWVffvg4orpaaS4ignGk0wXWjo/8HCtMKnxDhEbf6cuwezFtxaLL+SA1vKo1XZMO+lIEMxwmDL4tFDVu2Yfjuw5O/ZqRfCFsh0eeIyufvxgQye622k4L0dEr66nr0VFYw3sFCI3TLn7sZEmJMlfYes9W8GKp8KnOJxAZxBuJbRV5wMgyfrHT871BqJr0N1htqhuShj5jmB3y76OQlDw1Uieo4Se4Ghbvz+JfiQTld5K+1y7N6irruWl4CkB/Cey0KVdl1RHTYm+afcXMhwVui2dXrEK8NySQppch86Zi/BgxHAL0aOyXYWIos49Wuzl/LPJRIcw5YfxF8ClVSe9JkkIWhxxlw+dAjEdvCUyZy5+Fokkwc64ihFjvtm/buQ7K0Fc1POFmysRjtPTg9EFGtmf65nWpOi/64+sUwp3rogWG1z1P1d+kV4iQVkixitlHCKjKDKfV34aG2oj4Zp52BMrgUosN6MQCvIZyOiixtG3eBIQjK9hBMx843kblTmaH0DiI50OxbRXSEGs2aSDEu7sFV7jirYHboepyjONNJ8arG+FVBRa4AhvSahCxwaYbdUek9lGzSWFVhGE3rJB0UZjoa4iNtr8qFzedyO9t8LnNLq8FGWtDFkyxoyNm06AQ+OHg1qIt7IRsSyVWU1GXXLMntMinBhci5Gz6GFTKoKuQkc01tJ134cG1Mv4bacpkD7nOmpyaoITl4qkNvriJE94AscjKF9ADtpusdzG0ga+rq6NG3cqAoyRGFV704hkiWqFtr3zIvGvVz8sN5iTzAOMSBy7u2Q71qUP+EMURrzVSUrhZevNlmmdE20K1kBXw78zxmnRF1fI2vi0vgTis4a9HpVGGHBN/jDThEca7vJyqsE0Tzxdzzy6aD+KD/v3oLSeep7OD1Raj7dzdyibSk42oBNtFt4nHnurnxjysPXeryIS2dC2NwMUUMISFrKmrZfv5MrPJZWGAqcO7hxZ2knnVTdrYujFAtFwNZePEByh9kZJYrusE1Kkwjjs/iUqteIaoTJwLccCLgEDKFzHVmMD7bW4zK/3JcEl2HScZg2E8ArqfZojqEyL/1R1P6TPdnOhj8jk0CqNiNVTpdHURIVeI6pXuttPLkvKq5OY2K7A95T0YeNYytypQBSPrVfnRBVdV8I381xDfxwN3XGA3Qz1WtYxiqxmmOc1qhNbHS+YnKcos/rRntHbdiF16rbJ+e8+zr9ajD/xBMqpOK5C8JNJYwyz7kGz0Pk62zc+A3N3xxkSbaNeODTwrtfGFP9tKSZOWIhP2jlsPyiDhcCQeVR5FdIwGHalCeR/AedSkW3kLhpcT1Fmz8enxiF3I007Qwntz+FaWlhScZmY9+kZS2TqNgKPGKfutVRykkUP6SrAHMNH+HvxtCUFgXLOtLZLPX6mUEoO1RjlHWqwbk9ahHpH0uRWcv0fGch7m3nZcq8fbIXEvbd267ZZWzPKl8g34XNce9OcVR38ioEfbjNeqbFMDANldt83DbNAjGdHsdWh2HEf+y3UW99reFh/rh6KjoPlhH8qoFtNVih11RvwI3a8bFz5MhNvxtSIR51GaHgVKNPriqPcvr+0ZnDjc/dSbgo8kQh8+y7f5k85aM+cIAOAQ4GRIJXQYflkyJQ5FVPjvPF+82M26nlJuFKFaIgigVpXbGoBay56hztAwwnFqUcUolQv2N7pU8njIPY+yyqkxDp8+rsKkq1qcMatzY6QXbjxQVb4SmlSDKAX3fHMvwr3pgRqXvnaFwCevdnw79Z/k45eDjq8YlZ8v3LYHohAvijZNAyCP8wLRDpAZCnlrzoP7oDkvUh/fHjxoS1ir0GMO7s1NJ2KIR60FWkNDkwGccG0LNHLvjj6fZXw6V6RLhPwMmwjlyQumMtoptHB3VnbUyyiSCcsLHJPG4lSRIEfBVF4tNQk5qoOJPJOOSgRnDFFjfGjpEkqkzDI8U2f28F47ZDViznk2tLtdUAaM5N7NE5zV9/i4Xck4PPoWGDi/QK4rPrf6C7egCVTwiux3IwiDAAIDUGFXuhOVMVH6K2gTo/Lz5Jxhe/e8k6rqPbClqK+7nljJcheSa657zIjA2+fJmoMisQObZavKekjCIZQYE8sijst3KBUuMbS3cYwieiLNm3iCzlSla4TLBMfnMshsw2GWzrfAot2K3HflnlRdzVqp3ovjOFVo1FQFEiGp5dwvHwII2LKGp6WP+omn/76Qrf/g7Z4KF/qy4LfIm0EgkQAYfFzIN0czXvap8AOW4glSDRXyAeRz9Oty66rH8q26XZHIEEh3118OgO3ZyAFq7jxBp6hdK7t4rSul+wVFCWzDsEQ+N3ko1AOIez1sm64vixjSksJZTt9032dwvhZrL6l58EsAcHrhMOxhIwHC0I695qo0avSRcZl0pYg8BcCAk6JZyuO9+GmweaxO9yNhOIc3DpAi3IEoRsClqsJil+m",
+      "@ref": ""
+    },
+    "GO": {
+      "@type": "169",
+      "@lobby": "0"
+    },
+    "UN": {
+      "@n0": "%E4%BB%8A%E6%9B%B4",
+      "@n1": "%E3%83%97%E3%83%AC%E3%82%B9%E3%83%97",
+      "@n2": "%EF%BC%88%E3%83%BB%EF%BC%88%E3%83%B1%EF%BC%89%E3%83%BB%EF%BC%89",
+      "@n3": "%E9%B7%BA%E5%AE%AE%E6%85%A7%E5%A4%AA",
+      "@dan": "16,17,16,17",
+      "@rate": "2080.19,2195.45,2089.81,2131.96",
+      "@sx": "M,M,M,M"
+    },
+    "TAIKYOKU": {
+      "@oya": "0"
+    },
+    "INIT": [
+      {
+        "@seed": "0,0,0,5,2,46",
+        "@ten": "250,250,250,250",
+        "@oya": "0",
+        "@hai0": "34,27,20,47,130,98,132,102,13,133,2,79,31",
+        "@hai1": "10,68,125,36,44,42,43,45,35,78,56,72,128",
+        "@hai2": "18,100,104,71,90,118,81,76,52,37,61,69,12",
+        "@hai3": "21,80,95,16,134,11,124,97,25,48,107,86,67"
+      },
+      {
+        "@seed": "0,1,0,2,4,105",
+        "@ten": "366,134,250,250",
+        "@oya": "0",
+        "@hai0": "60,55,123,92,108,99,0,54,101,58,27,22,81",
+        "@hai1": "13,36,41,43,126,93,75,19,12,44,113,34,95",
+        "@hai2": "94,121,7,127,69,56,3,91,134,40,37,67,57",
+        "@hai3": "15,18,128,65,83,80,86,74,63,25,47,116,115"
+      },
+      {
+        "@seed": "1,0,0,5,5,51",
+        "@ten": "295,103,219,383",
+        "@oya": "1",
+        "@hai0": "98,27,3,124,14,125,107,93,72,2,118,6,135",
+        "@hai1": "13,33,130,106,65,120,17,69,66,81,94,108,16",
+        "@hai2": "42,9,90,73,31,89,28,48,54,52,109,70,97",
+        "@hai3": "117,134,61,20,24,36,44,41,29,15,121,104,126"
+      },
+      {
+        "@seed": "2,0,0,4,5,12",
+        "@ten": "275,54,308,363",
+        "@oya": "2",
+        "@hai0": "30,126,8,64,102,52,77,46,74,83,110,58,114",
+        "@hai1": "27,38,76,118,72,31,49,0,123,122,60,1,121",
+        "@hai2": "85,127,100,130,48,135,113,89,104,13,42,81,41",
+        "@hai3": "35,40,11,5,132,131,66,23,22,59,67,108,6"
+      },
+      {
+        "@seed": "2,1,1,3,4,93",
+        "@ten": "245,54,318,373",
+        "@oya": "2",
+        "@hai0": "24,96,68,26,130,60,50,105,74,88,3,133,127",
+        "@hai1": "8,25,80,22,23,43,59,97,31,116,87,107,124",
+        "@hai2": "11,33,104,27,89,123,76,63,17,5,47,115,86",
+        "@hai3": "6,52,40,92,29,61,45,71,13,82,32,78,46"
+      },
+      {
+        "@seed": "3,0,0,3,2,22",
+        "@ten": "297,54,318,331",
+        "@oya": "3",
+        "@hai0": "53,9,73,23,34,102,121,52,36,58,113,25,37",
+        "@hai1": "69,82,27,126,101,122,89,109,24,42,127,84,14",
+        "@hai2": "30,124,54,47,31,132,110,8,90,79,5,57,76",
+        "@hai3": "96,108,20,92,21,63,114,59,74,26,95,50,60"
+      },
+      {
+        "@seed": "4,0,0,1,1,119",
+        "@ten": "284,54,331,331",
+        "@oya": "0",
+        "@hai0": "61,115,41,123,73,58,17,45,125,88,83,9,91",
+        "@hai1": "99,56,50,90,0,10,122,37,127,57,120,78,24",
+        "@hai2": "33,63,110,131,3,117,98,69,126,92,54,7,6",
+        "@hai3": "26,18,129,48,5,101,55,16,51,46,85,72,14"
+      }
+    ],
+    "T8": [
+      null,
+      null
+    ],
+    "D79": null,
+    "U51": [
+      null,
+      null
+    ],
+    "E35": [
+      null,
+      null
+    ],
+    "V15": null,
+    "F118": null,
+    "W87": null,
+    "G124": [
+      null,
+      null
+    ],
+    "T4": null,
+    "D47": null,
+    "N": [
+      {
+        "@who": "1",
+        "@m": "24007"
+      },
+      {
+        "@who": "0",
+        "@m": "51819"
+      },
+      {
+        "@who": "1",
+        "@m": "21623"
+      },
+      {
+        "@who": "0",
+        "@m": "49193"
+      },
+      {
+        "@who": "2",
+        "@m": "27679"
+      },
+      {
+        "@who": "2",
+        "@m": "54327"
+      },
+      {
+        "@who": "0",
+        "@m": "55615"
+      },
+      {
+        "@who": "2",
+        "@m": "15465"
+      },
+      {
+        "@who": "2",
+        "@m": "48138"
+      },
+      {
+        "@who": "1",
+        "@m": "0"
+      },
+      {
+        "@who": "3",
+        "@m": "7722"
+      },
+      {
+        "@who": "0",
+        "@m": "49258"
+      },
+      {
+        "@who": "1",
+        "@m": "32175"
+      },
+      {
+        "@who": "0",
+        "@m": "44279"
+      },
+      {
+        "@who": "1",
+        "@m": "47657"
+      },
+      {
+        "@who": "0",
+        "@m": "36295"
+      }
+    ],
+    "E10": null,
+    "V109": [
+      null,
+      null
+    ],
+    "F109": [
+      null,
+      null,
+      null
+    ],
+    "W121": null,
+    "G121": [
+      null,
+      null
+    ],
+    "T131": null,
+    "D98": null,
+    "U94": null,
+    "E94": null,
+    "V108": null,
+    "F108": null,
+    "W14": [
+      null,
+      null
+    ],
+    "G134": [
+      null,
+      null,
+      null
+    ],
+    "D102": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "U135": [
+      null,
+      null
+    ],
+    "E135": [
+      null,
+      null
+    ],
+    "V88": [
+      null,
+      null
+    ],
+    "F37": [
+      null,
+      null,
+      null
+    ],
+    "W33": [
+      null,
+      null,
+      null
+    ],
+    "G107": [
+      null,
+      null,
+      null
+    ],
+    "T91": [
+      null,
+      null
+    ],
+    "D91": [
+      null,
+      null
+    ],
+    "U50": null,
+    "E78": [
+      null,
+      null
+    ],
+    "V3": null,
+    "F3": [
+      null,
+      null,
+      null
+    ],
+    "W30": null,
+    "G67": [
+      null,
+      null
+    ],
+    "T74": [
+      null,
+      null
+    ],
+    "D74": [
+      null,
+      null
+    ],
+    "U66": null,
+    "E72": [
+      null,
+      null
+    ],
+    "V40": null,
+    "F40": null,
+    "W93": [
+      null,
+      null
+    ],
+    "G97": null,
+    "T115": [
+      null,
+      null
+    ],
+    "D115": [
+      null,
+      null,
+      null
+    ],
+    "U54": null,
+    "E125": null,
+    "V111": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "F111": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "W70": null,
+    "G70": null,
+    "T22": null,
+    "D22": null,
+    "U9": null,
+    "E9": null,
+    "V99": null,
+    "F12": null,
+    "W123": null,
+    "G123": null,
+    "T38": null,
+    "D38": null,
+    "E128": [
+      null,
+      null,
+      null
+    ],
+    "D34": [
+      null,
+      null
+    ],
+    "U0": null,
+    "E0": [
+      null,
+      null
+    ],
+    "AGARI": [
+      {
+        "@ba": "0,0",
+        "@hai": "0,2,4,8,13,20,27,31",
+        "@m": "49193,51819",
+        "@machi": "0",
+        "@ten": "30,11600,0",
+        "@yaku": "20,1,19,1,34,2",
+        "@doraHai": "46",
+        "@who": "0",
+        "@fromWho": "1",
+        "@sc": "250,116,250,-116,250,0,250,0"
+      },
+      {
+        "@ba": "1,2",
+        "@hai": "8,9,15,18,20,23,25,31,78,80,83,85,86,89",
+        "@machi": "31",
+        "@ten": "20,12000,2",
+        "@yaku": "1,1,0,1,7,1,8,1,53,2",
+        "@doraHai": "105",
+        "@doraHaiUra": "4",
+        "@who": "3",
+        "@fromWho": "3",
+        "@sc": "356,-61,134,-31,250,-31,240,143"
+      },
+      {
+        "@ba": "0,1",
+        "@hai": "28,31,54,57,62,76,77,79",
+        "@m": "54327,27679",
+        "@machi": "62",
+        "@ten": "30,7900,0",
+        "@yaku": "8,1,52,2,54,1",
+        "@doraHai": "51",
+        "@who": "2",
+        "@fromWho": "2",
+        "@sc": "295,-20,93,-39,219,89,383,-20"
+      },
+      {
+        "@ba": "1,1",
+        "@hai": "24,26,60,64,68,88,92,96",
+        "@m": "44279,49258",
+        "@machi": "92",
+        "@ten": "30,3900,0",
+        "@yaku": "19,1,52,1,54,1",
+        "@doraHai": "93",
+        "@who": "0",
+        "@fromWho": "3",
+        "@sc": "245,52,54,0,318,0,373,-42"
+      },
+      {
+        "@ba": "0,1",
+        "@hai": "0,5,8,30,31,45,46,47,48,54,57,76,81,87",
+        "@machi": "0",
+        "@ten": "40,1300,0",
+        "@yaku": "1,1,53,0",
+        "@doraHai": "22",
+        "@doraHaiUra": "10",
+        "@who": "2",
+        "@fromWho": "0",
+        "@sc": "297,-13,54,0,308,23,331,0"
+      },
+      {
+        "@ba": "0,1",
+        "@hai": "13,14,16,18,26,27,48,51,52,55,85,86,101,102",
+        "@machi": "86",
+        "@ten": "25,12000,2",
+        "@yaku": "1,1,22,2,8,1,54,2,53,0",
+        "@doraHai": "119",
+        "@doraHaiUra": "4",
+        "@who": "3",
+        "@fromWho": "1",
+        "@sc": "284,0,54,-120,331,0,321,130",
+        "@owari": "284,-12.0,-66,-57.0,331,13.0,451,56.0"
+      }
+    ],
+    "T53": [
+      null,
+      null
+    ],
+    "D123": [
+      null,
+      null
+    ],
+    "U131": [
+      null,
+      null
+    ],
+    "E34": null,
+    "V103": null,
+    "F121": null,
+    "G115": [
+      null,
+      null
+    ],
+    "T102": null,
+    "D0": [
+      null,
+      null
+    ],
+    "U82": [
+      null,
+      null
+    ],
+    "E131": [
+      null,
+      null
+    ],
+    "V50": [
+      null,
+      null
+    ],
+    "F134": null,
+    "W133": null,
+    "G128": [
+      null,
+      null
+    ],
+    "T48": null,
+    "D108": null,
+    "E126": null,
+    "V98": [
+      null,
+      null
+    ],
+    "F127": null,
+    "W64": null,
+    "G133": null,
+    "T32": null,
+    "D32": null,
+    "U117": [
+      null,
+      null
+    ],
+    "E117": [
+      null,
+      null
+    ],
+    "V26": null,
+    "W135": [
+      null,
+      null
+    ],
+    "G135": [
+      null,
+      null
+    ],
+    "T72": null,
+    "U39": [
+      null,
+      null
+    ],
+    "E113": [
+      null,
+      null,
+      null
+    ],
+    "V46": [
+      null,
+      null
+    ],
+    "F7": null,
+    "W23": [
+      null,
+      null
+    ],
+    "G116": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "T16": [
+      null,
+      null
+    ],
+    "REACH": [
+      {
+        "@who": "0",
+        "@step": "1"
+      },
+      {
+        "@who": "0",
+        "@ten": "356,134,250,250",
+        "@step": "2"
+      },
+      {
+        "@who": "3",
+        "@step": "1"
+      },
+      {
+        "@who": "3",
+        "@ten": "356,134,250,240",
+        "@step": "2"
+      },
+      {
+        "@who": "1",
+        "@step": "1"
+      },
+      {
+        "@who": "1",
+        "@ten": "295,93,219,383",
+        "@step": "2"
+      },
+      {
+        "@who": "1",
+        "@step": "1"
+      },
+      {
+        "@who": "1",
+        "@ten": "275,44,308,363",
+        "@step": "2"
+      },
+      {
+        "@who": "2",
+        "@step": "1"
+      },
+      {
+        "@who": "2",
+        "@ten": "297,54,308,331",
+        "@step": "2"
+      },
+      {
+        "@who": "3",
+        "@step": "1"
+      },
+      {
+        "@who": "3",
+        "@ten": "284,54,331,321",
+        "@step": "2"
+      }
+    ],
+    "D48": null,
+    "U77": null,
+    "E51": null,
+    "V17": null,
+    "F103": null,
+    "W9": null,
+    "G33": null,
+    "T71": [
+      null,
+      null
+    ],
+    "D71": [
+      null,
+      null
+    ],
+    "U122": null,
+    "E122": [
+      null,
+      null
+    ],
+    "V29": null,
+    "F69": null,
+    "W8": null,
+    "G63": [
+      null,
+      null
+    ],
+    "T132": [
+      null,
+      null,
+      null
+    ],
+    "D132": [
+      null,
+      null,
+      null
+    ],
+    "U52": null,
+    "E39": [
+      null,
+      null
+    ],
+    "V5": null,
+    "W85": [
+      null,
+      null
+    ],
+    "G65": null,
+    "T129": [
+      null,
+      null,
+      null
+    ],
+    "D129": [
+      null,
+      null
+    ],
+    "U59": null,
+    "E36": null,
+    "V35": null,
+    "F67": null,
+    "W89": null,
+    "G64": null,
+    "T104": [
+      null,
+      null
+    ],
+    "D104": [
+      null,
+      null
+    ],
+    "U90": null,
+    "E43": [
+      null,
+      null
+    ],
+    "V66": [
+      null,
+      null
+    ],
+    "F66": [
+      null,
+      null
+    ],
+    "W78": null,
+    "G47": null,
+    "T107": [
+      null,
+      null
+    ],
+    "D107": [
+      null,
+      null,
+      null
+    ],
+    "U112": null,
+    "E41": null,
+    "V96": [
+      null,
+      null
+    ],
+    "F57": null,
+    "W20": [
+      null,
+      null
+    ],
+    "G74": [
+      null,
+      null
+    ],
+    "T62": null,
+    "D62": null,
+    "U119": null,
+    "E44": null,
+    "F46": null,
+    "W24": [
+      null,
+      null
+    ],
+    "G24": null,
+    "T114": null,
+    "D114": [
+      null,
+      null
+    ],
+    "U118": [
+      null,
+      null
+    ],
+    "E112": null,
+    "F26": null,
+    "W10": null,
+    "G10": null,
+    "T84": null,
+    "D84": null,
+    "U87": null,
+    "E118": [
+      null,
+      null,
+      null
+    ],
+    "W100": null,
+    "G100": null,
+    "T125": null,
+    "D125": [
+      null,
+      null
+    ],
+    "U130": null,
+    "E130": [
+      null,
+      null
+    ],
+    "V110": null,
+    "W31": null,
+    "U35": null,
+    "E106": [
+      null,
+      null
+    ],
+    "V57": null,
+    "W53": null,
+    "T37": null,
+    "D72": null,
+    "U84": [
+      null,
+      null
+    ],
+    "E120": null,
+    "V79": null,
+    "F70": null,
+    "W26": null,
+    "G117": null,
+    "U4": null,
+    "V76": [
+      null,
+      null
+    ],
+    "F73": [
+      null,
+      null
+    ],
+    "G126": null,
+    "T80": [
+      null,
+      null,
+      null
+    ],
+    "D37": [
+      null,
+      null
+    ],
+    "U92": null,
+    "E4": null,
+    "V112": null,
+    "F112": null,
+    "W7": null,
+    "T39": [
+      null,
+      null
+    ],
+    "D39": [
+      null,
+      null
+    ],
+    "U99": [
+      null,
+      null
+    ],
+    "E108": null,
+    "W103": null,
+    "G104": [
+      null,
+      null
+    ],
+    "T133": null,
+    "U78": null,
+    "E17": null,
+    "V86": null,
+    "F97": [
+      null,
+      null
+    ],
+    "W102": [
+      null,
+      null
+    ],
+    "G7": null,
+    "T82": null,
+    "D118": null,
+    "U85": null,
+    "E85": null,
+    "V77": null,
+    "F9": null,
+    "W34": null,
+    "G15": null,
+    "T127": null,
+    "D27": null,
+    "U47": [
+      null,
+      null,
+      null
+    ],
+    "E47": [
+      null,
+      null,
+      null
+    ],
+    "F42": null,
+    "W116": [
+      null,
+      null,
+      null
+    ],
+    "T21": null,
+    "D21": null,
+    "U56": [
+      null,
+      null
+    ],
+    "E69": [
+      null,
+      null
+    ],
+    "V75": null,
+    "F75": null,
+    "W91": null,
+    "G34": null,
+    "T0": [
+      null,
+      null
+    ],
+    "D14": null,
+    "U8": null,
+    "E92": null,
+    "F90": [
+      null,
+      null
+    ],
+    "W22": null,
+    "G91": null,
+    "D6": null,
+    "U30": null,
+    "E56": [
+      null,
+      null
+    ],
+    "V122": null,
+    "F122": null,
+    "W115": null,
+    "T101": null,
+    "D101": null,
+    "U25": [
+      null,
+      null
+    ],
+    "V95": [
+      null,
+      null
+    ],
+    "F95": null,
+    "W114": null,
+    "G114": [
+      null,
+      null
+    ],
+    "T18": null,
+    "D18": null,
+    "U128": [
+      null,
+      null
+    ],
+    "V62": null,
+    "V37": null,
+    "F113": null,
+    "W4": null,
+    "G108": [
+      null,
+      null,
+      null
+    ],
+    "T90": null,
+    "U101": null,
+    "E38": [
+      null,
+      null
+    ],
+    "V51": null,
+    "F130": [
+      null,
+      null
+    ],
+    "W99": null,
+    "G131": null,
+    "U95": null,
+    "V61": [
+      null,
+      null
+    ],
+    "F135": null,
+    "G132": null,
+    "T105": null,
+    "D30": null,
+    "U133": null,
+    "E133": null,
+    "V125": null,
+    "F104": [
+      null,
+      null
+    ],
+    "W80": null,
+    "G40": null,
+    "F100": null,
+    "W112": [
+      null,
+      null
+    ],
+    "G112": [
+      null,
+      null
+    ],
+    "T9": null,
+    "D110": null,
+    "U2": null,
+    "E49": null,
+    "V119": null,
+    "F61": [
+      null,
+      null
+    ],
+    "W15": null,
+    "G99": null,
+    "D126": null,
+    "W109": null,
+    "G109": null,
+    "T44": [
+      null,
+      null
+    ],
+    "D64": null,
+    "V73": null,
+    "T70": null,
+    "D70": null,
+    "U21": null,
+    "E60": null,
+    "F98": null,
+    "W107": [
+      null,
+      null
+    ],
+    "T120": null,
+    "D120": null,
+    "U75": [
+      null,
+      null
+    ],
+    "E76": null,
+    "V55": null,
+    "F55": null,
+    "W29": null,
+    "G66": null,
+    "T94": null,
+    "E101": null,
+    "F119": null,
+    "W57": null,
+    "G80": null,
+    "T65": [
+      null,
+      null
+    ],
+    "D65": null,
+    "U26": null,
+    "E95": null,
+    "V71": null,
+    "F71": null,
+    "W134": null,
+    "G93": null,
+    "T111": null,
+    "D111": null,
+    "U3": null,
+    "DORA": {
+      "@hai": "45"
+    },
+    "U88": [
+      null,
+      null
+    ],
+    "E88": null,
+    "V84": null,
+    "F84": null,
+    "W124": null,
+    "T117": null,
+    "D117": null,
+    "E82": null,
+    "V56": [
+      null,
+      null
+    ],
+    "F56": null,
+    "W18": null,
+    "T33": null,
+    "U86": [
+      null,
+      null
+    ],
+    "E86": [
+      null,
+      null
+    ],
+    "V43": [
+      null,
+      null
+    ],
+    "F43": [
+      null,
+      null
+    ],
+    "W92": null,
+    "G92": [
+      null,
+      null,
+      null
+    ],
+    "T36": [
+      null,
+      null
+    ],
+    "D105": [
+      null,
+      null
+    ],
+    "V78": null,
+    "F78": null,
+    "W54": null,
+    "G59": null,
+    "T28": null,
+    "D36": [
+      null,
+      null,
+      null
+    ],
+    "U103": null,
+    "E103": null,
+    "F96": null,
+    "W32": null,
+    "G57": null,
+    "T17": [
+      null,
+      null
+    ],
+    "D46": null,
+    "U20": null,
+    "E20": null,
+    "G54": null,
+    "T10": null,
+    "D44": [
+      null,
+      null
+    ],
+    "U63": null,
+    "E63": null,
+    "V7": null,
+    "F51": null,
+    "T97": null,
+    "D58": null,
+    "U16": null,
+    "E16": null,
+    "RYUUKYOKU": {
+      "@ba": "0,1",
+      "@sc": "275,-30,44,10,308,10,363,10",
+      "@hai1": "21,25,26,27,31,72,75,121,122,123",
+      "@hai2": "7,13,48,50,81,85,89",
+      "@hai3": "4,5,6,11,15,18,24,29,32,35"
+    },
+    "V101": null,
+    "F123": null,
+    "G32": null,
+    "D3": null,
+    "U98": [
+      null,
+      null
+    ],
+    "E116": null,
+    "V12": [
+      null,
+      null
+    ],
+    "F115": null,
+    "W36": null,
+    "G29": null,
+    "T81": null,
+    "D133": null,
+    "U49": null,
+    "E124": null,
+    "V128": [
+      null,
+      null
+    ],
+    "F128": [
+      null,
+      null
+    ],
+    "D127": null,
+    "U113": [
+      null,
+      null
+    ],
+    "F47": null,
+    "G6": null,
+    "T64": null,
+    "D50": null,
+    "E107": null,
+    "V126": null,
+    "F126": [
+      null,
+      null
+    ],
+    "W125": [
+      null,
+      null
+    ],
+    "G125": [
+      null,
+      null
+    ],
+    "T7": null,
+    "D7": null,
+    "U83": null,
+    "W42": null,
+    "G71": null,
+    "E8": null,
+    "V65": null,
+    "F76": null,
+    "D53": [
+      null,
+      null
+    ],
+    "V20": null,
+    "F33": [
+      null,
+      null
+    ],
+    "W79": null,
+    "G79": null,
+    "W75": [
+      null,
+      null
+    ],
+    "W128": null,
+    "U28": null,
+    "V49": null,
+    "F110": [
+      null,
+      null
+    ],
+    "W6": null,
+    "D73": [
+      null,
+      null
+    ],
+    "F132": null,
+    "W44": null,
+    "V48": null,
+    "F124": null,
+    "E109": null,
+    "V131": null,
+    "F131": [
+      null,
+      null
+    ],
+    "D121": null,
+    "U7": null,
+    "E28": null,
+    "V97": null,
+    "W13": [
+      null,
+      null
+    ],
+    "T40": null,
+    "D113": null,
+    "U67": null,
+    "E67": null,
+    "V94": null,
+    "F94": null,
+    "W2": [
+      null,
+      null
+    ],
+    "G2": [
+      null,
+      null
+    ],
+    "T29": null,
+    "U106": null,
+    "E42": null,
+    "V133": null,
+    "W51": null,
+    "G44": null,
+    "E75": null,
+    "V38": null,
+    "F133": null,
+    "W68": null,
+    "G68": null,
+    "D40": null,
+    "V120": null,
+    "F38": null,
+    "W41": null,
+    "G41": null,
+    "T77": null,
+    "D77": null,
+    "U1": null,
+    "E1": null,
+    "V81": null,
+    "F120": null,
+    "T12": null,
+    "E89": null,
+    "V39": null,
+    "F39": null,
+    "U18": null,
+    "E7": null,
+    "V45": null,
+    "F49": null,
+    "W130": null,
+    "G130": null,
+    "T78": null,
+    "U93": [
+      null,
+      null
+    ],
+    "V87": null,
+    "F79": null,
+    "W3": null,
+    "G95": null,
+    "W65": null,
+    "T86": null,
+    "D78": null,
+    "U72": null,
+    "W55": null,
+    "G96": null,
+    "T103": null,
+    "D103": null,
+    "E37": null,
+    "V74": null,
+    "W104": null,
+    "G129": null,
+    "U60": null,
+    "E127": null,
+    "V34": null,
+    "G72": null,
+    "T95": null,
+    "U121": null,
+    "F117": null,
+    "W39": null,
+    "G39": null,
+    "T23": null,
+    "U81": null,
+    "E24": null,
+    "V89": null,
+    "T112": null,
+    "D83": null,
+    "U32": null,
+    "E32": null,
+    "W108": null,
+    "T109": null,
+    "D112": null,
+    "U97": null,
+    "E50": null,
+    "V130": null,
+    "G75": null,
+    "U19": null,
+    "E57": null,
+    "W35": null,
+    "G5": null,
+    "D80": null,
+    "V1": null,
+    "F1": null,
+    "T42": null,
+    "E93": null,
+    "V30": null,
+    "F30": null,
+    "W105": null,
+    "G105": null,
+    "T15": null,
+    "D109": null,
+    "U38": null,
+    "V100": null,
+    "F89": null,
+    "W27": null,
+    "G35": null,
+    "U62": null,
+    "F34": null,
+    "W52": null,
+    "G46": null,
+    "T25": null,
+    "D45": null,
+    "U79": null,
+    "E79": null,
+    "V118": null,
+    "G20": null
+  }
+}

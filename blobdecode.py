@@ -1,5 +1,4 @@
-import codecs
-import struct
+
 from xml.dom import minidom
 import xml.etree.ElementTree as ET
 
@@ -7,7 +6,6 @@ import bz2
 import sqlite3
 from lxml import etree
 from tqdm import tqdm
-import cProfile
 
 import sqlite3
 
