@@ -1,15 +1,10 @@
 
-import json
 import random
 import numpy as np
 from numpy.typing import NDArray
 
-import pprint
-
 from xml.dom import minidom
 import xml.etree.ElementTree as ET
-
-import xmltodict 
 
 import bz2
 import sqlite3
@@ -51,51 +46,26 @@ xml = XML(content, etree.XMLParser(recover=True))
 
 rough_string = ET.tostring(xml, encoding='unicode')
 
-#print(rough_string)
+print(rough_string, "\n\n\n")
 
 root = ET.fromstring(rough_string)
 
 # Initialize an empty dictionary to store headers and their attributes
 headers_dict = {}
 
+arr = []
+
 for element in root:
 
     header_name = element.tag
     
     attributes_dict = element.attrib
-    
-    headers_dict[header_name] = attributes_dict
 
-# Print the dictionary
-# print(headers_dict)
+    arr.append((header_name ,  attributes_dict))
 
-for key in headers_dict:
-    if headers_dict[key]:
+print(arr)
 
-        if key == "INIT":
-            print("Intialise")
-
-        print(key, headers_dict[key])
-    else:
-
-        #tile 
-
-        print(key)
-
-# print("\n ")
-# print(firstGame)
-
-
-class Game:
-
-    windDict = {
-        "e_wind": 0,
-        "s_wind": 1,
-        "w_wind": 2,
-        "n_wind": 3,
-    }
-
-    strToIndex = {
+strToIndex = {
         "1_char": 0,
         "2_char": 1,
         "3_char": 2,
@@ -132,127 +102,14 @@ class Game:
         "r_drag": 33
     }
 
-    indexToStr = {v: k for k, v in strToIndex.items()}
+indexToStr = {v: k for k, v in strToIndex.items()}
 
-    def __init__(self):
-
-        self.gameState = np.zeros((11, 34))
-    
-    #gamestate conversion functions:
-
-    def setRoundWind(self, wind):
-        windNum = Game.windDict[wind]
-        self.gameState[0][0] = windNum
-
-    def getRoundWind(self):
-        reversedWindDict = {v: k for k, v in Game.windDict.items()}
-        return reversedWindDict[self.gameState[0][0]]
-    
-
-    def setDealer(self, dealer):
-        self.gameState[0][1] = dealer
-    
-    def getDealer(self):
-        return self.gameState[0][1]
-
-    def setHonbaSticks(self, amount):
-        self.gameState[0][3] = amount
-    
-    def getHonbaSticks(self):
-        return self.gameState[0][3]
-    
-    def setRiichiSticks(self, amount):
-        self.gameState[0][4] = amount
-    
-    def getRiichiSticks(self):
-        return self.gameState[0][4]
-    
-    def setWallTiles(self, amount):
-        self.gameState[0][5] = amount
-    
-    def decWallTiles(self):
-        self.gameState[0][5] -=1
-
-    def getWallTiles(self):
-        return self.gameState[0][5]
-    
-    def setPlayerScore(self, player, score):
-        if player in [0,1,2,3]:
-            self.gameState[0][6+player] = score
-        else:
-            print("Invalid Player")
-    
-    def getPlayerScore(self, player):
-        if player in [0,1,2,3]:
-            return self.gameState[0][6+player]
-        else:
-            print("Invalid Player")
-
-    def setPlayerRiichi(self, player):
-        if player in [0,1,2,3]:
-            self.gameState[0][10+player] = 1
-        else:
-            print("Invalid Player")
-    
-    def getPlayerRiichiStat(self, player):
-        if player in [0,1,2,3]:
-            return self.gameState[0][10+player]
-        else:
-            print("Invalid Player")
-    
-    def addDoraIndicator(self, doraIndicator: str):
-        self.gameState[1][self.strToIndex[doraIndicator]] += 1
-    
-    def getDoraIndicators(self):
-        return self.vectorToReadable(self.gameState[1])
-    
-    @staticmethod
-    def readableToVector(readableHand: list):
-        vectorHand = np.zeros(34)
-        for i in readableHand:
-            vectorHand[Game.strToIndex[i]] += 1
-        return vectorHand
-    
-    @staticmethod
-    def vectorToReadable(vectorHand: NDArray):
-        readableHand = []
-        for i in range(34):
-            for j in range(int(vectorHand[i])):
-                readableHand.append(Game.indexToStr[i])
-        return readableHand
-    
-    #game action functions:
-
-    def draw(self):
-        availableTile = list(self._tileWall.keys())
-        numAvailable = list(self._tileWall.values())
-
-        drawnTile = random.choices(availableTile, weights=numAvailable, k=1)[0]
-        self._tileWall[drawnTile] -= 1
-        return drawnTile
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+playerDict = {
+        0 : "e",
+        1 : "s",
+        2: "w",
+        3 : "n"
+    }
 
 # formatting hand into web format from mahjong 1.0
 def webFormat(handArray):
@@ -287,6 +144,61 @@ def format_xmlHand(string):
     for i in array:
         out[i // 4] +=1
     return webFormat(out)
+
+
+
+
+
+
+for item in arr:
+    if item[1]:
+
+        if item[0] == "INIT":
+            attr = item[1]
+
+            print("Intialise", format_xmlHand(attr["hai0"]) , format_xmlHand(attr["hai1"]) , format_xmlHand(attr["hai2"]) , format_xmlHand(attr["hai3"]))
+
+        if item[0] == "N":
+            attr = item[1]
+            player = playerDict[int(attr["who"])]
+            meld = attr["m"]
+
+            print("off", player, "discard", "CALLS", meld)
+        
+        print(item[0], item[1])
+    else:
+
+        if item[0][0] == "T":
+            print("e draw", indexToStr[(int(item[0][1:]) // 4)])
+
+        elif item[0][0] == "U":
+            print("s draw", indexToStr[(int(item[0][1:]) // 4)])
+
+        elif item[0][0] == "V":
+            print("w draw", indexToStr[(int(item[0][1:]) // 4)])
+            
+        elif item[0][0] == "W":
+            print("n draw", indexToStr[(int(item[0][1:]) // 4)])
+        
+
+        if item[0][0] == "D":
+            print("e discard", indexToStr[(int(item[0][1:]) // 4)])
+
+        elif item[0][0] == "E":
+            print("s discard", indexToStr[(int(item[0][1:]) // 4)])
+
+        elif item[0][0] == "F":
+            print("w discard", indexToStr[(int(item[0][1:]) // 4)])
+            
+        elif item[0][0] == "G":
+            print("n discard", indexToStr[(int(item[0][1:]) // 4)])
+
+
+# print("\n ")
+# print(firstGame)
+
+
+
 
 
 
