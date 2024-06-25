@@ -31,8 +31,14 @@ tile_dic = {i: f"{i+1}_man" if i <= 8 else f"{i-8}_pin" if i <= 17 else f"{i-17}
 honour_entries = {27 : "East", 28 : "South", 29 : "West", 30 : "North", 31 : "White", 32 : "Green", 33 : "Red"}
 tile_dic.update(honour_entries)
 
-def meldDecode2(meld):
+def meldDecode(meld):
+    t0, t1, t2 = (meld >> 3) & 0x3, (meld >> 5) & 0x3, (meld >> 7) & 0x3
+
     baseAndCalled = meld >> 10
     base = baseAndCalled // 3
     base = (base // 7) * 9 + base % 7
-    return base, tile_dic[base]
+
+    meldTiles = [t0 + 4*(base + 0), t1 + 4*(base + 1), t2 + 4*(base + 2)]
+    return base, tile_dic[base], meldTiles
+
+print(meldDecode(24007))
