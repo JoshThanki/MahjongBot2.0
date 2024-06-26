@@ -235,8 +235,6 @@ class Matrix:
     def addTileToPlayerPool(self, player, tile):
         self.gameState[7+player][tile] += 1
 
-    def rotateSeat
-
 
 def matrixify(arr):
     newArr = []
