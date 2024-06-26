@@ -105,7 +105,10 @@ class Matrix:
     def getMatrix(self):
         return self.gameState
     
-
+    #clears everything other than metadata  (need to fix padding, will do later)
+    def clearMatrix(self):
+        self.gameState[1:] = np.zeros((10, 34))
+    
     #input player (0-3) hand [34]
     def setPrivateHand(self, player, hand):
         self.privateHands[player] = hand
@@ -236,25 +239,37 @@ class Matrix:
         self.gameState[7+player][tile] += 1
 
 
+
 def matrixify(arr):
     newArr = []
 
-    matrix = Matrix()
+    matrix, privHands = Matrix()
 
-
-
-
+    def format_xmlHand(string):
+        out=np.zeros(34, dtype=int)
+        string_list = string.split(",")
+        array = np.array([int(i) for i in string_list])
+        for i in array:
+            out[i // 4] +=1
+        return out
 
     for item in arr:
         if item[1]:
 
             if item[0] == "INIT":
-                attr = item[1]
+                matrix.clear()
 
+                attr = item[1]  
+
+                matrix.setWallTiles()
+                
                 points = attr["ten"].split(",")
+                matrix.setPlayerScore(points)
+                
+                matrix.setDealer(attr["oya"])
 
-                newArr.append("Initialise: Dealer " + attr["oya"] + " | p0 , score " + points[0] + ", hand " + format_xmlHand(attr["hai0"]) + " |  p1,  score  " + points[1] + ", hand " + format_xmlHand(attr["hai1"]) + " | p2,  score " + points[2] + ", hand " + format_xmlHand(attr["hai2"]) + " | p3 ,  score " + points[3] + ", hand " + format_xmlHand(attr["hai3"]))
-                newArr.append((item[0], item[1]))
+                initialHands = [format_xmlHand(attr["hai"+str(i)]) for i in range(4) ]
+                privHands.setPrivateHand(initialHands)
 
             elif item[0] == "N":
                 attr = item[1]
