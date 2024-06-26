@@ -178,7 +178,7 @@ for item in arr:
                 POV_3_Hand[Hand_3[j] // 4] += 1
             score = str_to_num(attr["ten"])
             for i in range (len(score)):
-                Game_Matrix[0][7+i]= score[i]*100
+                Game_Matrix[0][7+i]= score[i]
 
         
     else:
