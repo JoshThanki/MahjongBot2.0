@@ -102,50 +102,81 @@ class Matrix:
         self.gameState = np.zeros((11, 34))
         self.privateHands = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
     
-    def returnMatrix(self):
+    def getMatrix(self):
         return self.gameState
     
+
+    #input player (0-3) hand [34]
     def setPrivateHand(self, player, hand):
         self.privateHands[player] = hand
 
-    def returnPrivateHand(self, player):
-        return self.privateHands[player]
+    #input player (0-3) tile (0-34)
+    def addTilePrivateHand(self, player, tile):
+        self.privateHands[player][tile] += 1
 
+    #input player (0-3) tile (0-34)
+    def removeTilePrivateHand(self, player, tile):
+        self.privateHands[player][tile] -= 1
+
+    def getPrivateHand(self, player):
+        return self.privateHands[player]
+    
+    #input - 0,1,2,3
     def setRoundWind(self, wind):
-        windNum = self.windDict[wind]
-        self.gameState[0][0] = windNum
+        self.gameState[0][0] = wind
 
     def getRoundWind(self):
-        reversedWindDict = {v: k for k, v in self.windDict.items()}
-        return reversedWindDict[self.gameState[0][0]]
+        return self.gameState[0][0]
     
+    #input 0,1,2,3
     def setDealer(self, dealer):
         self.gameState[0][1] = dealer
     
     def getDealer(self):
         return self.gameState[0][1]
 
+
+    #input player (0-3)
+    def setPOVPlayer(self, player, wind):
+        self.gameState[0][2] = player
+        self.gameState[2] = self.privateHands[player]
+        self.gameState[16] = wind
+
+    def rotPOVPlayer(self):
+        self.gameState[0][2] = (self.gameState[0][2] + 1) % 3
+        self.gameState[2] = self.privateHands[self.gameState[0][2]]
+        self.gameState[16] =  self.gameState[16] - 1 if self.gameState[16] else 2
+
+    #input amount 
     def setHonbaSticks(self, amount):
         self.gameState[0][3] = amount
     
     def getHonbaSticks(self):
         return self.gameState[0][3]
     
+    #input amount
     def setRiichiSticks(self, amount):
         self.gameState[0][4] = amount
+    
+    def addRiichiSticks(self):
+        self.gameState[0][4]+=1
     
     def getRiichiSticks(self):
         return self.gameState[0][4]
     
-    def setWallTiles(self, amount):
-        self.gameState[0][5] = amount
+    #input amount
+    def setWallTiles(self):
+        self.gameState[0][5] = 69
     
+    #decrement wall tiles by one
     def decWallTiles(self):
         self.gameState[0][5] -=1
 
     def getWallTiles(self):
         return self.gameState[0][5]
     
+    
+    #input player 0-3 , score
     def setPlayerScore(self, player, score):
         if player in [0,1,2,3]:
             self.gameState[0][6+player] = score
@@ -158,6 +189,8 @@ class Matrix:
         else:
             print("Invalid Player")
 
+
+    #input player, sets riichi status to true
     def setPlayerRiichi(self, player):
         if player in [0,1,2,3]:
             self.gameState[0][10+player] = 1
@@ -170,39 +203,39 @@ class Matrix:
         else:
             print("Invalid Player")
     
-
+    #input player (0-3), tile (0-34)
     def setPlayerLastDiscard(self, player, tile):
         self.gameState[0][14] = tile
         self.gameState[0][15] = player
 
-
+    #input player (0-3), wind(0-3)
     def setPlayerWind(self, player, wind):
-        windNum = self.windDict[wind]
-        self.gameState[0][16+player] = windNum
+        self.gameState[0][16+player] = wind
 
-    def addDoraIndicator(self, doraIndicator: str):
+    #input tile (0-34)
+    def addDoraIndicator(self, doraIndicator):
         self.gameState[1][doraIndicator] += 1
     
     def getDoraIndicators(self):
-        return self.vectorToReadable(self.gameState[1])
+        return (self.gameState[1])
     
-    def setPOVhand(self, hand):
-        self.gameState[2] = hand
-    
+    #input player (0-3), meldinfo( ([3-4] , isChi)
     def addPlayerMelds(self, player, meldinfo):
-        tiles = meldinfo[tiles]
-        type = meldinfo[type]
+        tiles = meldinfo[0]
+        type = meldinfo[1]
 
-        if type == "chi":
+        if type:
             self.gameState[0][17+player] += 1
         else:
             self.gameState[0][21+player]+=1
 
-        for tile in meldinfo:
+        for tile in tiles:
             self.gameState[3+player][tile] +=1
     
     def addTileToPlayerPool(self, player, tile):
         self.gameState[7+player][tile] += 1
+
+    def rotateSeat
 
 
 def matrixify(arr):
