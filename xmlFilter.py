@@ -31,41 +31,42 @@ con.close()
 
 out = {}
 
+
 strToIndex = {
-        "1_char": 0,
-        "2_char": 1,
-        "3_char": 2,
-        "4_char": 3,
-        "5_char": 4,
-        "6_char": 5,
-        "7_char": 6,
-        "8_char": 7,
-        "9_char": 8,
-        "1_circ": 9,
-        "2_circ": 10,
-        "3_circ": 11,
-        "4_circ": 12,
-        "5_circ": 13,
-        "6_circ": 14,
-        "7_circ": 15,
-        "8_circ": 16,
-        "9_circ": 17,
-        "1_bamb": 18,
-        "2_bamb": 19,
-        "3_bamb": 20,
-        "4_bamb": 21,
-        "5_bamb": 22,
-        "6_bamb": 23,
-        "7_bamb": 24,
-        "8_bamb": 25,
-        "9_bamb": 26,
-        "e_wind": 27,
-        "s_wind": 28,
-        "w_wind": 29,
-        "n_wind": 30,
-        "w_drag": 31,
-        "g_drag": 32,
-        "r_drag": 33
+        "1m": 0,
+        "2m": 1,
+        "3m": 2,
+        "4m": 3,
+        "5m": 4,
+        "6m": 5,
+        "7m": 6,
+        "8m": 7,
+        "9m": 8,
+        "1p": 9,
+        "2p": 10,
+        "3p": 11,
+        "4p": 12,
+        "5p": 13,
+        "6p": 14,
+        "7p": 15,
+        "8p": 16,
+        "9p": 17,
+        "1s": 18,
+        "2s": 19,
+        "3s": 20,
+        "4s": 21,
+        "5s": 22,
+        "6s": 23,
+        "7s": 24,
+        "8s": 25,
+        "9s": 26,
+        "E": 27,
+        "S": 28,
+        "W": 29,
+        "N": 30,
+        "Wd": 31,
+        "Gd": 32,
+        "Rd": 33
     }
 
 indexToStr = {v: k for k, v in strToIndex.items()}
@@ -139,29 +140,29 @@ def printNice(arr):
         else:
 
             if item[0][0] == "T":
-                newArr.append("e draw" + " " + indexToStr[(int(item[0][1:]) // 4)])
+                newArr.append("E draw: " + indexToStr[(int(item[0][1:]) // 4)])
 
             elif item[0][0] == "U":
-                newArr.append("s draw" + " " + indexToStr[(int(item[0][1:]) // 4)])
+                newArr.append("S draw: " + indexToStr[(int(item[0][1:]) // 4)])
 
             elif item[0][0] == "V":
-                newArr.append("w draw" + " " + indexToStr[(int(item[0][1:]) // 4)])
+                newArr.append("W draw: " + indexToStr[(int(item[0][1:]) // 4)])
                 
             elif item[0][0] == "W":
-                newArr.append("n draw" + " " + indexToStr[(int(item[0][1:]) // 4)])
+                newArr.append("N draw: " + indexToStr[(int(item[0][1:]) // 4)])
             
 
             if item[0][0] == "D":
-                newArr.append("e discard" + " " + indexToStr[(int(item[0][1:]) // 4)])
+                newArr.append("E discard: " + indexToStr[(int(item[0][1:]) // 4)])
 
             elif item[0][0] == "E":
-                newArr.append("s discard" + " " + indexToStr[(int(item[0][1:]) // 4)])
+                newArr.append("S discard: " + indexToStr[(int(item[0][1:]) // 4)])
 
             elif item[0][0] == "F":
-                newArr.append("w discard" + " " + indexToStr[(int(item[0][1:]) // 4)])
+                newArr.append("W discard: " + indexToStr[(int(item[0][1:]) // 4)])
                 
             elif item[0][0] == "G":
-                newArr.append("n discard" + " " + indexToStr[(int(item[0][1:]) // 4)])
+                newArr.append("N discard: " + indexToStr[(int(item[0][1:]) // 4)])
 
     return newArr
 
@@ -204,6 +205,7 @@ out = [covertLog(log) for log in logs]
 
 with open("out.txt", "w+") as file:
     json.dump(out, file, indent = 2)
+
 
 
 
