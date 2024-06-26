@@ -24,7 +24,7 @@ res = cur.execute("SELECT log_id, log_content FROM logs")
 
 logs = []
 
-for i in range(3):
+for i in range(10):
     logs.append(res.fetchone())
 
 con.close()
@@ -123,6 +123,11 @@ def printNice(arr):
     newArr = []
     for item in arr:
         if item[1]:
+            
+            if item[0] == "SHUFFLE":
+                attr = item[1]
+
+                print(attr["seed"].split(","))
 
             if item[0] == "INIT":
                 attr = item[1]
