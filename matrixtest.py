@@ -100,20 +100,25 @@ class Matrix:
     def __init__(self):
 
         self.gameState = np.zeros((11, 34))
+        self.privateHands = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
     
     def returnMatrix(self):
         return self.gameState
     
+    def setPrivateHand(self, player, hand):
+        self.privateHands[player] = hand
+
+    def returnPrivateHand(self, player):
+        return self.privateHands[player]
 
     def setRoundWind(self, wind):
         windNum = self.windDict[wind]
         self.gameState[0][0] = windNum
 
     def getRoundWind(self):
-        reversedWindDict = {v: k for k, v in Game.windDict.items()}
+        reversedWindDict = {v: k for k, v in self.windDict.items()}
         return reversedWindDict[self.gameState[0][0]]
     
-
     def setDealer(self, dealer):
         self.gameState[0][1] = dealer
     
@@ -165,34 +170,46 @@ class Matrix:
         else:
             print("Invalid Player")
     
+
+    def setPlayerLastDiscard(self, player, tile):
+        self.gameState[0][14] = tile
+        self.gameState[0][15] = player
+
+
+    def setPlayerWind(self, player, wind):
+        windNum = self.windDict[wind]
+        self.gameState[0][16+player] = windNum
+
     def addDoraIndicator(self, doraIndicator: str):
-        self.gameState[1][self.strToIndex[doraIndicator]] += 1
+        self.gameState[1][doraIndicator] += 1
     
     def getDoraIndicators(self):
         return self.vectorToReadable(self.gameState[1])
     
-    @staticmethod
-    def readableToVector(readableHand: list):
-        vectorHand = np.zeros(34)
-        for i in readableHand:
-            vectorHand[Game.strToIndex[i]] += 1
-        return vectorHand
+    def setPOVhand(self, hand):
+        self.gameState[2] = hand
     
-    @staticmethod
-    def vectorToReadable(vectorHand: NDArray):
-        readableHand = []
-        for i in range(34):
-            for j in range(int(vectorHand[i])):
-                readableHand.append(Game.indexToStr[i])
-        return readableHand
+    def addPlayerMelds(self, player, meldinfo):
+        tiles = meldinfo[tiles]
+        type = meldinfo[type]
+
+        if type == "chi":
+            self.gameState[0][17+player] += 1
+        else:
+            self.gameState[0][21+player]+=1
+
+        for tile in meldinfo:
+            self.gameState[3+player][tile] +=1
     
-    #game action functions:
+    def addTileToPlayerPool(self, player, tile):
+        self.gameState[7+player][tile] += 1
 
 
 def matrixify(arr):
     newArr = []
 
     matrix = Matrix()
+
 
 
 
