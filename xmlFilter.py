@@ -1,4 +1,5 @@
 
+import json
 import random
 import numpy as np
 from numpy.typing import NDArray
@@ -21,49 +22,14 @@ cur = con.cursor()
 
 res = cur.execute("SELECT log_id, log_content FROM logs")
 
-log = res.fetchone()
+logs = []
 
-firstgame = log[0]
-
-firstBlob = log[1]
-
-print(firstgame)
-
-print("\n")
-
-
-print("\n")
+for i in range(3):
+    logs.append(res.fetchone())
 
 con.close()
 
-XML = etree.XML
-
-decompress = bz2.decompress
-
-content = decompress(firstBlob)
-
-xml = XML(content, etree.XMLParser(recover=True))
-
-rough_string = ET.tostring(xml, encoding='unicode')
-
-print(rough_string, "\n\n\n")
-
-root = ET.fromstring(rough_string)
-
-# Initialize an empty dictionary to store headers and their attributes
-headers_dict = {}
-
-arr = []
-
-for element in root:
-
-    header_name = element.tag
-    
-    attributes_dict = element.attrib
-
-    arr.append((header_name ,  attributes_dict))
-
-print(arr)
+out = {}
 
 strToIndex = {
         "1_char": 0,
@@ -138,6 +104,9 @@ def webFormat(handArray):
     return string
 
 def format_xmlHand(string):
+    if string == "":
+        return ""
+
     out=np.zeros(34, dtype=int)
     string_list = string.split(",")
     array = np.array([int(i) for i in string_list])
@@ -145,60 +114,96 @@ def format_xmlHand(string):
         out[i // 4] +=1
     return webFormat(out)
 
+def printNice(arr):
+    newArr = []
+    for item in arr:
+        if item[1]:
 
+            if item[0] == "INIT":
+                attr = item[1]
 
+                points = attr["ten"].split(",")
 
+                newArr.append("Initialise: Dealer " + attr["oya"] + " | East player, score " + points[0] + ", hand " + format_xmlHand(attr["hai0"]) + " |  South player,  score  " + points[1] + ", hand " + format_xmlHand(attr["hai1"]) + " | West player,  score " + points[2] + ", hand " + format_xmlHand(attr["hai2"]) + " | North player,  score " + points[3] + ", hand " + format_xmlHand(attr["hai3"]))
+                newArr.append((item[0], item[1]))
 
+            elif item[0] == "N":
+                attr = item[1]
+                player = playerDict[int(attr["who"])]
+                meld = attr["m"]
 
-for item in arr:
-    if item[1]:
-
-        if item[0] == "INIT":
-            attr = item[1]
-
-            print("Intialise", format_xmlHand(attr["hai0"]) , format_xmlHand(attr["hai1"]) , format_xmlHand(attr["hai2"]) , format_xmlHand(attr["hai3"]))
-
-        if item[0] == "N":
-            attr = item[1]
-            player = playerDict[int(attr["who"])]
-            meld = attr["m"]
-
-            print(player, "CALLS", meld)
-        
-        print(item[0], item[1])
-    else:
-
-        if item[0][0] == "T":
-            print("e draw", indexToStr[(int(item[0][1:]) // 4)])
-
-        elif item[0][0] == "U":
-            print("s draw", indexToStr[(int(item[0][1:]) // 4)])
-
-        elif item[0][0] == "V":
-            print("w draw", indexToStr[(int(item[0][1:]) // 4)])
+                newArr.append(player + " " + "CALLS" + " " + meld)
             
-        elif item[0][0] == "W":
-            print("n draw", indexToStr[(int(item[0][1:]) // 4)])
-        
+            else:
+                newArr.append((item[0], item[1]))
+        else:
 
-        if item[0][0] == "D":
-            print("e discard", indexToStr[(int(item[0][1:]) // 4)])
+            if item[0][0] == "T":
+                newArr.append("e draw" + " " + indexToStr[(int(item[0][1:]) // 4)])
 
-        elif item[0][0] == "E":
-            print("s discard", indexToStr[(int(item[0][1:]) // 4)])
+            elif item[0][0] == "U":
+                newArr.append("s draw" + " " + indexToStr[(int(item[0][1:]) // 4)])
 
-        elif item[0][0] == "F":
-            print("w discard", indexToStr[(int(item[0][1:]) // 4)])
+            elif item[0][0] == "V":
+                newArr.append("w draw" + " " + indexToStr[(int(item[0][1:]) // 4)])
+                
+            elif item[0][0] == "W":
+                newArr.append("n draw" + " " + indexToStr[(int(item[0][1:]) // 4)])
             
-        elif item[0][0] == "G":
-            print("n discard", indexToStr[(int(item[0][1:]) // 4)])
+
+            if item[0][0] == "D":
+                newArr.append("e discard" + " " + indexToStr[(int(item[0][1:]) // 4)])
+
+            elif item[0][0] == "E":
+                newArr.append("s discard" + " " + indexToStr[(int(item[0][1:]) // 4)])
+
+            elif item[0][0] == "F":
+                newArr.append("w discard" + " " + indexToStr[(int(item[0][1:]) // 4)])
+                
+            elif item[0][0] == "G":
+                newArr.append("n discard" + " " + indexToStr[(int(item[0][1:]) // 4)])
+
+    return newArr
 
 
-# print("\n ")
-# print(firstGame)
+def covertLog(log):
+
+    game = log[0]
+
+    blob = log[1]
+
+    XML = etree.XML
+
+    decompress = bz2.decompress
+
+    content = decompress(blob)
+
+    xml = XML(content, etree.XMLParser(recover=True))
+
+    rough_string = ET.tostring(xml, encoding='unicode')
+
+    root = ET.fromstring(rough_string)
+
+    arr = []
+
+    for element in root:
+
+        header_name = element.tag
+        
+        attributes_dict = element.attrib
+
+        arr.append((header_name ,  attributes_dict))
 
 
+    arr = printNice(arr)
 
+    return game, arr
+
+
+out = [covertLog(log) for log in logs]
+
+with open("out.txt", "w+") as file:
+    json.dump(out, file, indent = 2)
 
 
 
