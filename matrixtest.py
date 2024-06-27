@@ -105,6 +105,10 @@ class Matrix:
         self.privateHands = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
         self.Closed = [True, True, True, True]
         self.notRiichi = [True, True, True, True]
+
+        #set last player discard back to padding
+        self.setPlayerLastDiscard(-128, -128)
+        self.initialisePadding()
     
     def getnotRiichi(self, player):
         return self.notRiichi[player]
@@ -121,6 +125,10 @@ class Matrix:
         self.gameState[1:] = np.zeros((10, 34))
     
     # hand [34]
+
+    def initialisePadding(self):
+        self.gameState[0][25:32] = [0] * 7 
+
     def initialisePrivateHands(self, hands):
         for player in range(4):
             self.privateHands[player] = hands[player]
@@ -193,13 +201,10 @@ class Matrix:
     def getWallTiles(self):
         return self.gameState[0][5]
     
-    
-    #input player 0-3 , score
-    def setPlayerScore(self, player, score):
-        if player in [0,1,2,3]:
-            self.gameState[0][6+player] = score
-        else:
-            print("Invalid Player")
+    #input score [4]
+    def setPlayerScore(self, score):
+        for player in [0,1,2,3]:
+            self.gameState[0][6+player] = score[player]
     
     def getPlayerScore(self, player):
         if player in [0,1,2,3]:
@@ -226,6 +231,10 @@ class Matrix:
         self.gameState[0][14] = tile
         self.gameState[0][15] = player
 
+    #returns player and tile
+    def getPlayerLastDiscard(self):
+        return self.gameState[0][15], self.gameState[0][14]
+    
     #input player (0-3), wind(0-3)
     def setPlayerWind(self, player, wind):
         self.gameState[0][16+player] = wind
@@ -285,6 +294,167 @@ def matprint(mat, fmt="g"):
         for i, y in enumerate(x):
             print(("{:"+str(col_maxes[i])+fmt+"}").format(y), end="  ")
         print("")
+
+
+
+def matrixifymelds(arr):
+    matrix = Matrix()
+
+    chiArr = []
+    ponArr = []
+    kanArr = []
+
+    def format_xmlHand(string):
+        if string == '':
+            return [0]*34
+
+        out=np.zeros(34, dtype=int)
+        string_list = string.split(",")
+        array = np.array([int(i) for i in string_list])
+        for i in array:
+            out[i // 4] +=1
+        return out
+
+    def format_seed(string):
+        return [int(i)//4 for i in string.split(",")]
+
+
+    def checkMelds():
+        discardPlayer, tile = matrix.getPlayerLastDiscard() 
+        players = [0,1,2,3].remove(discardPlayer)
+
+        chiArr, ponArr, kanArr  = None
+
+
+        for player in players:
+            matrix.setPOVPlayer(player)
+            chi, pon, kan = 0
+            
+            previousPlayer = ((player - 1) if player else 2)
+
+            if discardPlayer == previousPlayer and matrix.canChi(player, tile):
+                if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player: #Add code to check actual chi
+                    chi = 1
+
+                chiArr = [copy.deepcopy(matrix.getMatrix), chi]
+
+            elif  matrix.canPon(player, tile):
+                if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player: #Add code to check actual pon
+                    pon = 1
+
+                ponArr = [copy.deepcopy(matrix.getMatrix), pon]
+
+            elif  matrix.canKan(player, tile):
+                if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player: #Add code to check actual kan
+                    kan = 1
+
+                ponArr = [copy.deepcopy(matrix.getMatrix), kan]
+
+        return chiArr, ponArr, kanArr
+
+
+    for index,item in enumerate(arr): 
+        if item[1]:
+            attr = item[1]
+            if item[0] == "INIT":
+                latestDiscard = 0
+                matrix.clearMatrix() 
+
+                matrix.setWallTiles()
+                
+                points = attr["ten"].split(",")
+                
+                matrix.setPlayerScore(points)
+                
+                matrix.setDealer(attr["oya"])
+
+                initialHands = [format_xmlHand(attr["hai"+str(i)]) for i in range(4) ]
+                matrix.initialisePrivateHands(initialHands)
+
+                seed = format_seed(attr["seed"])
+                matrix.addDoraIndicator(seed[5])
+                matrix.setHonbaSticks(seed[1])
+
+            elif item[0] == "N":
+                meldTiles, isChi, newDora = [1,1,1],0,0    #decodeMeld(attr["m"]) #placholder function
+                player = int( attr["who"] )
+
+                #matrix.setOpen(player)
+            
+#            else:
+#                newArr.append((item[0], item[1]))
+
+        else:
+            attr = item[0]        # attr in the form of, say, T46
+            moveIndex = attr[0]   # T
+            tile = int(attr[1:]) // 4  # 46 // 4
+
+            if moveIndex == "T":
+                matrix.decWallTiles()                          # remove a wall tile after drawing
+                matrix.addTilePrivateHand(0, tile)   # add the drawn tile to hand
+
+            elif moveIndex == "U":
+                matrix.decWallTiles()
+                matrix.addTilePrivateHand(1, tile)
+                
+            elif moveIndex == "V":
+                matrix.decWallTiles()
+                matrix.addTilePrivateHand(2, tile)
+                
+            elif moveIndex == "W":
+                matrix.decWallTiles()
+                matrix.addTilePrivateHand(3, tile)
+                
+
+            elif moveIndex == "D":
+                matrix.removeTilePrivateHand(0, tile)   # remove discarded tile from hand 
+                matrix.setPlayerLastDiscard(0, tile) # updates latest discard
+                chiRet, ponRet, kanRet = checkMelds()  
+                if chiRet:
+                    chiArr.append(chiRet)
+                elif ponRet:
+                    ponArr.append(ponRet)
+                elif kanRet:
+                    kanArr.append(kanRet)
+
+            elif moveIndex == "E":
+                matrix.removeTilePrivateHand(1, tile)  
+                matrix.setPlayerLastDiscard(1, tile)
+                chiRet, ponRet, kanRet = checkMelds() 
+
+                if chiRet:
+                    chiArr.append(chiRet)
+                elif ponRet:
+                    ponArr.append(ponRet)
+                elif kanRet:
+                    kanArr.append(kanRet)
+                
+
+            elif moveIndex == "F":
+                matrix.removeTilePrivateHand(2, tile) 
+                matrix.setPlayerLastDiscard(2, tile)
+                chiRet, ponRet, kanRet = checkMelds() 
+                
+                if chiRet:
+                    chiArr.append(chiRet)
+                elif ponRet:
+                    ponArr.append(ponRet)
+                elif kanRet:
+                    kanArr.append(kanRet)
+                
+            elif moveIndex == "G":
+                matrix.removeTilePrivateHand(3, tile)
+                matrix.setPlayerLastDiscard(3, tile)  
+                chiRet, ponRet, kanRet = checkMelds() 
+
+                if chiRet:
+                    chiArr.append(chiRet)
+                elif ponRet:
+                    ponArr.append(ponRet)
+                elif kanRet:
+                    kanArr.append(kanRet)
+                
+    return chiArr, ponArr, kanArr
 
 
 
@@ -571,7 +741,6 @@ def matrixify(arr):
                 matrix.setPlayerLastDiscard = tile  
 
     return reachArr
-
 
 def convertLog(log):
 
