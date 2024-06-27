@@ -663,7 +663,8 @@ def matrixify(arr):
     
         return min(general_shanten(handArray), chiitoistu_shanten(handArray), orphanSource_shanten(handArray))
 
-    def decodeMeld(data):
+    # returns tiles, meldType
+    def decodeMeld(data): #chi:0, pon:1, openKan:2, closedKain:3, chakan:4
         def decodeChi(data):
             meldType = 0
             t0, t1, t2 = (data >> 3) & 0x3, (data >> 5) & 0x3, (data >> 7) & 0x3
@@ -707,7 +708,7 @@ def matrixify(arr):
             meld = decodeNuki(data)
         else:
             meld = decodeKan(data, False)
-        return meld                       #chi:0, pon:1, openKan:2, closedKain:3, chakan:4
+        return meld
 
 
     for index,item in enumerate(arr): 
@@ -732,7 +733,9 @@ def matrixify(arr):
                 matrix.setHonbaSticks(seed[1])
 
             elif item[0] == "N":
-                meldTiles, isChi, newDora = [1,1,1],0,0    #decodeMeld(attr["m"]) #placholder function
+
+
+                meldTiles, meldType = decodeMeld(attr["m"])
                 player = int( attr["who"] )
 
                 #matrix.setOpen(player)
