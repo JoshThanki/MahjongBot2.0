@@ -14,6 +14,8 @@ from tqdm import tqdm
 
 import sqlite3
 
+import copy
+
 dbfile = '2020.db'
 
 con = sqlite3.connect(dbfile)
@@ -24,7 +26,7 @@ res = cur.execute("SELECT log_id, log_content FROM logs")
 
 logs = []
 
-for i in range(3):
+for i in range(1):
     logs.append(res.fetchone())
 
 con.close()
@@ -101,7 +103,16 @@ class Matrix:
 
         self.gameState = np.zeros((11, 34))
         self.privateHands = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
+        self.Closed = [True, True, True, True]
+        self.notRiichi = [True, True, True, True]
     
+    def getnotRiichi(self, player):
+        return self.notRiichi[player]
+    
+    def setRiichi(self, player):
+        self.notRiichi[player] = False
+
+
     def getMatrix(self):
         return self.gameState
     
@@ -109,9 +120,13 @@ class Matrix:
     def clearMatrix(self):
         self.gameState[1:] = np.zeros((10, 34))
     
-    #input player (0-3) hand [34]
-    def setPrivateHand(self, player, hand):
-        self.privateHands[player] = hand
+    # hand [34]
+    def initialisePrivateHands(self, hands):
+        for player in range(4):
+            self.privateHands[player] = hands[player]
+   
+    def setPrivatehand(self, player, hand):
+        self.gameState[2] = hand
 
     #input player (0-3) tile (0-34)
     def addTilePrivateHand(self, player, tile):
@@ -257,18 +272,31 @@ class Matrix:
             elif t == 1: return (h[tile+1] and h[tile+2]) or (h[tile-1] and h[tile+1])
             elif t == 7: return (h[tile-1] and h[tile-2]) or (h[tile-1] and h[tile+1])
             else: return (h[tile-1] and h[tile-2]) or (h[tile-1] and h[tile+1]) or (h[tile+1] and h[tile+2])
+    
+    def setOpen(self, player):
+        self.Closed[player] = False
+    
+    def getClosed(self, player):
+        return self.Closed[player]
 
-         
-
+def matprint(mat, fmt="g"):
+    col_maxes = [max([len(("{:"+fmt+"}").format(x)) for x in col]) for col in mat.T]
+    for x in mat:
+        for i, y in enumerate(x):
+            print(("{:"+str(col_maxes[i])+fmt+"}").format(y), end="  ")
+        print("")
 
 
 
 def matrixify(arr):
-    matrix, privHands = Matrix()
+    matrix = Matrix()
 
     reachArr = []
 
     def format_xmlHand(string):
+        if string == '':
+            return [0]*34
+
         out=np.zeros(34, dtype=int)
         string_list = string.split(",")
         array = np.array([int(i) for i in string_list])
@@ -279,17 +307,11 @@ def matrixify(arr):
     def format_seed(string):
         return [int(i)//4 for i in string.split(",")]
 
-    def calcShanten(handArray):
-
-        out = np.zeros(34, dtype=int)
-        string_list = handArray.split(",")
-        handArray = np.array([int(i) for i in string_list])
-        for i in handArray:
-            out[i // 4] +=1
+    def calcShanten(hand):
         
         #converting to mahjong 1.0 format
         split_indices=[9,18,27]
-        handArray =  np.split(out, split_indices) 
+        handArray =  np.split(hand, split_indices) 
 
         def pairs(suit_arr):
             possible_pairs=[]
@@ -468,77 +490,90 @@ def matrixify(arr):
 
 
 
-    current_index = 0
-    for item in arr: 
+    for index,item in enumerate(arr): 
         if item[1]:
             attr = item[1]
             if item[0] == "INIT":
                 latestDiscard = 0
-                matrix.clear() 
+                matrix.clearMatrix() 
 
                 matrix.setWallTiles()
                 
                 points = attr["ten"].split(",")
-                matrix.setPlayerScore(points)
+             #   matrix.setPlayerScore(points)
                 
                 matrix.setDealer(attr["oya"])
 
                 initialHands = [format_xmlHand(attr["hai"+str(i)]) for i in range(4) ]
-                privHands.setPrivateHand(initialHands)
+                matrix.initialisePrivateHands(initialHands)
 
                 seed = format_seed(attr["seed"])
                 matrix.addDoraIndicator(seed[5])
                 matrix.setHonbaSticks(seed[1])
 
             elif item[0] == "N":
-                meldTiles, isChi, newDora = decodeMeld(attr["m"]) #placholder function
-                player = attr["who"]
+                meldTiles, isChi, newDora = [1,1,1],0,0    #decodeMeld(attr["m"]) #placholder function
+                player = int( attr["who"] )
+
+                #matrix.setOpen(player)
             
-            else:
-                newArr.append((item[0], item[1]))
+#            else:
+#                newArr.append((item[0], item[1]))
 
         else:
             attr = item[0]        # attr in the form of, say, T46
             moveIndex = attr[0]   # T
-            tile = attr[1:] // 4  # 46 // 4
+            tile = int(attr[1:]) // 4  # 46 // 4
 
             if moveIndex == "T":
+                hand = matrix.getPrivateHand(0)
+
                 matrix.decWallTiles()                          # remove a wall tile after drawing
-                privHands.addTilePrivateHand(self,  tile, 0)   # add the drawn tile to hand
+                matrix.addTilePrivateHand(0, tile)   # add the drawn tile to hand
+                matrix.setPrivatehand(0, hand)
+
+                if matrix.getnotRiichi(0) and matrix.getClosed(0) and calcShanten(matrix.getPrivateHand(0)) == 0:
+                    if arr[index+1][0] == "REACH": 
+                        matrix.setRiichi(0)
+                    print(arr[index+1])
+                    print(calcShanten(hand))
+                    print(webFormat(hand))
+                    reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(0) else 1]) # riichi is always 1 for now
+
 
             elif moveIndex == "U":
                 matrix.decWallTiles()
-                privHands.addTilePrivateHand(self,  tile, 1)
+                matrix.addTilePrivateHand(1, tile)
                 
             elif moveIndex == "V":
                 matrix.decWallTiles()
-                privHands.addTilePrivateHand(self,  tile, 2)
+                matrix.addTilePrivateHand(2, tile)
                 
             elif moveIndex == "W":
                 matrix.decWallTiles()
-                privHands.addTilePrivateHand(self,  tile, 3)
+                matrix.addTilePrivateHand(3, tile)
                 
 
             elif moveIndex == "D":
-                privHands.removeTilePrivateHand(self, tile, 0)   # remove discarded tile from hand 
+                matrix.removeTilePrivateHand(0, tile)   # remove discarded tile from hand 
                 matrix.setPlayerLastDiscard = tile                             # updates latest discard
 
             elif moveIndex == "E":
-                privHands.removeTilePrivateHand(self, tile, 1)  
+                matrix.removeTilePrivateHand(1, tile)  
                 matrix.setPlayerLastDiscard = tile  
 
             elif moveIndex == "F":
-                privHands.removeTilePrivateHand(self, tile, 2) 
+                matrix.removeTilePrivateHand(2, tile) 
                 matrix.setPlayerLastDiscard = tile  
                 
             elif moveIndex == "G":
-                privHands.removeTilePrivateHand(self, tile, 3)
+                matrix.removeTilePrivateHand(3, tile)
                 matrix.setPlayerLastDiscard = tile  
 
-    return newArr
+    return reachArr
 
 
-def covertLog(log):
+def convertLog(log):
 
     game = log[0]
 
@@ -566,18 +601,22 @@ def covertLog(log):
 
         arr.append((header_name ,  attributes_dict))
 
-
-    arr = matrixify(arr)
-
     return game, arr
 
 
-out = [covertLog(log) for log in logs]
+out = [convertLog(log) for log in logs]
 
-with open("out.txt", "w+") as file:
-    json.dump(out, file, indent = 2)
+#with open("out.txt", "w+") as file:
+#    json.dump(out, file, indent = 2)
+
+tupl = out[0]
+game = tupl[1]
 
 
+for i in matrixify(game):
+    matprint(i[0])
+    print(i[1])
+    print('')
 
 
 
