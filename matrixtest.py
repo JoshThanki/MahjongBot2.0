@@ -247,8 +247,17 @@ class Matrix:
         return (self.privateHands[player][tile] >= 3)
 
     def canChi(self, player, tile): # need to write logic to check for seat (can only chi from person before you)
-        
-        
+        if tile//9 == 3: return False
+        else:
+            t = tile % 9
+            h = self.privateHands[player]
+            # skull
+            if t == 0: return (h[t+1] and h[t+2])
+            elif t == 8: return (h[t-1] and h[t-2])
+            elif t == 1: return (h[t+1] and h[t+2]) or (h[t-1] and h[t+1])
+            elif t == 7: return (h[t-1] and h[t-2]) or (h[t-1] and h[t+1])
+            else: return (h[t-1] and h[t-2]) or (h[t-1] and h[t+1]) or (h[t+1] and h[t+2])
+
          
 
 
