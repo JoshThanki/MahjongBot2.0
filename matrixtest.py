@@ -239,10 +239,22 @@ class Matrix:
         self.gameState[7+player][tile] += 1
 
 
+    #meld functions
+    def canPon(self, player, tile):
+        return (self.privateHands[player][tile] >= 2)
+
+    def canKan(self, player, tile):
+        return (self.privateHands[player][tile] >= 3)
+
+    def canChi(self, player, tile): # need to write logic to check for seat (can only chi from person before you)
+        
+        
+         
+
+
+
 
 def matrixify(arr):
-    newArr = []
-
     matrix, privHands = Matrix()
 
     def format_xmlHand(string):
@@ -253,13 +265,15 @@ def matrixify(arr):
             out[i // 4] +=1
         return out
 
+    def format_seed(string):
+        return [int(i)//4 for i in string.split(",")]
+
     for item in arr:
         if item[1]:
-
+            attr = item[1]
             if item[0] == "INIT":
-                matrix.clear()
-
-                attr = item[1]  
+                latestDiscard = 0
+                matrix.clear() 
 
                 matrix.setWallTiles()
                 
@@ -271,41 +285,60 @@ def matrixify(arr):
                 initialHands = [format_xmlHand(attr["hai"+str(i)]) for i in range(4) ]
                 privHands.setPrivateHand(initialHands)
 
+                seed = format_seed(attr["seed"])
+                matrix.addDoraIndicator(seed[5])
+                matrix.setHonbaSticks(seed[1])
+
             elif item[0] == "N":
-                attr = item[1]
-                player = playerDict[int(attr["who"])]
-                meld = attr["m"]
+                meldTiles, isChi, newDora = decodeMeld(attr["m"]) #placholder function
+                player = attr["who"]
+
+
+
+
 
                 newArr.append(player + " " + "CALLS" + " " + meld)
             
             else:
                 newArr.append((item[0], item[1]))
+
         else:
+            attr = item[0]        # attr in the form of, say, T46
+            moveIndex = attr[0]   # T
+            tile = attr[1:] // 4  # 46 // 4
 
-            if item[0][0] == "T":
-                newArr.append("p0 draw" + " " + tile_dic[(int(item[0][1:]) // 4)])
+            if moveIndex == "T":
+                matrix.decWallTiles()                          # remove a wall tile after drawing
+                privHands.addTilePrivateHand(self,  tile, 0)   # add the drawn tile to hand
 
-            elif item[0][0] == "U":
-                newArr.append("p1 draw" + " " + tile_dic[(int(item[0][1:]) // 4)])
-
-            elif item[0][0] == "V":
-                newArr.append("p2 draw" + " " + tile_dic[(int(item[0][1:]) // 4)])
+            elif moveIndex == "U":
+                matrix.decWallTiles()
+                privHands.addTilePrivateHand(self,  tile, 1)
                 
-            elif item[0][0] == "W":
-                newArr.append("p3 draw" + " " + tile_dic[(int(item[0][1:]) // 4)])
-            
-
-            if item[0][0] == "D":
-                newArr.append("p0 discard" + " " + tile_dic[(int(item[0][1:]) // 4)])
-
-            elif item[0][0] == "E":
-                newArr.append("p1 discard" + " " + tile_dic[(int(item[0][1:]) // 4)])
-
-            elif item[0][0] == "F":
-                newArr.append("p2 discard" + " " + tile_dic[(int(item[0][1:]) // 4)])
+            elif moveIndex == "V":
+                matrix.decWallTiles()
+                privHands.addTilePrivateHand(self,  tile, 2)
                 
-            elif item[0][0] == "G":
-                newArr.append("p3 discard" + " " + tile_dic[(int(item[0][1:]) // 4)])
+            elif moveIndex == "W":
+                matrix.decWallTiles()
+                privHands.addTilePrivateHand(self,  tile, 3)
+                
+
+            elif moveIndex == "D":
+                privHands.removeTilePrivateHand(self, tile, 0)   # remove discarded tile from hand 
+                latestDiscard = tile                             # updates latest discard
+
+            elif moveIndex == "E":
+                privHands.removeTilePrivateHand(self, tile, 1)  
+                latestDiscard = tile
+
+            elif moveIndex == "F":
+                privHands.removeTilePrivateHand(self, tile, 2) 
+                latestDiscard = tile
+                
+            elif moveIndex == "G":
+                privHands.removeTilePrivateHand(self, tile, 3)
+                latestDiscard = tile
 
     return newArr
 
