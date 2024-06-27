@@ -352,6 +352,9 @@ def matrixifymelds(arr):
 
                 ponArr = [copy.deepcopy(matrix.getMatrix()), kan]
 
+
+        matrix.setPOVPlayer(discardPlayer)
+        
         return chiArr, ponArr, kanArr
 
 
