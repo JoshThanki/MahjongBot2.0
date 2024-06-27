@@ -105,7 +105,8 @@ class Matrix:
         self.privateHands = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
         self.Closed = [True, True, True, True]
         self.notRiichi = [True, True, True, True]
-
+        self.winds = [0,1,2,3]
+        
         #set last player discard back to padding
         self.setPlayerLastDiscard(-128, -128)
         self.initialisePadding()
@@ -163,15 +164,15 @@ class Matrix:
 
 
     #input player (0-3)
-    def setPOVPlayer(self, player, wind):
+    def setPOVPlayer(self, player):
         self.gameState[0][2] = player
         self.gameState[2] = self.privateHands[player]
-        self.gameState[16] = wind
+        self.gameState[0][16] = self.winds[player]
 
     def rotPOVPlayer(self):
         self.gameState[0][2] = (self.gameState[0][2] + 1) % 3
         self.gameState[2] = self.privateHands[self.gameState[0][2]]
-        self.gameState[16] =  self.gameState[16] - 1 if self.gameState[16] else 2
+        self.gameState[0][16] =  self.gameState[16] - 1 if self.gameState[16] else 2
 
     #input amount 
     def setHonbaSticks(self, amount):
@@ -233,7 +234,7 @@ class Matrix:
 
     #returns player and tile
     def getPlayerLastDiscard(self):
-        return self.gameState[0][15], self.gameState[0][14]
+        return int(self.gameState[0][15]), int(self.gameState[0][14])
     
     #input player (0-3), wind(0-3)
     def setPlayerWind(self, player, wind):
@@ -246,12 +247,13 @@ class Matrix:
     def getDoraIndicators(self):
         return (self.gameState[1])
     
-    #input player (0-3), meldinfo( ([3-4] , isChi)
+    #input player (0-3), meldinfo(([3-4] , (0-3) 0: chi,  1: pon, 2: open kan, 3: closed kan
+
     def addPlayerMelds(self, player, meldinfo):
         tiles = meldinfo[0]
         type = meldinfo[1]
 
-        if type:
+        if not type:
             self.gameState[0][17+player] += 1
         else:
             self.gameState[0][21+player]+=1
@@ -321,14 +323,14 @@ def matrixifymelds(arr):
 
     def checkMelds():
         discardPlayer, tile = matrix.getPlayerLastDiscard() 
-        players = [0,1,2,3].remove(discardPlayer)
+        players = [0,1,2,3]
+        players.remove(discardPlayer)
 
-        chiArr, ponArr, kanArr  = None
-
+        chiArr, ponArr, kanArr  = None , None, None
 
         for player in players:
             matrix.setPOVPlayer(player)
-            chi, pon, kan = 0
+            chi, pon, kan = 0 , 0 , 0 
             
             previousPlayer = ((player - 1) if player else 2)
 
@@ -336,20 +338,23 @@ def matrixifymelds(arr):
                 if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player: #Add code to check actual chi
                     chi = 1
 
-                chiArr = [copy.deepcopy(matrix.getMatrix), chi]
+                chiArr = [copy.deepcopy(matrix.getMatrix()), chi]
 
             elif  matrix.canPon(player, tile):
                 if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player: #Add code to check actual pon
                     pon = 1
 
-                ponArr = [copy.deepcopy(matrix.getMatrix), pon]
+                ponArr = [copy.deepcopy(matrix.getMatrix()), pon]
 
             elif  matrix.canKan(player, tile):
                 if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player: #Add code to check actual kan
                     kan = 1
 
-                ponArr = [copy.deepcopy(matrix.getMatrix), kan]
+                ponArr = [copy.deepcopy(matrix.getMatrix()), kan]
 
+
+        matrix.setPOVPlayer(discardPlayer)
+        
         return chiArr, ponArr, kanArr
 
 
@@ -408,7 +413,7 @@ def matrixifymelds(arr):
 
             elif moveIndex == "D":
                 matrix.removeTilePrivateHand(0, tile)   # remove discarded tile from hand 
-                matrix.setPlayerLastDiscard(0, tile) # updates latest discard
+                matrix.setPlayerLastDiscard(0, tile)  # updates latest discard
                 chiRet, ponRet, kanRet = checkMelds()  
                 if chiRet:
                     chiArr.append(chiRet)
@@ -827,10 +832,32 @@ tupl = out[0]
 game = tupl[1]
 
 
-for i in matrixify(game):
-    matprint(i[0])
-    print(i[1])
-    print('')
 
 
+def testMatrixifymelds(game):
 
+    chiArr, ponArr, kanArr = matrixifymelds(game)
+
+    for res in chiArr:
+        print()
+        print("matrix")
+        matprint(res[0])
+        print("label")
+        print(res[1])
+
+    # for res in ponArr:
+    #     print()
+    #     print("matrix")
+    #     matprint(res[0])
+    #     print("label")
+    #     print(res[1])
+
+    # for res in kanArr:
+    #     print()
+    #     print("matrix")
+    #     matprint(res[0])
+    #     print("label")
+    #     print(res[1])
+
+
+testMatrixifymelds(game)
