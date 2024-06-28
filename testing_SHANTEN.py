@@ -30,17 +30,6 @@ def webFormat_10(handArray):
 
 
 def calcShanten(handArray):
-
-    out = np.zeros(34, dtype=int)
-    string_list = handArray.split(",")
-    handArray = np.array([int(i) for i in string_list])
-    for i in handArray:
-        out[i // 4] +=1
-    
-    #converting to mahjong 1.0 format
-    split_indices=[9,18,27]
-    handArray =  np.split(out, split_indices) 
-
     def pairs(suit_arr):
         possible_pairs=[]
 
@@ -227,15 +216,7 @@ def format_xmlHand(string):
     return out
 
 
+#11167778m11s444z
 
-#testing speed
-start_time = time.time()
-for i in tqdm(range(10)):
-    hand = "34,27,20,47,130,98,132,102,13,133,2,79,31"
-    #hand = format_xmlHand(hand)
-    #webFormat0(hand)
-    calcShanten(hand)
-end_time = time.time()
+hand = [[0,0,0,0,0,1,3,1,0],[0]*9,[2,0,0,0,1,0,0,0,0],[3,0,0,0,0,0,0]]
 print(calcShanten(hand))
-#print(webFormat_10(hand))
-print(end_time-start_time)

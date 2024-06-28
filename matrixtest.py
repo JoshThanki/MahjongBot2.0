@@ -103,13 +103,16 @@ class Matrix:
 
         self.gameState = np.zeros((11, 34))
         self.privateHands = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
+        self.playerMelds = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
         self.Closed = [True, True, True, True]
         self.notRiichi = [True, True, True, True]
         self.winds = [0,1,2,3]
         self.lastDrawPlayer = -1
+        self.lastDiscardTile = -1
+        self.closedKans = [0,0,0,0]
         
         #set last player discard back to padding
-        self.setPlayerLastDiscard(-128, -128)
+       # self.setPlayerLastDiscard(-128, -128)
 
     
     def getnotRiichi(self, player):
@@ -127,8 +130,14 @@ class Matrix:
         self.Closed = [True, True, True, True]
         self.notRiichi = [True, True, True, True]
         self.gameState[1:] = np.zeros((10, 34))
-    
+        self.playerMelds = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
+        self.closedKans = [0,0,0,0]
     # hand [34]
+    def addClosedKan(self, player):
+        self.closedKans[player] += 1
+
+    def getClosedKan(self, player):
+        return self.closedKans[player]
 
     def initialisePadding(self):
         self.gameState[0][25:32] = [0] * 7 
@@ -235,9 +244,11 @@ class Matrix:
         self.gameState[0][14] = tile
         self.gameState[0][15] = player
     
-    def setPlayerLastDiscard(self, player, tile):
+    def setLastDiscardTile(self, tile):
         self.lastDiscardTile = tile
-        self.lastDiscardPlayer = player
+
+    def getLastDiscardTile(self):
+        return self.lastDiscardTile
     
     def setLastDrawPlayer(self, player):
         self.lastDrawPlayer = player
@@ -246,8 +257,8 @@ class Matrix:
         return self.lastDrawPlayer
 
     #returns player and tile
-    def getPlayerLastDiscard(self):
-        return int(self.gameState[0][15]), int(self.gameState[0][14])
+#    def getPlayerLastDiscard(self):
+#        return int(self.gameState[0][15]), int(self.gameState[0][14])
     
     #input player (0-3), wind(0-3)
     def setPlayerWind(self, player, wind):
@@ -262,11 +273,23 @@ class Matrix:
     
     #input player (0-3), meldinfo(([3-4] , (0-3) 0: chi,  1: pon, 2: open kan, 3: closed kan
 
-    def addPlayerMelds(self, player, meldinfo):
+    def addPlayerMelds(self, player, meldinfo, isClosedKan):
         tiles = meldinfo[0]
-
         for tile in tiles:
-            self.gameState[3+player][tile] +=1
+            self.playerMelds[player][tile] += 1 
+
+        called = self.lastDiscardTile
+        if isClosedKan:
+            tile = tiles[0]
+            self.privateHands[player][tile] -= 4 
+
+        else:
+            for tile in tiles.remove(called):
+                self.privateHands[player][tile] -= 1
+    
+    def getPlayerMelds(self):
+        return self.playerMelds
+
     
     def addTileToPlayerPool(self, player, tile):
         self.gameState[7+player][tile] += 1
@@ -718,6 +741,8 @@ def matrixify(arr):
         if item[1]:
             attr = item[1]
             if item[0] == "INIT":
+                print("new round")
+
                 latestDiscard = 0
                 matrix.clearMatrix() 
 
@@ -742,8 +767,20 @@ def matrixify(arr):
                 # if player who called the meld and player who drew last tile match then it is a closed kan
                 if player != matrix.getLastDrawPlayer():
                     matrix.setOpen(player)
-                matrix.addPlayerMelds(player, meldInfo)
+                    try: matrix.addPlayerMelds(player, meldInfo, False) 
+                    except TypeError: pass
 
+                else:
+                    matrix.addPlayerMelds(player, meldInfo, True) 
+                    matrix.addClosedKan(player)
+                    print(matrix.getPrivateHand(1))
+                    print(matrix.getPlayerMelds()[1])
+
+                ####
+                k=0
+                for i in matrix.getPlayerMelds():
+                    print(str(k)+ ": "+webFormat(i))
+                    k+=1
                 
             elif item[0] == "DORA":
                 matrix.addDoraIndicator( int(attr["hai"]) // 4 )
@@ -777,7 +814,7 @@ def matrixify(arr):
                 matrix.decWallTiles()                          # remove a wall tile after drawing
                 matrix.addTilePrivateHand(1, tile)   # add the drawn tile to hand
                 matrix.setPrivatehand(1, hand)
-                if matrix.getnotRiichi(1) and matrix.getClosed(1) and calcShanten(hand) == 0:
+                if matrix.getnotRiichi(1) and matrix.getClosed(1) and (calcShanten(hand) <= 0 + 2*matrix.getClosedKan(1)):
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(1)
                     print(arr[index+1])
@@ -823,19 +860,19 @@ def matrixify(arr):
 
             elif moveIndex == "D":
                 matrix.removeTilePrivateHand(0, tile)   # remove discarded tile from hand 
-       #         matrix.setLastDrawPlayer(0)                          # updates latest discard
+                matrix.setLastDiscardTile(tile)                         # updates latest discard
 
             elif moveIndex == "E":
                 matrix.removeTilePrivateHand(1, tile)  
-         #       matrix.setLastDrawPlayer(1)
+                matrix.setLastDiscardTile(tile)
 
             elif moveIndex == "F":
                 matrix.removeTilePrivateHand(2, tile) 
-         #       matrix.setLastDrawPlayer(2)
+                matrix.setLastDiscardTile(tile)
                 
             elif moveIndex == "G":
                 matrix.removeTilePrivateHand(3, tile)
-       #         matrix.setLastDrawPlayer(3) 
+                matrix.setLastDiscardTile(tile)
 
     return reachArr
 
