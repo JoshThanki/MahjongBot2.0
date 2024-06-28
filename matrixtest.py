@@ -718,7 +718,6 @@ def matrixify(arr):
         if item[1]:
             attr = item[1]
             if item[0] == "INIT":
-                print("new round")
                 latestDiscard = 0
                 matrix.clearMatrix() 
 
@@ -743,8 +742,6 @@ def matrixify(arr):
                 # if player who called the meld and player who drew last tile match then it is a closed kan
                 if player != matrix.getLastDrawPlayer():
                     matrix.setOpen(player)
-                else:
-                    print("test")
                 matrix.addPlayerMelds(player, meldInfo)
 
                 
@@ -758,6 +755,7 @@ def matrixify(arr):
             tile = int(attr[1:]) // 4  # 46 // 4
 
             if moveIndex == "T":
+                matrix.setLastDrawPlayer(0)   
                 hand = matrix.getPrivateHand(0)
 
                 matrix.decWallTiles()                          # remove a wall tile after drawing
@@ -773,6 +771,7 @@ def matrixify(arr):
 
 
             elif moveIndex == "U":
+                matrix.setLastDrawPlayer(1)                   
                 hand = matrix.getPrivateHand(1)
 
                 matrix.decWallTiles()                          # remove a wall tile after drawing
@@ -788,6 +787,7 @@ def matrixify(arr):
 
                 
             elif moveIndex == "V":
+                matrix.setLastDrawPlayer(2)   
                 hand = matrix.getPrivateHand(2)
 
                 matrix.decWallTiles()                          # remove a wall tile after drawing
@@ -804,6 +804,7 @@ def matrixify(arr):
 
                 
             elif moveIndex == "W":
+                matrix.setLastDrawPlayer(3)   
                 hand = matrix.getPrivateHand(3)
 
                 matrix.decWallTiles()                          # remove a wall tile after drawing
@@ -822,19 +823,19 @@ def matrixify(arr):
 
             elif moveIndex == "D":
                 matrix.removeTilePrivateHand(0, tile)   # remove discarded tile from hand 
-                matrix.setLastDrawPlayer(0)                          # updates latest discard
+       #         matrix.setLastDrawPlayer(0)                          # updates latest discard
 
             elif moveIndex == "E":
                 matrix.removeTilePrivateHand(1, tile)  
-                matrix.setLastDrawPlayer(1)
+         #       matrix.setLastDrawPlayer(1)
 
             elif moveIndex == "F":
                 matrix.removeTilePrivateHand(2, tile) 
-                matrix.setLastDrawPlayer(2)
+         #       matrix.setLastDrawPlayer(2)
                 
             elif moveIndex == "G":
                 matrix.removeTilePrivateHand(3, tile)
-                matrix.setLastDrawPlayer(3) 
+       #         matrix.setLastDrawPlayer(3) 
 
     return reachArr
 
