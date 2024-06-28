@@ -106,10 +106,11 @@ class Matrix:
         self.Closed = [True, True, True, True]
         self.notRiichi = [True, True, True, True]
         self.winds = [0,1,2,3]
+        self.lastDrawPlayer = -1
         
         #set last player discard back to padding
         self.setPlayerLastDiscard(-128, -128)
-        self.initialisePadding()
+
     
     def getnotRiichi(self, player):
         return self.notRiichi[player]
@@ -123,6 +124,8 @@ class Matrix:
     
     #clears everything other than metadata  (need to fix padding, will do later)
     def clearMatrix(self):
+        self.Closed = [True, True, True, True]
+        self.notRiichi = [True, True, True, True]
         self.gameState[1:] = np.zeros((10, 34))
     
     # hand [34]
@@ -231,6 +234,16 @@ class Matrix:
     def setPlayerLastDiscard(self, player, tile):
         self.gameState[0][14] = tile
         self.gameState[0][15] = player
+    
+    def setPlayerLastDiscard(self, player, tile):
+        self.lastDiscardTile = tile
+        self.lastDiscardPlayer = player
+    
+    def setLastDrawPlayer(self, player):
+        self.lastDrawPlayer = player
+
+    def getLastDrawPlayer(self):
+        return self.lastDrawPlayer
 
     #returns player and tile
     def getPlayerLastDiscard(self):
@@ -251,12 +264,6 @@ class Matrix:
 
     def addPlayerMelds(self, player, meldinfo):
         tiles = meldinfo[0]
-        type = meldinfo[1]
-
-        if not type:
-            self.gameState[0][17+player] += 1
-        else:
-            self.gameState[0][21+player]+=1
 
         for tile in tiles:
             self.gameState[3+player][tile] +=1
@@ -377,7 +384,7 @@ def matrixifymelds(arr):
                 matrix.initialisePrivateHands(initialHands)
 
                 seed = format_seed(attr["seed"])
-                matrix.addDoraIndicator(seed[5])
+                matrix.addDoraIndicator(seed[5] // 4)
                 matrix.setHonbaSticks(seed[1])
 
             elif item[0] == "N":
@@ -385,9 +392,6 @@ def matrixifymelds(arr):
                 player = int( attr["who"] )
 
                 #matrix.setOpen(player)
-            
-#            else:
-#                newArr.append((item[0], item[1]))
 
         else:
             attr = item[0]        # attr in the form of, say, T46
@@ -710,18 +714,18 @@ def matrixify(arr):
             meld = decodeKan(data, False)
         return meld
 
-
     for index,item in enumerate(arr): 
         if item[1]:
             attr = item[1]
             if item[0] == "INIT":
+                print("new round")
                 latestDiscard = 0
                 matrix.clearMatrix() 
 
                 matrix.setWallTiles()
                 
                 points = attr["ten"].split(",")
-             #   matrix.setPlayerScore(points)
+                matrix.setPlayerScore(points)
                 
                 matrix.setDealer(attr["oya"])
 
@@ -729,19 +733,24 @@ def matrixify(arr):
                 matrix.initialisePrivateHands(initialHands)
 
                 seed = format_seed(attr["seed"])
-                matrix.addDoraIndicator(seed[5])
+                matrix.addDoraIndicator(seed[5] // 4)
                 matrix.setHonbaSticks(seed[1])
 
             elif item[0] == "N":
-
-
-                meldTiles, meldType = decodeMeld(attr["m"])
+                meldInfo = decodeMeld(attr["m"])
                 player = int( attr["who"] )
 
-                #matrix.setOpen(player)
-            
-#            else:
-#                newArr.append((item[0], item[1]))
+                # if player who called the meld and player who drew last tile match then it is a closed kan
+                if player != matrix.getLastDrawPlayer():
+                    matrix.setOpen(player)
+                else:
+                    print("test")
+                matrix.addPlayerMelds(player, meldInfo)
+
+                
+            elif item[0] == "DORA":
+                matrix.addDoraIndicator( int(attr["hai"]) // 4 )
+
 
         else:
             attr = item[0]        # attr in the form of, say, T46
@@ -754,8 +763,7 @@ def matrixify(arr):
                 matrix.decWallTiles()                          # remove a wall tile after drawing
                 matrix.addTilePrivateHand(0, tile)   # add the drawn tile to hand
                 matrix.setPrivatehand(0, hand)
-
-                if matrix.getnotRiichi(0) and matrix.getClosed(0) and calcShanten(matrix.getPrivateHand(0)) == 0:
+                if matrix.getnotRiichi(0) and matrix.getClosed(0) and calcShanten(hand) == 0:
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(0)
                     print(arr[index+1])
@@ -765,33 +773,68 @@ def matrixify(arr):
 
 
             elif moveIndex == "U":
-                matrix.decWallTiles()
-                matrix.addTilePrivateHand(1, tile)
+                hand = matrix.getPrivateHand(1)
+
+                matrix.decWallTiles()                          # remove a wall tile after drawing
+                matrix.addTilePrivateHand(1, tile)   # add the drawn tile to hand
+                matrix.setPrivatehand(1, hand)
+                if matrix.getnotRiichi(1) and matrix.getClosed(1) and calcShanten(hand) == 0:
+                    if arr[index+1][0] == "REACH": 
+                        matrix.setRiichi(1)
+                    print(arr[index+1])
+                    print(calcShanten(hand))
+                    print(webFormat(hand))
+                    reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(1) else 1]) # riichi is always 1 for now
+
                 
             elif moveIndex == "V":
-                matrix.decWallTiles()
-                matrix.addTilePrivateHand(2, tile)
+                hand = matrix.getPrivateHand(2)
+
+                matrix.decWallTiles()                          # remove a wall tile after drawing
+                matrix.addTilePrivateHand(2, tile)   # add the drawn tile to hand
+                matrix.setPrivatehand(2, hand)
+
+                if matrix.getnotRiichi(2) and matrix.getClosed(2) and calcShanten(hand) == 0:
+                    if arr[index+1][0] == "REACH": 
+                        matrix.setRiichi(2)
+                    print(arr[index+1])
+                    print(calcShanten(hand))
+                    print(webFormat(hand))
+                    reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(2) else 1]) # riichi is always 1 for now
+
                 
             elif moveIndex == "W":
-                matrix.decWallTiles()
-                matrix.addTilePrivateHand(3, tile)
+                hand = matrix.getPrivateHand(3)
+
+                matrix.decWallTiles()                          # remove a wall tile after drawing
+                matrix.addTilePrivateHand(3, tile)   # add the drawn tile to hand
+                matrix.setPrivatehand(3, hand)
+
+                if matrix.getnotRiichi(3) and matrix.getClosed(3) and calcShanten(hand) == 0:
+                    if arr[index+1][0] == "REACH": 
+                        matrix.setRiichi(3)
+                    print(arr[index+1])
+                    print(calcShanten(hand))
+                    print(webFormat(hand))
+                    reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(3) else 1]) # riichi is always 1 for now
+
                 
 
             elif moveIndex == "D":
                 matrix.removeTilePrivateHand(0, tile)   # remove discarded tile from hand 
-                matrix.setPlayerLastDiscard = tile                             # updates latest discard
+                matrix.setLastDrawPlayer(0)                          # updates latest discard
 
             elif moveIndex == "E":
                 matrix.removeTilePrivateHand(1, tile)  
-                matrix.setPlayerLastDiscard = tile  
+                matrix.setLastDrawPlayer(1)
 
             elif moveIndex == "F":
                 matrix.removeTilePrivateHand(2, tile) 
-                matrix.setPlayerLastDiscard = tile  
+                matrix.setLastDrawPlayer(2)
                 
             elif moveIndex == "G":
                 matrix.removeTilePrivateHand(3, tile)
-                matrix.setPlayerLastDiscard = tile  
+                matrix.setLastDrawPlayer(3) 
 
     return reachArr
 
@@ -825,14 +868,17 @@ def convertLog(log):
 
     return game, arr
 
-
 out = [convertLog(log) for log in logs]
 
-#with open("out.txt", "w+") as file:
-#    json.dump(out, file, indent = 2)
 
 tupl = out[0]
 game = tupl[1]
+game = matrixify(game)
+
+for i in game:
+    matprint(i[0])
+    print(i[1])
+
 
 
 
@@ -863,4 +909,4 @@ def testMatrixifymelds(game):
     #     print(res[1])
 
 
-testMatrixifymelds(game)
+#testMatrixifymelds(game)

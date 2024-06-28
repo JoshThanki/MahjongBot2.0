@@ -44,4 +44,4 @@ def decodeMeld(data):
         meld = decodeKan(data, False)
     return meld                       #chi:0, pon:1, openKan:2, closedKain:3, chakan:4
 
-print(decodeMeld("0"))
+print(decodeMeld("51819"))
