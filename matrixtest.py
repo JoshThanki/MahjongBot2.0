@@ -787,7 +787,6 @@ def matrixify(arr):
                 
                 points = attr["ten"].split(",")
                 matrix.setPlayerScore(points)
-                
                 matrix.setDealer(attr["oya"])
 
                 initialHands = [format_xmlHand(attr["hai"+str(i)]) for i in range(4) ]
@@ -831,9 +830,6 @@ def matrixify(arr):
                     matrix.setMatrix(0)
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(0)
-                    print(arr[index+1])
-                    print(calcShanten(hand))
-                    print(webFormat(hand))
                     reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(0) else 1]) # riichi is always 1 for now
 
 
@@ -843,14 +839,10 @@ def matrixify(arr):
 
                 matrix.decWallTiles()                          # remove a wall tile after drawing
                 matrix.addTilePrivateHand(1, tile)   # add the drawn tile to hand
-
                 if matrix.getnotRiichi(1) and matrix.getClosed(1) and (calcShanten(hand) <= 0 + 2*matrix.getClosedKan(1)):
                     matrix.setMatrix(1)
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(1)
-                    print(arr[index+1])
-                    print(calcShanten(hand))
-                    print(webFormat(hand))
                     reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(1) else 1]) # riichi is always 1 for now
 
                 
@@ -860,15 +852,10 @@ def matrixify(arr):
 
                 matrix.decWallTiles()                          # remove a wall tile after drawing
                 matrix.addTilePrivateHand(2, tile)   # add the drawn tile to hand
-                matrix.setMatrix(2)
-
                 if matrix.getnotRiichi(2) and matrix.getClosed(2) and calcShanten(hand) == 0:
                     matrix.setMatrix(2)
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(2)
-                    print(arr[index+1])
-                    print(calcShanten(hand))
-                    print(webFormat(hand))
                     reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(2) else 1]) # riichi is always 1 for now
 
                 
@@ -878,14 +865,10 @@ def matrixify(arr):
 
                 matrix.decWallTiles()                          # remove a wall tile after drawing
                 matrix.addTilePrivateHand(3, tile)   # add the drawn tile to hand
-
-
                 if matrix.getnotRiichi(3) and matrix.getClosed(3) and calcShanten(hand) == 0:
                     matrix.setMatrix(3)
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(3)
-                    print(arr[index+1])
-                    print(webFormat(hand))
                     reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(3) else 1]) # riichi is always 1 for now
 
                 

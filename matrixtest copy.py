@@ -110,7 +110,7 @@ class Matrix:
         # metadata
         self.roundWind = 0   #0:E, 1:S, ...
         self.playerScores = [0, 0, 0, 0]
-        self.playerWinds = [0,0,0,0]
+        self.playerWinds = [0,1,2,3]
         self.honbaSticks = 0
         self.roundWind = 0
         self.roundDealer = 0
@@ -135,8 +135,8 @@ class Matrix:
         self.gameState[0][0] = self.roundWind
         #dealer
         self.gameState[0][1] = self.roundDealer
-        
-        
+        #pov wind
+        self.gameState[0][2] = self.playerWinds[player]        
         #num of honba sticks
         self.gameState[0][3] = self.honbaSticks
         #num of riichi sticks
@@ -168,6 +168,7 @@ class Matrix:
         self.playerMelds = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
         self.closedKans = [0,0,0,0]
         self.playerPool = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
+        self.playerWinds = [0,1,2,3]
     # hand [34]
     def addClosedKan(self, player):
         self.closedKans[player] += 1
@@ -198,7 +199,9 @@ class Matrix:
     
     def setPlayerWinds(self):
         dealer = self.roundDealer
-        for i 
+        self.playerWinds = np.roll(self.playerWinds, dealer)
+    def getPlayerWinds(self):
+        return self.playerWinds
 
     #input - 0,1,2,3
     def setRoundWind(self, wind):
@@ -527,9 +530,6 @@ def matrixify(arr):
             out[i // 4] +=1
         return out
 
-    def format_seed(string):
-        return [int(i)//4 for i in string.split(",")]
-
     def calcShanten(hand):
         
         #converting to mahjong 1.0 format
@@ -762,21 +762,26 @@ def matrixify(arr):
         if item[1]:
             attr = item[1]
             if item[0] == "INIT":
-                print("new round")
-
+                #clears matrix attributes
                 latestDiscard = 0
                 matrix.clearMatrix() 
 
+                #sets wall tiles to 69 (at the start)
                 matrix.setWallTiles()
                 
+                #sets points
                 points = attr["ten"].split(",")
                 matrix.setPlayerScore(points)
                 
-                matrix.setDealer(attr["oya"])
+                #sets player winds
+                matrix.setDealer(int(attr["oya"]))
+                matrix.setPlayerWinds()
 
+                #sets starting hands
                 initialHands = [format_xmlHand(attr["hai"+str(i)]) for i in range(4) ]
                 matrix.initialisePrivateHands(initialHands)
 
+                #sets more metadata form seed
                 seed = [int(i) for i in attr["seed"].split(',')]
                 matrix.addDoraIndicator(seed[5] // 4)
                 matrix.setHonbaSticks(seed[1])
@@ -799,89 +804,75 @@ def matrixify(arr):
                     matrix.addPlayerMelds(player, meldInfo, True) 
                     matrix.addClosedKan(player)
                 
+            # if new dora then adds it
             elif item[0] == "DORA":
                 matrix.addDoraIndicator( int(attr["hai"]) // 4 )
 
 
         else:
-            attr = item[0]        # attr in the form of, say, T46
-            moveIndex = attr[0]   # T
+            #### DRAWS ####
+            attr = item[0]             # attr in the form of, say, T46
+            moveIndex = attr[0]        # T
             tile = int(attr[1:]) // 4  # 46 // 4
 
             if moveIndex == "T":
                 matrix.setLastDrawPlayer(0)   
                 hand = matrix.getPrivateHand(0)
 
-                matrix.decWallTiles()                          # remove a wall tile after drawing
-                matrix.addTilePrivateHand(0, tile)   # add the drawn tile to hand
+                matrix.decWallTiles()                   # remove a wall tile after drawing
+                matrix.addTilePrivateHand(0, tile)      # add the drawn tile to hand
+                #checks for riichi conditions, and then to reachArr if passes necessary conditions
                 if matrix.getnotRiichi(0) and matrix.getClosed(0) and calcShanten(hand) == 0:
                     matrix.setMatrix(0)
+                    # if riichis then sets to riichi
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(0)
-                    print(arr[index+1])
-                    print(calcShanten(hand))
-                    print(webFormat(hand))
                     reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(0) else 1]) # riichi is always 1 for now
-
 
             elif moveIndex == "U":
                 matrix.setLastDrawPlayer(1)                   
                 hand = matrix.getPrivateHand(1)
 
-                matrix.decWallTiles()                          # remove a wall tile after drawing
-                matrix.addTilePrivateHand(1, tile)   # add the drawn tile to hand
-
+                matrix.decWallTiles()             
+                matrix.addTilePrivateHand(1, tile)
                 if matrix.getnotRiichi(1) and matrix.getClosed(1) and (calcShanten(hand) <= 0 + 2*matrix.getClosedKan(1)):
                     matrix.setMatrix(1)
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(1)
-                    print(arr[index+1])
-                    print(calcShanten(hand))
-                    print(webFormat(hand))
                     reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(1) else 1]) # riichi is always 1 for now
 
-                
             elif moveIndex == "V":
                 matrix.setLastDrawPlayer(2)   
                 hand = matrix.getPrivateHand(2)
 
-                matrix.decWallTiles()                          # remove a wall tile after drawing
-                matrix.addTilePrivateHand(2, tile)   # add the drawn tile to hand
+                matrix.decWallTiles()        
+                matrix.addTilePrivateHand(2, tile) 
                 matrix.setMatrix(2)
-
                 if matrix.getnotRiichi(2) and matrix.getClosed(2) and calcShanten(hand) == 0:
                     matrix.setMatrix(2)
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(2)
-                    print(arr[index+1])
-                    print(calcShanten(hand))
-                    print(webFormat(hand))
                     reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(2) else 1]) # riichi is always 1 for now
-
-                
+  
             elif moveIndex == "W":
                 matrix.setLastDrawPlayer(3)   
                 hand = matrix.getPrivateHand(3)
 
                 matrix.decWallTiles()                          # remove a wall tile after drawing
                 matrix.addTilePrivateHand(3, tile)   # add the drawn tile to hand
-
-
                 if matrix.getnotRiichi(3) and matrix.getClosed(3) and calcShanten(hand) == 0:
                     matrix.setMatrix(3)
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(3)
-                    print(arr[index+1])
-                    print(webFormat(hand))
                     reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(3) else 1]) # riichi is always 1 for now
 
-                
-
+            #### DISCARDS #### 
             elif moveIndex == "D":
                 matrix.setLastDiscardPlayer(0)
 
                 matrix.removeTilePrivateHand(0, tile)   # remove discarded tile from hand 
                 matrix.setLastDiscardTile(tile)
+                # If discarded tile doesn't get called, then adds it to pool
                 if arr[index+1][0] != "N":
                     matrix.addPlayerPool(0, tile)
 

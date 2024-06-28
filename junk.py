@@ -47,3 +47,6 @@ def decodeMeld(data):
 player=0
 player_ordering = [i%4 for i in range(player,player+4)]
 print(player_ordering)
+
+import numpy as np
+print(np.roll([0,1,2,3], 1))
