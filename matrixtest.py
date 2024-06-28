@@ -108,6 +108,7 @@ class Matrix:
         self.notRiichi = [True, True, True, True]
         self.winds = [0,1,2,3]
         self.lastDrawPlayer = -1
+        self.lastDiscardPlayer = -1
         self.lastDiscardTile = -1
         self.closedKans = [0,0,0,0]
         
@@ -240,10 +241,16 @@ class Matrix:
             print("Invalid Player")
     
     #input player (0-3), tile (0-34)
-    def setPlayerLastDiscard(self, player, tile):
-        self.gameState[0][14] = tile
-        self.gameState[0][15] = player
+    #def setPlayerLastDiscard(self, player, tile):
+    #    self.gameState[0][14] = tile
+    #    self.gameState[0][15] = player
     
+    def setLastDiscardPlayer(self, player):
+        self.lastDiscardPlayer = player
+    def getLastDiscardPlayer(self, player):
+        return self.lastDiscardPlayer
+
+
     def setLastDiscardTile(self, tile):
         self.lastDiscardTile = tile
 
@@ -765,16 +772,19 @@ def matrixify(arr):
                 player = int( attr["who"] )
 
                 # if player who called the meld and player who drew last tile match then it is a closed kan
-                if player != matrix.getLastDrawPlayer():
+                if (player != matrix.getLastDrawPlayer() ):
                     matrix.setOpen(player)
                     try: matrix.addPlayerMelds(player, meldInfo, False) 
                     except TypeError: pass
 
-                else:
+                # bug if i have else instead of this elif in a very specific case (see round 1)
+                elif arr[index-2][0] != "N":
+                    print(player, matrix.getLastDrawPlayer(), index)
                     matrix.addPlayerMelds(player, meldInfo, True) 
                     matrix.addClosedKan(player)
-                    print(matrix.getPrivateHand(1))
-                    print(matrix.getPlayerMelds()[1])
+                    print(matrix.getPrivateHand(player))
+                    print(matrix.getPlayerMelds()[player])
+                    print("player",player)
 
                 ####
                 k=0
@@ -859,18 +869,23 @@ def matrixify(arr):
                 
 
             elif moveIndex == "D":
+                matrix.setLastDiscardPlayer(0)
+
                 matrix.removeTilePrivateHand(0, tile)   # remove discarded tile from hand 
                 matrix.setLastDiscardTile(tile)                         # updates latest discard
 
             elif moveIndex == "E":
+                matrix.setLastDiscardPlayer(1)
                 matrix.removeTilePrivateHand(1, tile)  
                 matrix.setLastDiscardTile(tile)
 
             elif moveIndex == "F":
+                matrix.setLastDiscardPlayer(2)
                 matrix.removeTilePrivateHand(2, tile) 
                 matrix.setLastDiscardTile(tile)
                 
             elif moveIndex == "G":
+                matrix.setLastDiscardPlayer(3)
                 matrix.removeTilePrivateHand(3, tile)
                 matrix.setLastDiscardTile(tile)
 
