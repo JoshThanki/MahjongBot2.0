@@ -104,8 +104,10 @@ class Matrix:
         self.gameState = np.zeros((11, 34))
         self.privateHands = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
         self.playerMelds = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
+        self.playerPool = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
         self.Closed = [True, True, True, True]
         self.notRiichi = [True, True, True, True]
+        self.playerScores = [0, 0, 0, 0]
         self.winds = [0,1,2,3]
         self.lastDrawPlayer = -1
         self.lastDiscardPlayer = -1
@@ -122,6 +124,18 @@ class Matrix:
     def setRiichi(self, player):
         self.notRiichi[player] = False
 
+    # sets matrix for POV player   
+    def setMatrix(self, player):
+
+        self.gameState[2] = self.privateHands[player]
+        
+        player_ordering = [i%4 for i in range(player,player+4)]
+        for player,index in enumerate(player_ordering):
+            self.gameState[3+index] = self.playerMelds[player]
+            self.gameState[7+index] = self.playerPool[player]
+
+            self.gameState[0][6+index] = self.playerScores[player]
+            self.gameState[0][10+index] = 0 if self.notRiichi[player] else 1    
 
     def getMatrix(self):
         return self.gameState
@@ -133,12 +147,19 @@ class Matrix:
         self.gameState[1:] = np.zeros((10, 34))
         self.playerMelds = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
         self.closedKans = [0,0,0,0]
+        self.playerPool = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
     # hand [34]
     def addClosedKan(self, player):
         self.closedKans[player] += 1
 
     def getClosedKan(self, player):
         return self.closedKans[player]
+
+    def addPlayerPool(self, player, tile):
+        self.playerPool[player][tile] += 1
+
+    def getPlayerPool(self, player):
+        return self.playerPool[player]
 
     def initialisePadding(self):
         self.gameState[0][25:32] = [0] * 7 
@@ -216,9 +237,12 @@ class Matrix:
         return self.gameState[0][5]
     
     #input score [4]
-    def setPlayerScore(self, score):
-        for player in [0,1,2,3]:
-            self.gameState[0][6+player] = score[player]
+ #   def setPlayerScore(self, score):
+ #       for player in [0,1,2,3]:
+ #           self.gameState[0][6+player] = score[player]
+
+    def setPlayerScore(self, scores):
+        self.playerScores = scores
     
     def getPlayerScore(self, player):
         if player in [0,1,2,3]:
@@ -228,11 +252,17 @@ class Matrix:
 
 
     #input player, sets riichi status to true
+  #  def setPlayerRiichi(self, player):
+  #      if player in [0,1,2,3]:
+  #          self.gameState[0][10+player] = 1
+  #      else:
+  #          print("Invalid Player")
+
     def setPlayerRiichi(self, player):
         if player in [0,1,2,3]:
-            self.gameState[0][10+player] = 1
+            self.notRiichi = False
         else:
-            print("Invalid Player")
+            print("Invalid Player")           
     
     def getPlayerRiichiStat(self, player):
         if player in [0,1,2,3]:
@@ -779,18 +809,8 @@ def matrixify(arr):
 
                 # bug if i have else instead of this elif in a very specific case (see round 1)
                 elif arr[index-2][0] != "N":
-                    print(player, matrix.getLastDrawPlayer(), index)
                     matrix.addPlayerMelds(player, meldInfo, True) 
                     matrix.addClosedKan(player)
-                    print(matrix.getPrivateHand(player))
-                    print(matrix.getPlayerMelds()[player])
-                    print("player",player)
-
-                ####
-                k=0
-                for i in matrix.getPlayerMelds():
-                    print(str(k)+ ": "+webFormat(i))
-                    k+=1
                 
             elif item[0] == "DORA":
                 matrix.addDoraIndicator( int(attr["hai"]) // 4 )
@@ -807,8 +827,8 @@ def matrixify(arr):
 
                 matrix.decWallTiles()                          # remove a wall tile after drawing
                 matrix.addTilePrivateHand(0, tile)   # add the drawn tile to hand
-                matrix.setPrivatehand(0, hand)
                 if matrix.getnotRiichi(0) and matrix.getClosed(0) and calcShanten(hand) == 0:
+                    matrix.setMatrix(0)
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(0)
                     print(arr[index+1])
@@ -823,8 +843,9 @@ def matrixify(arr):
 
                 matrix.decWallTiles()                          # remove a wall tile after drawing
                 matrix.addTilePrivateHand(1, tile)   # add the drawn tile to hand
-                matrix.setPrivatehand(1, hand)
+
                 if matrix.getnotRiichi(1) and matrix.getClosed(1) and (calcShanten(hand) <= 0 + 2*matrix.getClosedKan(1)):
+                    matrix.setMatrix(1)
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(1)
                     print(arr[index+1])
@@ -839,9 +860,10 @@ def matrixify(arr):
 
                 matrix.decWallTiles()                          # remove a wall tile after drawing
                 matrix.addTilePrivateHand(2, tile)   # add the drawn tile to hand
-                matrix.setPrivatehand(2, hand)
+                matrix.setMatrix(2)
 
                 if matrix.getnotRiichi(2) and matrix.getClosed(2) and calcShanten(hand) == 0:
+                    matrix.setMatrix(2)
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(2)
                     print(arr[index+1])
@@ -856,13 +878,13 @@ def matrixify(arr):
 
                 matrix.decWallTiles()                          # remove a wall tile after drawing
                 matrix.addTilePrivateHand(3, tile)   # add the drawn tile to hand
-                matrix.setPrivatehand(3, hand)
+
 
                 if matrix.getnotRiichi(3) and matrix.getClosed(3) and calcShanten(hand) == 0:
+                    matrix.setMatrix(3)
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(3)
                     print(arr[index+1])
-                    print(calcShanten(hand))
                     print(webFormat(hand))
                     reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(3) else 1]) # riichi is always 1 for now
 
@@ -872,22 +894,30 @@ def matrixify(arr):
                 matrix.setLastDiscardPlayer(0)
 
                 matrix.removeTilePrivateHand(0, tile)   # remove discarded tile from hand 
-                matrix.setLastDiscardTile(tile)                         # updates latest discard
+                matrix.setLastDiscardTile(tile)
+                if arr[index+1][0] != "N":
+                    matrix.addPlayerPool(0, tile)
 
             elif moveIndex == "E":
                 matrix.setLastDiscardPlayer(1)
                 matrix.removeTilePrivateHand(1, tile)  
                 matrix.setLastDiscardTile(tile)
+                if arr[index+1][0] != "N":
+                    matrix.addPlayerPool(1, tile)
 
             elif moveIndex == "F":
                 matrix.setLastDiscardPlayer(2)
                 matrix.removeTilePrivateHand(2, tile) 
                 matrix.setLastDiscardTile(tile)
+                if arr[index+1][0] != "N":
+                    matrix.addPlayerPool(2, tile)
                 
             elif moveIndex == "G":
                 matrix.setLastDiscardPlayer(3)
                 matrix.removeTilePrivateHand(3, tile)
                 matrix.setLastDiscardTile(tile)
+                if arr[index+1][0] != "N":
+                    matrix.addPlayerPool(3, tile)
 
     return reachArr
 

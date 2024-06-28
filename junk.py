@@ -44,4 +44,6 @@ def decodeMeld(data):
         meld = decodeKan(data, False)
     return meld                       #chi:0, pon:1, openKan:2, closedKain:3, chakan:4
 
-print(decodeMeld("51819"))
+player=0
+player_ordering = [i%4 for i in range(player,player+4)]
+print(player_ordering)
