@@ -110,10 +110,11 @@ class Matrix:
         # metadata
         self.roundWind = 0   #0:E, 1:S, ...
         self.playerScores = [0, 0, 0, 0]
-        self.playerWinds = [0,1,2,3]
+        self.playerWinds = [0,0,0,0]
         self.honbaSticks = 0
         self.roundWind = 0
         self.roundDealer = 0
+        self.chis = []
 
         #used to keep track of things
         self.lastDrawPlayer = -1
@@ -130,18 +131,19 @@ class Matrix:
 
     # sets matrix for POV player   
     def setMatrix(self, player):
-        #pov hand
-        self.gameState[2] = self.privateHands[player]
-        #num of riichi sticks
-        self.gameState[0][4] = self.notRiichi.count(False)
-        #num of honba sticks
-        self.gameState[0][3] = self.honbaSticks
         #round wind
         self.gameState[0][0] = self.roundWind
         #dealer
         self.gameState[0][1] = self.roundDealer
-
-
+        
+        
+        #num of honba sticks
+        self.gameState[0][3] = self.honbaSticks
+        #num of riichi sticks
+        self.gameState[0][4] = self.notRiichi.count(False)        
+        
+        #pov hand
+        self.gameState[2] = self.privateHands[player]
 
         player_ordering = [i%4 for i in range(player,player+4)]
         for player,index in enumerate(player_ordering):
@@ -194,6 +196,10 @@ class Matrix:
     def getPrivateHand(self, player):
         return self.privateHands[player]
     
+    def setPlayerWinds(self):
+        dealer = self.roundDealer
+        for i 
+
     #input - 0,1,2,3
     def setRoundWind(self, wind):
         self.roundWind = wind
@@ -206,14 +212,6 @@ class Matrix:
 
     def getDealer(self):
         return self.roundDealer
-    
-    #input 0,1,2,3
-    def setDealer(self, dealer):
-        self.gameState[0][1] = dealer
-    
-    def getDealer(self):
-        return self.gameState[0][1]
-
 
     #input player (0-3)
     def setPOVPlayer(self, player):
@@ -248,11 +246,6 @@ class Matrix:
     def getWallTiles(self):
         return self.gameState[0][5]
     
-    #input score [4]
- #   def setPlayerScore(self, score):
- #       for player in [0,1,2,3]:
- #           self.gameState[0][6+player] = score[player]
-
     def setPlayerScore(self, scores):
         self.playerScores = scores
     
@@ -261,14 +254,6 @@ class Matrix:
             return self.gameState[0][6+player]
         else:
             print("Invalid Player")
-
-
-    #input player, sets riichi status to true
-  #  def setPlayerRiichi(self, player):
-  #      if player in [0,1,2,3]:
-  #          self.gameState[0][10+player] = 1
-  #      else:
-  #          print("Invalid Player")
 
     def setPlayerRiichi(self, player):
         if player in [0,1,2,3]:
@@ -281,11 +266,6 @@ class Matrix:
             return self.gameState[0][10+player]
         else:
             print("Invalid Player")
-    
-    #input player (0-3), tile (0-34)
-    #def setPlayerLastDiscard(self, player, tile):
-    #    self.gameState[0][14] = tile
-    #    self.gameState[0][15] = player
     
     def setLastDiscardPlayer(self, player):
         self.lastDiscardPlayer = player
@@ -304,14 +284,6 @@ class Matrix:
 
     def getLastDrawPlayer(self):
         return self.lastDrawPlayer
-
-    #returns player and tile
-#    def getPlayerLastDiscard(self):
-#        return int(self.gameState[0][15]), int(self.gameState[0][14])
-    
-    #input player (0-3), wind(0-3)
-    def setPlayerWind(self, player, wind):
-        self.gameState[0][16+player] = wind
 
     #input tile (0-34)
     def addDoraIndicator(self, doraIndicator):
@@ -808,7 +780,7 @@ def matrixify(arr):
                 seed = [int(i) for i in attr["seed"].split(',')]
                 matrix.addDoraIndicator(seed[5] // 4)
                 matrix.setHonbaSticks(seed[1])
-                matrix.setRoundWind(seed[0] // 4)
+                matrix.setRoundWind(seed[0] //4)
                 matrix.setDealer(seed[0] % 4) #wrong if we keep relative player
 
             elif item[0] == "N":
