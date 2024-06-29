@@ -26,7 +26,7 @@ res = cur.execute("SELECT log_id, log_content FROM logs")
 
 logs = []
 
-for i in range(1):
+for i in range(3):
     logs.append(res.fetchone())
 
 con.close()
@@ -57,10 +57,9 @@ def webFormat(handArray):
     split_indices=[9,18,27]
     handArray =  np.split(handArray, split_indices) 
     string = ''
-    k=0
-    for suit in handArray:
+
+    for k, suit in enumerate(handArray):
         if sum(suit) == 0:
-            k+=1
             continue
         for num in range(len(suit)):
             if suit[num] == 0:
@@ -69,7 +68,6 @@ def webFormat(handArray):
                 string += str(num+1)*suit[num]
 
         string += dict[k]
-        k+=1
 
     return string
 
@@ -127,6 +125,7 @@ class Matrix:
 
     # builds matrix for POV player   
     def buildMatrix(self, player):
+        # player ordering relative to input player. e.g. player =2  => player_ordering = [2,3,0,1]   (counterclockwise on table)
         player_ordering = [i%4 for i in range(player,player+4)]
 
         #round wind
@@ -171,7 +170,6 @@ class Matrix:
     def addClosedKan(self, player):
         self.closedKans[player] += 1
         self.addKan(player)             #
-
     def getClosedKan(self, player):  #needed
         return self.closedKans[player]
 
@@ -198,6 +196,7 @@ class Matrix:
     def getPlayerPool(self, player):
         return self.playerPool[player]
 
+    # initialises starting hands for each player
     def initialisePrivateHands(self, hands):
         for player in range(4):
             self.privateHands[player] = hands[player]
@@ -213,9 +212,11 @@ class Matrix:
     def getPrivateHand(self, player):
         return self.privateHands[player]
     
+    # this is dependant on roundDealer so should only be called once the dealer is set
     def setPlayerWinds(self):
         dealer = self.roundDealer
         self.playerWinds = np.roll(self.playerWinds, dealer)
+        
     def getPlayerWinds(self):
         return self.playerWinds
 
@@ -741,8 +742,8 @@ def matrixify(arr):
             meld = decodeChi(data)
         elif data & 0x18:
             meld = decodePon(data)
-        elif data & 0x20:
-            meld = decodeNuki(data)
+     #   elif data & 0x20:
+      #      meld = decodeNuki(data)
         else:
             meld = decodeKan(data, False)
         return meld
@@ -920,6 +921,7 @@ def convertLog(log):
     return game, arr
 
 out = [convertLog(log) for log in logs]
+
 def printNice(game):
     int_game = [[int(element) for element in row] for row in game]
     game=int_game
@@ -934,7 +936,8 @@ def printNice(game):
     for i in range(4):
         print("player"+str(i)+" pool: "+webFormat(game[7+i]))
 
-tupl = out[0]
+
+tupl = out[2]
 game = tupl[1]
 game = matrixify(game)
 
