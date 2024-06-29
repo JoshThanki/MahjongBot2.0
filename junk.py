@@ -44,9 +44,9 @@ def decodeMeld(data):
         meld = decodeKan(data, False)
     return meld                       #chi:0, pon:1, openKan:2, closedKain:3, chakan:4
 
-player=0
+player=1
 player_ordering = [i%4 for i in range(player,player+4)]
 print(player_ordering)
 
-import numpy as np
-print(np.roll([0,1,2,3], 1))
+for index,player in enumerate(player_ordering):
+    print(player, index)

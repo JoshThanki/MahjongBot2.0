@@ -86,13 +86,7 @@ def format_xmlHand(string):
 
 
 class Matrix:
-    windDict = {
-        "e":0,
-        "s": 1,
-        "w": 2,
-        "n": 3,
-    }
-    
+    ## probably unneeded
     tile_dic = {i: f"{i+1}m" if i <= 8 else f"{i-8}p" if i <= 17 else f"{i-17}s" for i in range(27)}
     honour_entries = {27 : "e", 28 : "s", 29 : "w", 30 : "n", 31 : "wd", 32 : "gd", 33 : "rd"}
     tile_dic.update(honour_entries)
@@ -100,11 +94,11 @@ class Matrix:
     revtile_dic = {v: k for k, v in tile_dic.items()}
             
     def __init__(self):
-
         self.gameState = np.zeros((11, 34))
         self.privateHands = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
         self.playerMelds = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
         self.playerPool = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
+        self.doras = [0]*34
         self.notRiichi = [True, True, True, True]
 
         # metadata
@@ -114,7 +108,10 @@ class Matrix:
         self.honbaSticks = 0
         self.roundWind = 0
         self.roundDealer = 0
-        self.chis = []
+        self.wallTiles = 70      # technically 69 but the dataset considers dealer 14th tile as a draw
+        self.chis = [0,0,0,0]    #
+        self.pons = [0,0,0,0]    # num of melds for each player
+        self.kans = [0,0,0,0]    #
 
         #used to keep track of things
         self.lastDrawPlayer = -1
@@ -122,31 +119,35 @@ class Matrix:
         self.lastDiscardTile = -1
         self.closedKans = [0,0,0,0]       
         self.Closed = [True, True, True, True]    
-    def getnotRiichi(self, player):
+    def getnotRiichi(self, player):   #needed
         return self.notRiichi[player]
     
     def setRiichi(self, player):
         self.notRiichi[player] = False
 
+    # builds matrix for POV player   
+    def buildMatrix(self, player):
+        player_ordering = [i%4 for i in range(player,player+4)]
 
-    # sets matrix for POV player   
-    def setMatrix(self, player):
         #round wind
         self.gameState[0][0] = self.roundWind
         #dealer
-        self.gameState[0][1] = self.roundDealer
+        self.gameState[0][1] = player_ordering.index(self.roundDealer)
         #pov wind
         self.gameState[0][2] = self.playerWinds[player]        
         #num of honba sticks
         self.gameState[0][3] = self.honbaSticks
         #num of riichi sticks
-        self.gameState[0][4] = self.notRiichi.count(False)        
+        self.gameState[0][4] = self.notRiichi.count(False)  
+        #num of tiles left in wall (kans might mess this up need to check)
+        self.gameState[0][5] = self.wallTiles
+        #round number
+        self.gameState[0][33] = self.roundDealer + 1         
         
         #pov hand
         self.gameState[2] = self.privateHands[player]
 
-        player_ordering = [i%4 for i in range(player,player+4)]
-        for player,index in enumerate(player_ordering):
+        for index,player in enumerate(player_ordering):
             #melds
             self.gameState[3+index] = self.playerMelds[player]
             #pools
@@ -155,29 +156,44 @@ class Matrix:
             #scores
             self.gameState[0][6+index] = self.playerScores[player]
             #riichis
-            self.gameState[0][10+index] = 0 if self.notRiichi[player] else 1    
+            self.gameState[0][10+index] = 0 if self.notRiichi[player] else 1 
+            #number of chis
+            self.gameState[0][14+index] = self.chis[player]
+            #number of pons
+            self.gameState[0][18+index] = self.pons[player]
+    
 
-    def getMatrix(self):
+    def getMatrix(self):  #needed
         return self.gameState
     
-    #clears everything other than metadata  (need to fix padding, will do later)
-    def clearMatrix(self):
-        self.Closed = [True, True, True, True]
-        self.notRiichi = [True, True, True, True]
-        self.gameState[1:] = np.zeros((10, 34))
-        self.playerMelds = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
-        self.closedKans = [0,0,0,0]
-        self.playerPool = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
-        self.playerWinds = [0,1,2,3]
+
     # hand [34]
     def addClosedKan(self, player):
         self.closedKans[player] += 1
+        self.addKan(player)             #
 
-    def getClosedKan(self, player):
+    def getClosedKan(self, player):  #needed
         return self.closedKans[player]
 
     def addPlayerPool(self, player, tile):
         self.playerPool[player][tile] += 1
+    
+    def addChi(self, player):
+        self.chis[player] += 1
+
+    def addPon(self, player):
+        self.pons[player] += 1
+
+    def addKan(self, player):
+        self.kans[player] += 1
+
+    def addMeldNum(self, player, meldType):
+        if meldType == 0:
+            self.addChi(player)
+        elif meldType == 1:
+            self.addPon(player)
+        elif meldType == 2:
+            self.addPon(player)     #self.addKan(player)    (rn kans and pons are the same)
 
     def getPlayerPool(self, player):
         return self.playerPool[player]
@@ -216,45 +232,23 @@ class Matrix:
     def getDealer(self):
         return self.roundDealer
 
-    #input player (0-3)
-    def setPOVPlayer(self, player):
-        self.gameState[0][2] = player
-        self.gameState[2] = self.privateHands[player]
-        self.gameState[0][16] = self.winds[player]
-
-    def rotPOVPlayer(self):
-        self.gameState[0][2] = (self.gameState[0][2] + 1) % 3
-        self.gameState[2] = self.privateHands[self.gameState[0][2]]
-        self.gameState[0][16] =  self.gameState[16] - 1 if self.gameState[16] else 2
-
     #input amount 
     def setHonbaSticks(self, amount):
         self.honbaSticks = amount
     
-    def getHonbaSticks(self):
-        return self.gameState[0][3]
-    
-    
-    def getRiichiSticks(self):
-        return self.gameState[0][4]
-    
-    #input amount
-    def setWallTiles(self):
-        self.gameState[0][5] = 69
-    
     #decrement wall tiles by one
     def decWallTiles(self):
-        self.gameState[0][5] -=1
-
+        self.wallTiles -=1
+    
     def getWallTiles(self):
-        return self.gameState[0][5]
+        return self.wallTiles
     
     def setPlayerScore(self, scores):
         self.playerScores = scores
     
     def getPlayerScore(self, player):
         if player in [0,1,2,3]:
-            return self.gameState[0][6+player]
+            return self.playerScores[player]
         else:
             print("Invalid Player")
 
@@ -266,12 +260,13 @@ class Matrix:
     
     def getPlayerRiichiStat(self, player):
         if player in [0,1,2,3]:
-            return self.gameState[0][10+player]
+            return not self.notRiichi[player]
         else:
             print("Invalid Player")
     
     def setLastDiscardPlayer(self, player):
         self.lastDiscardPlayer = player
+
     def getLastDiscardPlayer(self, player):
         return self.lastDiscardPlayer
 
@@ -315,8 +310,6 @@ class Matrix:
         return self.playerMelds
 
     
-    def addTileToPlayerPool(self, player, tile):
-        self.gameState[7+player][tile] += 1
 
 
     #meld functions
@@ -418,8 +411,6 @@ def matrixifymelds(arr):
             if item[0] == "INIT":
                 latestDiscard = 0
                 matrix.clearMatrix() 
-
-                matrix.setWallTiles()
                 
                 points = attr["ten"].split(",")
                 
@@ -515,8 +506,6 @@ def matrixifymelds(arr):
 
 
 def matrixify(arr):
-    matrix = Matrix()
-
     reachArr = []
 
     def format_xmlHand(string):
@@ -764,13 +753,10 @@ def matrixify(arr):
             if item[0] == "INIT":
                 #clears matrix attributes
                 latestDiscard = 0
-                matrix.clearMatrix() 
-
-                #sets wall tiles to 69 (at the start)
-                matrix.setWallTiles()
+                matrix = Matrix() 
                 
                 #sets points
-                points = attr["ten"].split(",")
+                points = [int(i) for i in attr["ten"].split(",")]
                 matrix.setPlayerScore(points)
                 
                 #sets player winds
@@ -786,7 +772,7 @@ def matrixify(arr):
                 matrix.addDoraIndicator(seed[5] // 4)
                 matrix.setHonbaSticks(seed[1])
                 matrix.setRoundWind(seed[0] //4)
-                matrix.setDealer(seed[0] % 4) #wrong if we keep relative player
+                matrix.setDealer(seed[0] % 4) 
 
             elif item[0] == "N":
                 meldInfo = decodeMeld(attr["m"])
@@ -803,6 +789,10 @@ def matrixify(arr):
        
                     matrix.addPlayerMelds(player, meldInfo, True) 
                     matrix.addClosedKan(player)
+
+                #chi:0, pon:1, openKan:2, closedKain:3, chakan:4
+                matrix.addMeldNum(player, meldInfo[1])
+
                 
             # if new dora then adds it
             elif item[0] == "DORA":
@@ -814,20 +804,20 @@ def matrixify(arr):
             attr = item[0]             # attr in the form of, say, T46
             moveIndex = attr[0]        # T
             tile = int(attr[1:]) // 4  # 46 // 4
-
             if moveIndex == "T":
                 matrix.setLastDrawPlayer(0)   
                 hand = matrix.getPrivateHand(0)
 
                 matrix.decWallTiles()                   # remove a wall tile after drawing
                 matrix.addTilePrivateHand(0, tile)      # add the drawn tile to hand
+                #riichi conditions are: the player is not already in riichi, hand is closed, is in tenpai, and >=4 tiles in live wall (rule)
                 #checks for riichi conditions, and then to reachArr if passes necessary conditions
-                if matrix.getnotRiichi(0) and matrix.getClosed(0) and calcShanten(hand) == 0:
-                    matrix.setMatrix(0)
+                if matrix.getnotRiichi(0) and matrix.getClosed(0) and (calcShanten(hand) <= 2*matrix.getClosedKan(0)) and matrix.getWallTiles() >= 4:
+                    matrix.buildMatrix(0)
                     # if riichis then sets to riichi
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(0)
-                    reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(0) else 1]) # riichi is always 1 for now
+                    reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(0) else 1]) 
 
             elif moveIndex == "U":
                 matrix.setLastDrawPlayer(1)                   
@@ -835,11 +825,12 @@ def matrixify(arr):
 
                 matrix.decWallTiles()             
                 matrix.addTilePrivateHand(1, tile)
-                if matrix.getnotRiichi(1) and matrix.getClosed(1) and (calcShanten(hand) <= 0 + 2*matrix.getClosedKan(1)):
-                    matrix.setMatrix(1)
+
+                if matrix.getnotRiichi(1) and matrix.getClosed(1) and (calcShanten(hand) <= 2*matrix.getClosedKan(1)) and matrix.getWallTiles() >= 4:
+                    matrix.buildMatrix(1)
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(1)
-                    reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(1) else 1]) # riichi is always 1 for now
+                    reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(1) else 1]) 
 
             elif moveIndex == "V":
                 matrix.setLastDrawPlayer(2)   
@@ -847,12 +838,11 @@ def matrixify(arr):
 
                 matrix.decWallTiles()        
                 matrix.addTilePrivateHand(2, tile) 
-                matrix.setMatrix(2)
-                if matrix.getnotRiichi(2) and matrix.getClosed(2) and calcShanten(hand) == 0:
-                    matrix.setMatrix(2)
+                if matrix.getnotRiichi(2) and matrix.getClosed(2) and (calcShanten(hand) <= 2*matrix.getClosedKan(2)) and matrix.getWallTiles() >= 4:
+                    matrix.buildMatrix(2)
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(2)
-                    reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(2) else 1]) # riichi is always 1 for now
+                    reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(2) else 1]) 
   
             elif moveIndex == "W":
                 matrix.setLastDrawPlayer(3)   
@@ -860,11 +850,11 @@ def matrixify(arr):
 
                 matrix.decWallTiles()                          # remove a wall tile after drawing
                 matrix.addTilePrivateHand(3, tile)   # add the drawn tile to hand
-                if matrix.getnotRiichi(3) and matrix.getClosed(3) and calcShanten(hand) == 0:
-                    matrix.setMatrix(3)
+                if matrix.getnotRiichi(3) and matrix.getClosed(3) and (calcShanten(hand) <= 2*matrix.getClosedKan(3)) and matrix.getWallTiles() >= 4:
+                    matrix.buildMatrix(3)
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(3)
-                    reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(3) else 1]) # riichi is always 1 for now
+                    reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(3) else 1]) 
 
             #### DISCARDS #### 
             elif moveIndex == "D":
@@ -930,15 +920,32 @@ def convertLog(log):
     return game, arr
 
 out = [convertLog(log) for log in logs]
+def printNice(game):
+    int_game = [[int(element) for element in row] for row in game]
+    game=int_game
+    print("round wind: ", game[0][0], "| dealer: ", game[0][1], "| tilesInWall: ", game[0][5], "| doras: ", webFormat(game[1]), "| roundNum: ", game[0][33])
+    print("honba sticks: ", game[0][3], "| riichi sticks: ", game[0][4],"| scores", game[0][6:10])
+    
+    print("POV wind", game[0][2])  
+    print("POVHand: ", webFormat(game[2]))
 
+    for i in range(4):
+        print("player"+str(i)+" melds: "+webFormat(game[3+i]) + "| #chi=", game[0][14+i], "| #pon=", game[0][18+i])
+    for i in range(4):
+        print("player"+str(i)+" pool: "+webFormat(game[7+i]))
 
 tupl = out[0]
 game = tupl[1]
 game = matrixify(game)
 
 for i in game:
+    printNice(i[0])
+    print("label: ", i[1])
     matprint(i[0])
-    print(i[1])
+    print("")
+    print("")
+    print("")
+    print("")   
 
 
 
