@@ -216,7 +216,7 @@ class Matrix:
     def setPlayerWinds(self):
         dealer = self.roundDealer
         self.playerWinds = np.roll(self.playerWinds, dealer)
-        
+
     def getPlayerWinds(self):
         return self.playerWinds
 
@@ -753,7 +753,6 @@ def matrixify(arr):
             attr = item[1]
             if item[0] == "INIT":
                 #clears matrix attributes
-                latestDiscard = 0
                 matrix = Matrix() 
                 
                 #sets points
@@ -787,9 +786,10 @@ def matrixify(arr):
 
                 # bug if i have else instead of this elif in a very specific case (see round 1)
                 elif arr[index-2][0] != "N":
-       
                     matrix.addPlayerMelds(player, meldInfo, True) 
                     matrix.addClosedKan(player)
+
+                else: matrix.setOpen(player)
 
                 #chi:0, pon:1, openKan:2, closedKain:3, chakan:4
                 matrix.addMeldNum(player, meldInfo[1])
@@ -937,9 +937,10 @@ def printNice(game):
         print("player"+str(i)+" pool: "+webFormat(game[7+i]))
 
 
-tupl = out[2]
+tupl = out[0]
 game = tupl[1]
 game = matrixify(game)
+print("Lengh = ", len(game))
 
 for i in game:
     printNice(i[0])
