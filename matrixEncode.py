@@ -948,12 +948,16 @@ def manualTest(gameNum):
 
 #takes in game number from (0 - 200)
 
+tile_dic = {i: f"{i+1}m" if i <= 8 else f"{i-8}p" if i <= 17 else f"{i-17}s" for i in range(27)}
+honour_entries = {27 : "e", 28 : "s", 29 : "w", 30 : "n", 31 : "wd", 32 : "gd", 33 : "rd", -128:"None"}
+tile_dic.update(honour_entries)
+
 def printStates(states, file = None):
     for i in states:
             mat=i[0]
             printNice(mat, file=file)
             print("label: ", i[1] , file=file )
-            print("last discard:", mat[0][30] , file=file)
+            print("last discard:", tile_dic[int(mat[0][30])] , file=file)
             matprint(i[0], file=file)
             print("" , file=file)
 
