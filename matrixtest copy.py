@@ -669,6 +669,9 @@ def matrixifymelds(arr):
             
             elif item[0] == "REACH":
                 matrix.setRiichi( matrix.getLastDrawPlayer() )
+                if attr["step"] == "2":
+                    points = [int(i) for i in attr["ten"].split(",")]
+                    matrix.setPlayerScore(points) 
 
         else:
             #### DRAWS ####
@@ -749,6 +752,17 @@ def matrixifymelds(arr):
 def matrixify(arr):
     reachArr = []
 
+    #riichi conditions are: the player is not already in riichi, hand is closed, is in tenpai, and >=4 tiles in live wall (rule)
+    #checks for riichi conditions, and then to reachArr if passes necessary conditions
+    def checkRiichi(p):
+        hand = matrix.getPrivateHand(p)
+        if matrix.getnotRiichi(p) and matrix.getClosed(p) and (calcShanten(hand) <= 2*matrix.getClosedKan(p)) and matrix.getWallTiles() >= 4:
+            matrix.buildMatrix(p, False)
+            # if riichis then sets to riichi
+            if arr[index+1][0] == "REACH": 
+                matrix.setRiichi(p)
+            reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(p) else 1]) 
+
     for index,item in enumerate(arr): 
         if item[1]:
             attr = item[1]
@@ -800,6 +814,10 @@ def matrixify(arr):
             elif item[0] == "DORA":
                 matrix.addDoraIndicator( int(attr["hai"]) // 4 )
 
+            elif (item[0] == "REACH") and attr["step"] == "2":
+                points = [int(i) for i in attr["ten"].split(",")]
+                matrix.setPlayerScore(points) 
+
 
         else:
             #### DRAWS ####
@@ -809,17 +827,10 @@ def matrixify(arr):
             if moveIndex == "T":
                 matrix.setLastDrawPlayer(0)   
                 hand = matrix.getPrivateHand(0)
-
                 matrix.decWallTiles()   # remove a wall tile after drawing
                 matrix.addTilePrivateHand(0, tile)      # add the drawn tile to hand
-                #riichi conditions are: the player is not already in riichi, hand is closed, is in tenpai, and >=4 tiles in live wall (rule)
-                #checks for riichi conditions, and then to reachArr if passes necessary conditions
-                if matrix.getnotRiichi(0) and matrix.getClosed(0) and (calcShanten(hand) <= 2*matrix.getClosedKan(0)) and matrix.getWallTiles() >= 4:
-                    matrix.buildMatrix(0, False)
-                    # if riichis then sets to riichi
-                    if arr[index+1][0] == "REACH": 
-                        matrix.setRiichi(0)
-                    reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(0) else 1]) 
+
+                checkRiichi(0)
 
             elif moveIndex == "U":
                 matrix.setLastDrawPlayer(1)                   
@@ -827,12 +838,8 @@ def matrixify(arr):
 
                 matrix.decWallTiles()             
                 matrix.addTilePrivateHand(1, tile)
-
-                if matrix.getnotRiichi(1) and matrix.getClosed(1) and (calcShanten(hand) <= 2*matrix.getClosedKan(1)) and matrix.getWallTiles() >= 4:
-                    matrix.buildMatrix(1, False)
-                    if arr[index+1][0] == "REACH": 
-                        matrix.setRiichi(1)
-                    reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(1) else 1]) 
+                
+                checkRiichi(1) 
 
             elif moveIndex == "V":
                 matrix.setLastDrawPlayer(2)   
@@ -840,11 +847,8 @@ def matrixify(arr):
 
                 matrix.decWallTiles()        
                 matrix.addTilePrivateHand(2, tile) 
-                if matrix.getnotRiichi(2) and matrix.getClosed(2) and (calcShanten(hand) <= 2*matrix.getClosedKan(2)) and matrix.getWallTiles() >= 4:
-                    matrix.buildMatrix(2, False)
-                    if arr[index+1][0] == "REACH": 
-                        matrix.setRiichi(2)
-                    reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(2) else 1]) 
+                
+                checkRiichi(2)
   
             elif moveIndex == "W":
                 matrix.setLastDrawPlayer(3)   
@@ -852,11 +856,8 @@ def matrixify(arr):
 
                 matrix.decWallTiles()           
                 matrix.addTilePrivateHand(3, tile)  
-                if matrix.getnotRiichi(3) and matrix.getClosed(3) and (calcShanten(hand) <= 2*matrix.getClosedKan(3)) and matrix.getWallTiles() >= 4:
-                    matrix.buildMatrix(3, False)
-                    if arr[index+1][0] == "REACH": 
-                        matrix.setRiichi(3)
-                    reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(3) else 1]) 
+                
+                checkRiichi(3)
 
             #### DISCARDS #### 
             elif moveIndex == "D":
@@ -940,17 +941,17 @@ def printNice(game):
         print("player"+str(i)+" pool: ",webFormat(game[7+i]))
 
 
-tupl = out[2]
+tupl = out[0]
 game = tupl[1]
 
 game_riichi = matrixify(game)
 game_chi = matrixifymelds(game)[0]
 
-for i in game_chi:
+for i in game_riichi:
     mat=i[0]
     printNice(mat)
     print("label: ", i[1])
-    print("last discard:", mat[0][22])
+    #print("last discard:", mat[0][22])
     #matprint(i[0])
     print("")
 
