@@ -1,5 +1,7 @@
 import json
+import os
 import random
+import traceback
 import numpy as np
 from numpy.typing import NDArray
 
@@ -953,9 +955,32 @@ def printStates(states, file = None):
             #matprint(i[0], file=file)
             print("", file=file)
 
+#statetype (0-4) 0 - riichi, 1 - chi, 2 - pon, 3- kan
+
+def flatformat(states, logid, statetype):
+    arr = []
+    for i in states:
+        mat = i[0]
+        label = i[1]
+        flat = mat.flatten()
+        flat = np.append(flat, label)
+        arr.append(flat)
+    
+
+    arr_np = np.array(arr)
+    
+    directory = os.path.join(".", "Data", "2020")
+    
+    os.makedirs(directory, exist_ok=True)
+    
+    file_path = os.path.join(directory, f"{statetype}_{logid}.npz")
+    
+    np.savez(file_path, arr_np)
+    
+
 def printTestToFile(gameNum):
 
-    with open("out.txt" , "w") as file:
+    with open("out.txt" , "w+") as file:
 
         tupl = out[gameNum]
         game = tupl[1]
@@ -967,7 +992,7 @@ def printTestToFile(gameNum):
 
 
         print("gameid: ", tupl[0], file=file,)
-        
+
         print("" , file=file )
         print("" , file=file)
         print("Riichi States" , file=file )
@@ -989,5 +1014,28 @@ def printTestToFile(gameNum):
         printStates(game_kan, file=file)
 
 
-#gameNumber (0-200)
-printTestToFile(3)
+def saveToFile(gameNum):
+
+    tupl = out[gameNum]
+    game = tupl[1]
+    gameid = tupl[0]
+
+    game_riichi = matrixify(game)
+    game_chi = matrixifymelds(game)[0]
+    game_pon = matrixifymelds(game)[1]
+    game_kan = matrixifymelds(game)[2]
+
+    flatformat(game_riichi, gameid, 0)
+    flatformat(game_chi, gameid, 1)
+    flatformat(game_pon, gameid, 2) 
+    flatformat(game_kan, gameid, 3)
+
+
+
+for i in range(200):
+    try:
+        saveToFile(i)
+    except Exception as e:
+        print(f"An error occurred with i={i}: {e}")
+        traceback.print_exc()
+    
