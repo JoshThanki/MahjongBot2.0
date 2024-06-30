@@ -635,25 +635,27 @@ def matrixifymelds(arr):
                 kanArr.append([copy.deepcopy(matrix.getMatrix()), kanLabel])
 
 
-    def checkMeldsSelf(player):
+    def checkMeldsSelf():
         drawPlayer = matrix.getLastDrawPlayer()   
         drawTile = matrix.getLastDrawTile()  
        
         ### CLOSED KAN ###
         # If the player has 4 of the same tile then builds the matrix and appends it with the label to kanArr
-        if matrix.getPrivateHand(player)[drawTile] == 4:
+        if matrix.getPrivateHand(drawPlayer)[drawTile] == 4:
             closedKanLabel = 0
-            matrix.buildMatrix(player, True)
+            matrix.buildMatrix(drawPlayer, True)
             if arr[index+1][0] == "N":
                 closedKanLabel = 1
             kanArr.append([copy.deepcopy(matrix.getMatrix()), closedKanLabel])
             ##### perhaps have lastDiscard = lastDraw in this,  altough that would cause issues
 
         ### CHANKAN ###
-       # if matrix.getPlayerPonTiles(player):
-        #    chankanLabel = 0
-
-            
+        if drawTile in matrix.getPlayerPonTiles(drawPlayer):
+            chankanLabel = 0
+            matrix.buildMatrix(drawPlayer, True)
+            if arr[index+1][0] == "N":
+                chankanLabel = 1
+            kanArr.append([copy.deepcopy(matrix.getMatrix()), chankanLabel])
 
     for index,item in enumerate(arr): 
         if item[1]:
@@ -723,28 +725,28 @@ def matrixifymelds(arr):
                 matrix.decWallTiles()                   # remove a wall tile after drawing
                 matrix.addTilePrivateHand(0, tile)      # add the drawn tile to hand
 
-                checkMeldsSelf(0)    
+                checkMeldsSelf()    
             elif moveIndex == "U":
                 matrix.setLastDrawPlayer(1)                   
                 matrix.setLastDrawTile(tile)
                 matrix.decWallTiles()             
                 matrix.addTilePrivateHand(1, tile)
                 
-                checkMeldsSelf(1)
+                checkMeldsSelf()
             elif moveIndex == "V":
                 matrix.setLastDrawPlayer(2)   
                 matrix.setLastDrawTile(tile)
                 matrix.decWallTiles()        
                 matrix.addTilePrivateHand(2, tile) 
                 
-                checkMeldsSelf(2)
+                checkMeldsSelf()
             elif moveIndex == "W":
                 matrix.setLastDrawPlayer(3)   
                 matrix.setLastDrawTile(tile)
                 matrix.decWallTiles()           
                 matrix.addTilePrivateHand(3, tile)  
                 
-                checkMeldsSelf(3)
+                checkMeldsSelf()
             #### DISCARDS #### 
             elif moveIndex == "D":
                 matrix.setLastDiscardPlayer(0)
@@ -1063,4 +1065,4 @@ def printTestToFile(gameNum):
 
 
 #gameNumber (0-200)
-printTestToFile(0)
+printTestToFile(6)
