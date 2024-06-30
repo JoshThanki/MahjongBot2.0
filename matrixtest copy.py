@@ -25,7 +25,7 @@ res = cur.execute("SELECT log_id, log_content FROM logs")
 
 logs = []
 
-for i in range(3):
+for i in range(20):
     logs.append(res.fetchone())
 
 con.close()
@@ -228,7 +228,7 @@ def matprint(mat, fmt="g"):
     # returns tiles, meldType
 
 
-def decodeMeld(data): #chi:0, pon:1, openKan:2, closedKain:3, chakan:4
+def decodeMeld(data): #chi:0, pon:1, kan: 2, chakan:3
     def decodeChi(data):
         meldType = 0
         t0, t1, t2 = (data >> 3) & 0x3, (data >> 5) & 0x3, (data >> 7) & 0x3
@@ -249,7 +249,7 @@ def decodeMeld(data): #chi:0, pon:1, openKan:2, closedKain:3, chakan:4
             meldType = 1
             tiles = [(t0 + 4 * base)//4, (t1 + 4 * base)//4, (t2 + 4 * base)//4]
         else:
-            meldType = 4
+            meldType = 3
             tiles = [(t0 + 4 * base)//4, (t1 + 4 * base)//4, (t2 + 4 * base)//4]
         return tiles, meldType
 
@@ -355,8 +355,10 @@ class Matrix:
         self.gameState[0][4] = self.notRiichi.count(False)  
         #num of tiles left in wall (kans might mess this up need to check)
         self.gameState[0][5] = self.wallTiles
+        #padding
+        self.gameState[0][30:33] = -128
         #round number
-        self.gameState[0][33] = self.roundDealer + 1         
+        self.gameState[0][33] = self.roundDealer + 1    
         
         #pov hand
         self.gameState[2] = self.privateHands[player]
@@ -379,9 +381,7 @@ class Matrix:
             self.gameState[0][22+index] = self.kans[player]
             # 0: closed, 1: open
             self.gameState[0][26+index] = 0 if self.Closed[player] else 1
-        
-        #padding
-        self.gameState[0][30:33] = -128
+
 
         # sets last discard for the meld matrices
         if forMeld:
@@ -394,8 +394,7 @@ class Matrix:
 
     # hand [34]
     def addClosedKan(self, player):
-        self.closedKans[player] += 1
-        self.addKan(player)             #
+        self.closedKans[player] += 1           
     def getClosedKan(self, player):  #needed
         return self.closedKans[player]
 
@@ -420,7 +419,7 @@ class Matrix:
         elif meldType == 1:
             self.addPon(player)
         elif meldType == 2:
-            self.addPon(player)     #self.addKan(player)    (rn kans and pons are the same)
+            self.addKan(player)    
 
     def getPlayerPool(self, player):
         return self.playerPool[player]
@@ -609,7 +608,7 @@ def matrixifymelds(arr):
                 if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player: 
                     kanLabel = 1
                     matrix.decPlayerPool(discardPlayer, tile)
-                ponArr.append([copy.deepcopy(matrix.getMatrix()), kanLabel])
+                kanArr.append([copy.deepcopy(matrix.getMatrix()), kanLabel])
 
 
     for index,item in enumerate(arr): 
@@ -927,17 +926,20 @@ def printNice(game):
         print("player"+str(i)+" pool: ",webFormat(game[7+i]))
 
 
-tupl = out[0]
+tupl = out[3]
 game = tupl[1]
 
 game_riichi = matrixify(game)
 game_chi = matrixifymelds(game)[0]
+game_pon = matrixifymelds(game)[1]
+game_kan = matrixifymelds(game)[2]
 
-for i in game_chi:
+print("gameid: ", tupl[0])
+for i in game_kan:
     mat=i[0]
     printNice(mat)
     print("label: ", i[1])
-    #print("last discard:", mat[0][30])
-    #matprint(i[0])
+    print("last discard:", mat[0][30])
+    matprint(i[0])
     print("")
 
