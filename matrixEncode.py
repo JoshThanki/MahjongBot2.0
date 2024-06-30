@@ -27,7 +27,9 @@ res = cur.execute("SELECT log_id, log_content FROM logs")
 
 logs = []
 
-for i in range(200):
+NUMGAMES = 50
+
+for i in range(NUMGAMES):
     logs.append(res.fetchone())
 
 con.close()
@@ -1031,11 +1033,12 @@ def saveToFile(gameNum):
     flatformat(game_kan, gameid, 3)
 
 
-
-for i in range(200):
-    try:
-        saveToFile(i)
-    except Exception as e:
-        print(f"An error occurred with i={i}: {e}")
-        traceback.print_exc()
-    
+def saveFiles():
+    for i in range(NUMGAMES):
+        try:
+            saveToFile(i)
+        except Exception as e:
+            pass
+            # print(f"An error occurred with i={i}: {e}")
+            # traceback.print_exc()
+        
