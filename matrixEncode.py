@@ -557,9 +557,6 @@ class Matrix:
         return self.Closed[player]
 
 
-
-
-
 def matrixifymelds(arr):
 
     chiArr = []
@@ -733,7 +730,6 @@ def matrixifymelds(arr):
                 checkMelds()
                 
     return chiArr, ponArr, kanArr
-
 
 
 def matrixify(arr):
