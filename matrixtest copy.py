@@ -272,12 +272,6 @@ def decodeMeld(data): #chi:0, pon:1, openKan:2, closedKain:3, chakan:4
         meld = decodeKan(data, False)
     return meld
 
-
-tile_dic = {i: f"{i+1}m" if i <= 8 else f"{i-8}p" if i <= 17 else f"{i-17}s" for i in range(27)}
-honour_entries = {27 : "e", 28 : "s", 29 : "w", 30 : "n", 31 : "wd", 32 : "gd", 33 : "rd"}
-tile_dic.update(honour_entries)
-
-
 windDict = {
         0 : "E",
         1 : "S",
@@ -310,14 +304,7 @@ def webFormat(handArray):
     return string
 
 
-class Matrix:
-    ## probably unneeded
-    tile_dic = {i: f"{i+1}m" if i <= 8 else f"{i-8}p" if i <= 17 else f"{i-17}s" for i in range(27)}
-    honour_entries = {27 : "e", 28 : "s", 29 : "w", 30 : "n", 31 : "wd", 32 : "gd", 33 : "rd"}
-    tile_dic.update(honour_entries)
-
-    revtile_dic = {v: k for k, v in tile_dic.items()}
-            
+class Matrix:     
     def __init__(self):
         self.gameState = np.zeros((11, 34))
         self.privateHands = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
@@ -388,9 +375,17 @@ class Matrix:
             self.gameState[0][14+index] = self.chis[player]
             #number of pons
             self.gameState[0][18+index] = self.pons[player]
+            #number of kans
+            self.gameState[0][22+index] = self.kans[player]
+            # 0: closed, 1: open
+            self.gameState[0][26+index] = 0 if self.Closed[player] else 1
+        
+        #padding
+        self.gameState[0][30:33] = -128
 
+        # sets last discard for the meld matrices
         if forMeld:
-            self.gameState[0][22] = self.lastDiscardTile
+            self.gameState[0][30] = self.lastDiscardTile
     
 
     def getMatrix(self):  #needed
@@ -682,28 +677,24 @@ def matrixifymelds(arr):
             if moveIndex == "T":
                 matrix.setLastDrawPlayer(0)   
                 hand = matrix.getPrivateHand(0)
-
                 matrix.decWallTiles()                   # remove a wall tile after drawing
                 matrix.addTilePrivateHand(0, tile)      # add the drawn tile to hand
 
             elif moveIndex == "U":
                 matrix.setLastDrawPlayer(1)                   
                 hand = matrix.getPrivateHand(1)
-
                 matrix.decWallTiles()             
                 matrix.addTilePrivateHand(1, tile)
                 
             elif moveIndex == "V":
                 matrix.setLastDrawPlayer(2)   
                 hand = matrix.getPrivateHand(2)
-
                 matrix.decWallTiles()        
                 matrix.addTilePrivateHand(2, tile) 
                 
             elif moveIndex == "W":
                 matrix.setLastDrawPlayer(3)   
                 hand = matrix.getPrivateHand(3)
-
                 matrix.decWallTiles()           
                 matrix.addTilePrivateHand(3, tile)  
                 
@@ -717,7 +708,6 @@ def matrixifymelds(arr):
                 # this function checks for any valid meld calls, builds the matrix if neeeded and appends it to the output arrays
                 checkMelds()
 
-
             elif moveIndex == "E":
                 matrix.setLastDiscardPlayer(1)
                 matrix.removeTilePrivateHand(1, tile)  
@@ -726,7 +716,6 @@ def matrixifymelds(arr):
                 
                 checkMelds()
 
-            
             elif moveIndex == "F":
                 matrix.setLastDiscardPlayer(2)
                 matrix.removeTilePrivateHand(2, tile) 
@@ -735,7 +724,6 @@ def matrixifymelds(arr):
                 
                 checkMelds()
 
-            
             elif moveIndex == "G":
                 matrix.setLastDiscardPlayer(3)
                 matrix.removeTilePrivateHand(3, tile)
@@ -743,7 +731,6 @@ def matrixifymelds(arr):
                 matrix.addPlayerPool(3, tile)
                 
                 checkMelds()
-
                 
     return chiArr, ponArr, kanArr
 
@@ -753,7 +740,7 @@ def matrixify(arr):
     reachArr = []
 
     #riichi conditions are: the player is not already in riichi, hand is closed, is in tenpai, and >=4 tiles in live wall (rule)
-    #checks for riichi conditions, and then to reachArr if passes necessary conditions
+    #checks for riichi conditions, and then appends to reachArr if passes necessary conditions
     def checkRiichi(p):
         hand = matrix.getPrivateHand(p)
         if matrix.getnotRiichi(p) and matrix.getClosed(p) and (calcShanten(hand) <= 2*matrix.getClosedKan(p)) and matrix.getWallTiles() >= 4:
@@ -932,11 +919,10 @@ def printNice(game):
     int_game = [[int(element) for element in row] for row in game]
     game=int_game
     print("round wind: ", game[0][0], "| dealer: ", game[0][1], "| tilesInWall: ", game[0][5], "| doras: ", webFormat(game[1]), "| roundNum: ", game[0][33], "| honba sticks: ", game[0][3], "| riichi sticks: ", game[0][4],"| scores", game[0][6:10])
-    print("POV wind: ", windDict[ game[0][2] ])  
-    print("POVHand: ", webFormat(game[2]))
+    print("POV wind: "+ windDict[ game[0][2] ]+ " | POVHand: ", webFormat(game[2]))  
 
     for i in range(4):
-        print("player"+str(i)+" melds: "+webFormat(game[3+i]) + "| #chi=", game[0][14+i], "| #pon=", game[0][18+i])
+        print("player"+str(i)+ "| #chi=", game[0][14+i], "| #pon=", game[0][18+i], "| #kan=", game[0][22+i], "| #isOpen=", game[0][26+i],"| melds: "+webFormat(game[3+i]))
     for i in range(4):
         print("player"+str(i)+" pool: ",webFormat(game[7+i]))
 
@@ -947,11 +933,11 @@ game = tupl[1]
 game_riichi = matrixify(game)
 game_chi = matrixifymelds(game)[0]
 
-for i in game_riichi:
+for i in game_chi:
     mat=i[0]
     printNice(mat)
     print("label: ", i[1])
-    #print("last discard:", mat[0][22])
+    #print("last discard:", mat[0][30])
     #matprint(i[0])
     print("")
 
