@@ -44,9 +44,19 @@ def decodeMeld(data):
         meld = decodeKan(data, False)
     return meld                       #chi:0, pon:1, openKan:2, closedKain:3, chakan:4
 
-player=1
-player_ordering = [i%4 for i in range(player,player+4)]
-print(player_ordering)
 
-for index,player in enumerate(player_ordering):
-    print(player, index)
+
+def canChi(hand, tile): # need to write logic to check for seat (can only chi from person before you)
+        if tile//9 == 3: return False
+        else:
+            t = tile % 9
+            h = hand
+            # skull
+            if t == 0: return (h[tile+1]>0 and h[tile+2]>0)
+            elif t == 8: return (h[tile-1]>0 and h[tile-2]>0)
+            elif t == 1: return (h[tile+1]>0 and h[tile+2]>0) or (h[tile-1]>0 and h[tile+1]>0)
+            elif t == 7: return (h[tile-1]>0 and h[tile-2]>0) or (h[tile-1]>0 and h[tile+1]>0)
+            else: return (h[tile-1]>0 and h[tile-2]>0) or (h[tile-1]>0 and h[tile+1]>0) or (h[tile+1]>0 and h[tile+2]>0)
+
+
+print(canChi([0]*9 + [1,2,2,1,0,1,0,0,0]+[0]*9+[0]*7,9))

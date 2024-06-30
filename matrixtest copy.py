@@ -1,4 +1,3 @@
-
 import json
 import random
 import numpy as np
@@ -34,17 +33,256 @@ con.close()
 out = {}
 
 
+#global functions
+def calcShanten(hand):
+    
+    #converting to mahjong 1.0 format
+    split_indices=[9,18,27]
+    handArray =  np.split(hand, split_indices) 
+
+    def pairs(suit_arr):
+        possible_pairs=[]
+
+        for i in range(9):
+            if suit_arr[i]>1:
+                out = [0]*9
+                out[i] = 2
+                possible_pairs.append(out)
+        return possible_pairs
+    
+    def triplets(suit_arr):
+        possible_triplets=[]
+
+        for i in range(9):
+            if suit_arr[i]>2:
+                out = [0]*9
+                out[i] = 3
+                possible_triplets.append(out)
+        return possible_triplets
+    
+    def complete_sequences(suit_arr):
+        possible_sequences=[]
+        for i in range(2,9):
+            if suit_arr[i]>0 and suit_arr[i-1]>0 and suit_arr[i-2]>0:
+                out = [0]*9
+                out[i]=1
+                out[i-1]=1
+                out[i-2]=1
+                possible_sequences.append(out)
+        return possible_sequences
+    
+    def incomplete_sequences(suit_arr):
+        possible_insequences=[]
+        if suit_arr[0]>0 and suit_arr[1]>0:
+            out = [0]*9
+            out[0]=1
+            out[1]=1
+            possible_insequences.append(out)
+        for i in range(2,9):
+            if suit_arr[i]>0 and suit_arr[i-1]>0:
+                out = [0]*9
+                out[i]=1
+                out[i-1]=1
+                possible_insequences.append(out)
+            if suit_arr[i]>0 and suit_arr[i-2]>0:
+                out = [0]*9
+                out[i]=1
+                out[i-2]=1
+                possible_insequences.append(out)
+        return possible_insequences
+    
+    def resulting_hand(arr1,arr2):
+        out=[0]*9
+        for i in range(9):
+            out[i] = arr1[i] - arr2[i]
+        return out
+    
+    def splits_nogroups(hand):
+        set_insequences = incomplete_sequences(hand)
+        current_shan=0
+        set_pairs = pairs(hand)
+        pair_bool = False
+
+        for i in set_pairs:
+            current = splits_nogroups(resulting_hand(hand, i))[0]+1
+            if current>current_shan:
+                current_shan = current
+                pair_bool = True
+
+        for i in set_insequences:
+            current = splits_nogroups(resulting_hand(hand, i))[0]+1
+            if current > current_shan:
+                current_shan = current
+                pair_bool = splits_nogroups(resulting_hand(hand, i))[1]
+
+        return current_shan, pair_bool
+
+    def splits(g, hand):                  #******
+        current_g_n = g                   #number of groups
+        current_i_n = 0                   #number of taatsu
+        pair_presance = False             #used for an edge case(s?)                            
+        set_seq = complete_sequences(hand)
+        set_triplets = triplets(hand)
+
+        for j in set_seq:
+            current_split = splits(g+1, resulting_hand(hand,j))   
+            current = current_split[0]
+            if current>current_g_n:
+                current_g_n = current
+                current_i_n = current_split[1]
+                pair_presance = current_split[2]   #*
+            elif current == current_g_n:
+                if current_split[1] > current_i_n:
+                    current_i_n = current_split[1]
+                    pair_presance = current_split[2]   #*
+
+        for j in set_triplets:
+            current_split = splits(g+1, resulting_hand(hand,j))
+            current = current_split[0]
+            if current>current_g_n:
+                current_g_n = current
+                current_i_n = current_split[1]
+                pair_presance = current_split[2]   #*
+            elif current == current_g_n:
+                if current_split[1] > current_i_n:
+                    current_i_n = current_split[1]
+                    pair_presance = current_split[2]   #*
+ 
+        if (not set_seq) and (not set_triplets):     #if no more groups then counts maximum of taatsu    
+            s=splits_nogroups(hand)
+            return g, s[0], s[1]
+
+        return current_g_n,current_i_n,pair_presance
+
+    def splits_fullhand(hand):
+        current_split = [0,0,False]
+        for i in hand[:3]:
+            current_arr = splits(0, i)
+            current_split[0] += current_arr[0]
+            current_split[1] += current_arr[1]
+            if current_arr[2] == True:
+                current_split[2] = True
+        for i in hand[3]:
+            if i == 3:
+                current_split[0] += 1
+            elif i == 2:
+                current_split[1] +=1
+                current_split[2] = True
+        return current_split
+
+    def general_shanten(handArray):
+        split_arr = splits_fullhand(handArray)
+        i = split_arr[1]
+        g = split_arr[0]
+        pair_presence = split_arr[2]
+        p=0
+
+        #checking for the edge cases:
+        if i >= 5-g and pair_presence == False:
+            p=1
+        return 8 - 2*g - min(i, 4-g) - min(1, max(0,i+g-4)) + p
+    def chiitoistu_shanten(handArray):
+        pairs = 0
+        for suit in handArray:
+            for num in suit:
+                pairs += num//2      #counts number of pairs, 4 of the same tile are treated as 2 pairs
+        return 6 - pairs
+
+    def orphanSource_shanten(handArray):
+        diffTerminals = 0
+        pairsTerminals = 0
+        pair_const = 0
+        for i in (0,8):                  #iterates over numbered suits
+            for suit in handArray[:3]:
+                pairsTerminals += min(1, suit[i]//2)
+                diffTerminals += min(1, suit[i]//1)
+        for num in handArray[3]:        #iterates over honours
+                pairsTerminals += min(1, num//2)
+                diffTerminals += min(1, num//1)
+        if pairsTerminals > 0:
+            pair_const=1
+        return 13 - diffTerminals - pair_const
+
+    return min(general_shanten(handArray), chiitoistu_shanten(handArray), orphanSource_shanten(handArray))
+
+
+def format_xmlHand(string):
+    if string == '':
+        return [0]*34
+
+    out=np.zeros(34, dtype=int)
+    string_list = string.split(",")
+    array = np.array([int(i) for i in string_list])
+    for i in array:
+        out[i // 4] +=1
+    return out
+
+
+def matprint(mat, fmt="g"):
+    col_maxes = [max([len(("{:"+fmt+"}").format(x)) for x in col]) for col in mat.T]
+    for x in mat:
+        for i, y in enumerate(x):
+            print(("{:"+str(col_maxes[i])+fmt+"}").format(y), end="  ")
+        print("")
+
+    # returns tiles, meldType
+
+
+def decodeMeld(data): #chi:0, pon:1, openKan:2, closedKain:3, chakan:4
+    def decodeChi(data):
+        meldType = 0
+        t0, t1, t2 = (data >> 3) & 0x3, (data >> 5) & 0x3, (data >> 7) & 0x3
+        baseAndCalled = data >> 10
+        called = baseAndCalled % 3
+        base = baseAndCalled // 3
+        base = (base // 7) * 9 + base % 7
+        tiles = [(t0 + 4 * (base + 0))//4, (t1 + 4 * (base + 1))//4, (t2 + 4 * (base + 2))//4]
+        return tiles, meldType
+
+    def decodePon(data):
+        t4 = (data >> 5) & 0x3
+        t0, t1, t2 = ((1,2,3),(0,2,3),(0,1,3),(0,1,2))[t4]
+        baseAndCalled = data >> 9
+        called = baseAndCalled % 3
+        base = baseAndCalled // 3
+        if data & 0x8:
+            meldType = 1
+            tiles = [(t0 + 4 * base)//4, (t1 + 4 * base)//4, (t2 + 4 * base)//4]
+        else:
+            meldType = 4
+            tiles = [(t0 + 4 * base)//4, (t1 + 4 * base)//4, (t2 + 4 * base)//4]
+        return tiles, meldType
+
+    def decodeKan(data, fromPlayer):
+        baseAndCalled = data >> 8
+        if fromPlayer:
+            called = baseAndCalled % 4
+        base = baseAndCalled // 4
+        meldType = 2
+        tiles = [base, base, base, base]
+        return tiles, meldType
+
+    data = int(data)
+    meld = data & 0x3
+    if data & 0x4:
+        meld = decodeChi(data)
+    elif data & 0x18:
+        meld = decodePon(data)
+    else:
+        meld = decodeKan(data, False)
+    return meld
+
 
 tile_dic = {i: f"{i+1}m" if i <= 8 else f"{i-8}p" if i <= 17 else f"{i-17}s" for i in range(27)}
 honour_entries = {27 : "e", 28 : "s", 29 : "w", 30 : "n", 31 : "wd", 32 : "gd", 33 : "rd"}
 tile_dic.update(honour_entries)
 
 
-playerDict = {
-        0 : "e",
-        1 : "s",
-        2: "w",
-        3 : "n"
+windDict = {
+        0 : "E",
+        1 : "S",
+        2: "W",
+        3 : "N"
     }
 
 # formatting hand into web format from mahjong 1.0
@@ -70,17 +308,6 @@ def webFormat(handArray):
         string += dict[k]
 
     return string
-
-def format_xmlHand(string):
-    if string == "":
-        return ""
-
-    out=np.zeros(34, dtype=int)
-    string_list = string.split(",")
-    array = np.array([int(i) for i in string_list])
-    for i in array:
-        out[i // 4] +=1
-    return webFormat(out)
 
 
 class Matrix:
@@ -123,8 +350,9 @@ class Matrix:
     def setRiichi(self, player):
         self.notRiichi[player] = False
 
-    # builds matrix for POV player   
-    def buildMatrix(self, player):
+    # builds matrix for POV player
+    # forMeld   Riichi: False , Meld: true   (only difference is last discard)   
+    def buildMatrix(self, player, forMeld):
         # player ordering relative to input player. e.g. player =2  => player_ordering = [2,3,0,1]   (counterclockwise on table)
         player_ordering = [i%4 for i in range(player,player+4)]
 
@@ -160,6 +388,9 @@ class Matrix:
             self.gameState[0][14+index] = self.chis[player]
             #number of pons
             self.gameState[0][18+index] = self.pons[player]
+
+        if forMeld:
+            self.gameState[0][22] = self.lastDiscardTile
     
 
     def getMatrix(self):  #needed
@@ -175,6 +406,9 @@ class Matrix:
 
     def addPlayerPool(self, player, tile):
         self.playerPool[player][tile] += 1
+
+    def decPlayerPool(self, player, tile):
+        self.playerPool[player][tile] -= 1
     
     def addChi(self, player):
         self.chis[player] += 1
@@ -252,23 +486,11 @@ class Matrix:
             return self.playerScores[player]
         else:
             print("Invalid Player")
-
-    def setPlayerRiichi(self, player):
-        if player in [0,1,2,3]:
-            self.notRiichi = False
-        else:
-            print("Invalid Player")           
-    
-    def getPlayerRiichiStat(self, player):
-        if player in [0,1,2,3]:
-            return not self.notRiichi[player]
-        else:
-            print("Invalid Player")
     
     def setLastDiscardPlayer(self, player):
         self.lastDiscardPlayer = player
 
-    def getLastDiscardPlayer(self, player):
+    def getLastDiscardPlayer(self):
         return self.lastDiscardPlayer
 
 
@@ -294,17 +516,17 @@ class Matrix:
     #input player (0-3), meldinfo(([3-4] , (0-3) 0: chi,  1: pon, 2: open kan, 3: closed kan
 
     def addPlayerMelds(self, player, meldinfo, isClosedKan):
-        tiles = meldinfo[0]
-        for tile in tiles:
+        meldTiles = meldinfo[0]
+        for tile in meldTiles:
             self.playerMelds[player][tile] += 1 
 
-        called = self.lastDiscardTile
         if isClosedKan:
-            tile = tiles[0]
+            tile = meldTiles[0]
             self.privateHands[player][tile] -= 4 
-
         else:
-            for tile in tiles.remove(called):
+            called = self.lastDiscardTile
+            meldTiles.remove(called)  
+            for tile in meldTiles:
                 self.privateHands[player][tile] -= 1
     
     def getPlayerMelds(self):
@@ -326,11 +548,12 @@ class Matrix:
             t = tile % 9
             h = self.privateHands[player]
             # skull
-            if t == 0: return (h[tile+1] and h[tile+2])
-            elif t == 8: return (h[tile-1] and h[tile-2])
-            elif t == 1: return (h[tile+1] and h[tile+2]) or (h[tile-1] and h[tile+1])
-            elif t == 7: return (h[tile-1] and h[tile-2]) or (h[tile-1] and h[tile+1])
-            else: return (h[tile-1] and h[tile-2]) or (h[tile-1] and h[tile+1]) or (h[tile+1] and h[tile+2])
+            if t == 0: return (h[tile+1]>0 and h[tile+2]>0)
+            elif t == 8: return (h[tile-1]>0 and h[tile-2]>0)
+            elif t == 1: return (h[tile+1]>0 and h[tile+2]>0) or (h[tile-1]>0 and h[tile+1]>0)
+            elif t == 7: return (h[tile-1]>0 and h[tile-2]>0) or (h[tile-1]>0 and h[tile+1]>0)
+            else: return (h[tile-1]>0 and h[tile-2]>0) or (h[tile-1]>0 and h[tile+1]>0) or (h[tile+1]>0 and h[tile+2]>0)
+
     
     def setOpen(self, player):
         self.Closed[player] = False
@@ -338,169 +561,186 @@ class Matrix:
     def getClosed(self, player):
         return self.Closed[player]
 
-def matprint(mat, fmt="g"):
-    col_maxes = [max([len(("{:"+fmt+"}").format(x)) for x in col]) for col in mat.T]
-    for x in mat:
-        for i, y in enumerate(x):
-            print(("{:"+str(col_maxes[i])+fmt+"}").format(y), end="  ")
-        print("")
+
 
 
 
 def matrixifymelds(arr):
-    matrix = Matrix()
 
     chiArr = []
     ponArr = []
     kanArr = []
-
-    def format_xmlHand(string):
-        if string == '':
-            return [0]*34
-
-        out=np.zeros(34, dtype=int)
-        string_list = string.split(",")
-        array = np.array([int(i) for i in string_list])
-        for i in array:
-            out[i // 4] +=1
-        return out
 
     def format_seed(string):
         return [int(i)//4 for i in string.split(",")]
 
 
     def checkMelds():
-        discardPlayer, tile = matrix.getPlayerLastDiscard() 
+        discardPlayer = matrix.getLastDiscardPlayer()
+        tile = matrix.getLastDiscardTile()
+        
         players = [0,1,2,3]
-        players.remove(discardPlayer)
-
-        chiArr, ponArr, kanArr  = None , None, None
+        players.remove(discardPlayer)  # discard player cant call the tile
 
         for player in players:
-            matrix.setPOVPlayer(player)
-            chi, pon, kan = 0 , 0 , 0 
+            # resp. labels:   0 if doesn't call, 1 if does
+            chiLabel, ponLabel, kanLabel = 0, 0, 0
             
-            previousPlayer = ((player - 1) if player else 2)
+            # used for chi
+            previousPlayer = ((player - 1) if player else 3)
 
+            ### CHI ###
             if discardPlayer == previousPlayer and matrix.canChi(player, tile):
-                if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player: #Add code to check actual chi
-                    chi = 1
+                matrix.buildMatrix(player, True)
+                # if the player calls the tile
+                if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player: 
+                    chiLabel = 1
+                    # removes the tile from the wall since it got called
+                    matrix.decPlayerPool(discardPlayer, tile)
 
-                chiArr = [copy.deepcopy(matrix.getMatrix()), chi]
+                chiArr.append([copy.deepcopy(matrix.getMatrix()), chiLabel])
 
+            ### PON ### 
             elif  matrix.canPon(player, tile):
-                if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player: #Add code to check actual pon
-                    pon = 1
+                matrix.buildMatrix(player, True)
+                if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player: 
+                    ponLabel = 1
+                    matrix.decPlayerPool(discardPlayer, tile)
+                ponArr.append([copy.deepcopy(matrix.getMatrix()), ponLabel])
 
-                ponArr = [copy.deepcopy(matrix.getMatrix()), pon]
-
+            ### KAN ###
             elif  matrix.canKan(player, tile):
-                if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player: #Add code to check actual kan
-                    kan = 1
-
-                ponArr = [copy.deepcopy(matrix.getMatrix()), kan]
-
-
-        matrix.setPOVPlayer(discardPlayer)
-        
-        return chiArr, ponArr, kanArr
+                matrix.buildMatrix(player, True)
+                if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player: 
+                    kanLabel = 1
+                    matrix.decPlayerPool(discardPlayer, tile)
+                ponArr.append([copy.deepcopy(matrix.getMatrix()), kanLabel])
 
 
     for index,item in enumerate(arr): 
         if item[1]:
             attr = item[1]
             if item[0] == "INIT":
-                latestDiscard = 0
-                matrix.clearMatrix() 
+                #clears matrix attributes
+                matrix = Matrix() 
                 
-                points = attr["ten"].split(",")
-                
+                #sets points
+                points = [int(i) for i in attr["ten"].split(",")]
                 matrix.setPlayerScore(points)
                 
-                matrix.setDealer(attr["oya"])
+                #sets player winds
+                matrix.setDealer(int(attr["oya"]))
+                matrix.setPlayerWinds()
 
+                #sets starting hands
                 initialHands = [format_xmlHand(attr["hai"+str(i)]) for i in range(4) ]
                 matrix.initialisePrivateHands(initialHands)
 
-                seed = format_seed(attr["seed"])
+                #sets more metadata form seed
+                seed = [int(i) for i in attr["seed"].split(',')]
                 matrix.addDoraIndicator(seed[5] // 4)
                 matrix.setHonbaSticks(seed[1])
+                matrix.setRoundWind(seed[0] //4)
+                matrix.setDealer(seed[0] % 4)
 
             elif item[0] == "N":
-                meldTiles, isChi, newDora = [1,1,1],0,0    #decodeMeld(attr["m"]) #placholder function
+                meldInfo = decodeMeld(attr["m"])
                 player = int( attr["who"] )
 
-                #matrix.setOpen(player)
+                # if player who called the meld and player who drew last tile match then it is a closed kan
+                if (player != matrix.getLastDrawPlayer() ):
+                    matrix.setOpen(player)
+                    matrix.addPlayerMelds(player, meldInfo, False) 
+
+                # bug if i have else instead of this elif in a very specific case (see round 1)
+                elif arr[index-2][0] != "N":
+                    matrix.addPlayerMelds(player, meldInfo, True) 
+                    matrix.addClosedKan(player)
+
+                else: 
+                    matrix.setOpen(player)
+                    matrix.addPlayerMelds(player, meldInfo, False) 
+
+                #chi:0, pon:1, openKan:2, closedKain:3, chakan:4
+                matrix.addMeldNum(player, meldInfo[1])
+          
+            elif item[0] == "DORA":
+                matrix.addDoraIndicator( int(attr["hai"]) // 4 )
+            
+            elif item[0] == "REACH":
+                matrix.setRiichi( matrix.getLastDrawPlayer() )
 
         else:
+            #### DRAWS ####
             attr = item[0]        # attr in the form of, say, T46
             moveIndex = attr[0]   # T
             tile = int(attr[1:]) // 4  # 46 // 4
 
             if moveIndex == "T":
-                matrix.decWallTiles()                          # remove a wall tile after drawing
-                matrix.addTilePrivateHand(0, tile)   # add the drawn tile to hand
+                matrix.setLastDrawPlayer(0)   
+                hand = matrix.getPrivateHand(0)
+
+                matrix.decWallTiles()                   # remove a wall tile after drawing
+                matrix.addTilePrivateHand(0, tile)      # add the drawn tile to hand
 
             elif moveIndex == "U":
-                matrix.decWallTiles()
+                matrix.setLastDrawPlayer(1)                   
+                hand = matrix.getPrivateHand(1)
+
+                matrix.decWallTiles()             
                 matrix.addTilePrivateHand(1, tile)
                 
             elif moveIndex == "V":
-                matrix.decWallTiles()
-                matrix.addTilePrivateHand(2, tile)
+                matrix.setLastDrawPlayer(2)   
+                hand = matrix.getPrivateHand(2)
+
+                matrix.decWallTiles()        
+                matrix.addTilePrivateHand(2, tile) 
                 
             elif moveIndex == "W":
-                matrix.decWallTiles()
-                matrix.addTilePrivateHand(3, tile)
-                
+                matrix.setLastDrawPlayer(3)   
+                hand = matrix.getPrivateHand(3)
 
+                matrix.decWallTiles()           
+                matrix.addTilePrivateHand(3, tile)  
+                
+            #### DISCARDS #### 
             elif moveIndex == "D":
+                matrix.setLastDiscardPlayer(0)
                 matrix.removeTilePrivateHand(0, tile)   # remove discarded tile from hand 
-                matrix.setPlayerLastDiscard(0, tile)  # updates latest discard
-                chiRet, ponRet, kanRet = checkMelds()  
-                if chiRet:
-                    chiArr.append(chiRet)
-                elif ponRet:
-                    ponArr.append(ponRet)
-                elif kanRet:
-                    kanArr.append(kanRet)
+                matrix.setLastDiscardTile(tile)
+                matrix.addPlayerPool(0, tile)  # Always adds pool in this function and if the tile gets called then it deletes it from pool
+
+                # this function checks for any valid meld calls, builds the matrix if neeeded and appends it to the output arrays
+                checkMelds()
+
 
             elif moveIndex == "E":
+                matrix.setLastDiscardPlayer(1)
                 matrix.removeTilePrivateHand(1, tile)  
-                matrix.setPlayerLastDiscard(1, tile)
-                chiRet, ponRet, kanRet = checkMelds() 
-
-                if chiRet:
-                    chiArr.append(chiRet)
-                elif ponRet:
-                    ponArr.append(ponRet)
-                elif kanRet:
-                    kanArr.append(kanRet)
+                matrix.setLastDiscardTile(tile)
+                matrix.addPlayerPool(1, tile)
                 
+                checkMelds()
 
+            
             elif moveIndex == "F":
+                matrix.setLastDiscardPlayer(2)
                 matrix.removeTilePrivateHand(2, tile) 
-                matrix.setPlayerLastDiscard(2, tile)
-                chiRet, ponRet, kanRet = checkMelds() 
+                matrix.setLastDiscardTile(tile)
+                matrix.addPlayerPool(2, tile)
                 
-                if chiRet:
-                    chiArr.append(chiRet)
-                elif ponRet:
-                    ponArr.append(ponRet)
-                elif kanRet:
-                    kanArr.append(kanRet)
-                
-            elif moveIndex == "G":
-                matrix.removeTilePrivateHand(3, tile)
-                matrix.setPlayerLastDiscard(3, tile)  
-                chiRet, ponRet, kanRet = checkMelds() 
+                checkMelds()
 
-                if chiRet:
-                    chiArr.append(chiRet)
-                elif ponRet:
-                    ponArr.append(ponRet)
-                elif kanRet:
-                    kanArr.append(kanRet)
+            
+            elif moveIndex == "G":
+                matrix.setLastDiscardPlayer(3)
+                matrix.removeTilePrivateHand(3, tile)
+                matrix.setLastDiscardTile(tile)
+                matrix.addPlayerPool(3, tile)
+                
+                checkMelds()
+
                 
     return chiArr, ponArr, kanArr
 
@@ -508,245 +748,6 @@ def matrixifymelds(arr):
 
 def matrixify(arr):
     reachArr = []
-
-    def format_xmlHand(string):
-        if string == '':
-            return [0]*34
-
-        out=np.zeros(34, dtype=int)
-        string_list = string.split(",")
-        array = np.array([int(i) for i in string_list])
-        for i in array:
-            out[i // 4] +=1
-        return out
-
-    def calcShanten(hand):
-        
-        #converting to mahjong 1.0 format
-        split_indices=[9,18,27]
-        handArray =  np.split(hand, split_indices) 
-
-        def pairs(suit_arr):
-            possible_pairs=[]
-
-            for i in range(9):
-                if suit_arr[i]>1:
-                    out = [0]*9
-                    out[i] = 2
-                    possible_pairs.append(out)
-            return possible_pairs
-        
-        def triplets(suit_arr):
-            possible_triplets=[]
-
-            for i in range(9):
-                if suit_arr[i]>2:
-                    out = [0]*9
-                    out[i] = 3
-                    possible_triplets.append(out)
-            return possible_triplets
-        
-        def complete_sequences(suit_arr):
-            possible_sequences=[]
-            for i in range(2,9):
-                if suit_arr[i]>0 and suit_arr[i-1]>0 and suit_arr[i-2]>0:
-                    out = [0]*9
-                    out[i]=1
-                    out[i-1]=1
-                    out[i-2]=1
-                    possible_sequences.append(out)
-            return possible_sequences
-        
-        def incomplete_sequences(suit_arr):
-            possible_insequences=[]
-            if suit_arr[0]>0 and suit_arr[1]>0:
-                out = [0]*9
-                out[0]=1
-                out[1]=1
-                possible_insequences.append(out)
-            for i in range(2,9):
-                if suit_arr[i]>0 and suit_arr[i-1]>0:
-                    out = [0]*9
-                    out[i]=1
-                    out[i-1]=1
-                    possible_insequences.append(out)
-                if suit_arr[i]>0 and suit_arr[i-2]>0:
-                    out = [0]*9
-                    out[i]=1
-                    out[i-2]=1
-                    possible_insequences.append(out)
-            return possible_insequences
-        
-        def resulting_hand(arr1,arr2):
-            out=[0]*9
-            for i in range(9):
-                out[i] = arr1[i] - arr2[i]
-            return out
-        
-
-        def splits_nogroups(hand):
-            set_insequences = incomplete_sequences(hand)
-            current_shan=0
-            set_pairs = pairs(hand)
-            pair_bool = False
-
-            for i in set_pairs:
-                current = splits_nogroups(resulting_hand(hand, i))[0]+1
-                if current>current_shan:
-                    current_shan = current
-                    pair_bool = True
-
-            for i in set_insequences:
-                current = splits_nogroups(resulting_hand(hand, i))[0]+1
-                if current > current_shan:
-                    current_shan = current
-                    pair_bool = splits_nogroups(resulting_hand(hand, i))[1]
-
-            return current_shan, pair_bool
-
-
-        def splits(g, hand):                  #******
-            current_g_n = g                   #number of groups
-            current_i_n = 0                   #number of taatsu
-            pair_presance = False             #used for an edge case(s?)                            
-            set_seq = complete_sequences(hand)
-            set_triplets = triplets(hand)
-
-            for j in set_seq:
-                current_split = splits(g+1, resulting_hand(hand,j))   
-                current = current_split[0]
-                if current>current_g_n:
-                    current_g_n = current
-                    current_i_n = current_split[1]
-                    pair_presance = current_split[2]   #*
-                elif current == current_g_n:
-                    if current_split[1] > current_i_n:
-                        current_i_n = current_split[1]
-                        pair_presance = current_split[2]   #*
-
-            for j in set_triplets:
-                current_split = splits(g+1, resulting_hand(hand,j))
-                current = current_split[0]
-                if current>current_g_n:
-                    current_g_n = current
-                    current_i_n = current_split[1]
-                    pair_presance = current_split[2]   #*
-                elif current == current_g_n:
-                    if current_split[1] > current_i_n:
-                        current_i_n = current_split[1]
-                        pair_presance = current_split[2]   #*
-                        
-            if (not set_seq) and (not set_triplets):     #if no more groups then counts maximum of taatsu    
-                s=splits_nogroups(hand)
-                return g, s[0], s[1]
-
-            return current_g_n,current_i_n,pair_presance
-    
-
-        def splits_fullhand(hand):
-            current_split = [0,0,False]
-            for i in hand[:3]:
-                current_arr = splits(0, i)
-                current_split[0] += current_arr[0]
-                current_split[1] += current_arr[1]
-                if current_arr[2] == True:
-                    current_split[2] = True
-
-            for i in hand[3]:
-                if i == 3:
-                    current_split[0] += 1
-                elif i == 2:
-                    current_split[1] +=1
-                    current_split[2] = True
-            return current_split
-
-
-        def general_shanten(handArray):
-            split_arr = splits_fullhand(handArray)
-            i = split_arr[1]
-            g = split_arr[0]
-            pair_presence = split_arr[2]
-            p=0
-
-            #checking for the edge cases:
-            if i >= 5-g and pair_presence == False:
-                p=1
-            return 8 - 2*g - min(i, 4-g) - min(1, max(0,i+g-4)) + p
-
-        
-        def chiitoistu_shanten(handArray):
-            pairs = 0
-            for suit in handArray:
-                for num in suit:
-                    pairs += num//2      #counts number of pairs, 4 of the same tile are treated as 2 pairs
-            return 6 - pairs
-    
-        def orphanSource_shanten(handArray):
-            diffTerminals = 0
-            pairsTerminals = 0
-            pair_const = 0
-            for i in (0,8):                  #iterates over numbered suits
-                for suit in handArray[:3]:
-                    pairsTerminals += min(1, suit[i]//2)
-                    diffTerminals += min(1, suit[i]//1)
-
-
-            for num in handArray[3]:        #iterates over honours
-                    pairsTerminals += min(1, num//2)
-                    diffTerminals += min(1, num//1)
-            if pairsTerminals > 0:
-                pair_const=1
-            return 13 - diffTerminals - pair_const
-
-    
-        return min(general_shanten(handArray), chiitoistu_shanten(handArray), orphanSource_shanten(handArray))
-
-    # returns tiles, meldType
-    def decodeMeld(data): #chi:0, pon:1, openKan:2, closedKain:3, chakan:4
-        def decodeChi(data):
-            meldType = 0
-            t0, t1, t2 = (data >> 3) & 0x3, (data >> 5) & 0x3, (data >> 7) & 0x3
-            baseAndCalled = data >> 10
-            called = baseAndCalled % 3
-            base = baseAndCalled // 3
-            base = (base // 7) * 9 + base % 7
-            tiles = [(t0 + 4 * (base + 0))//4, (t1 + 4 * (base + 1))//4, (t2 + 4 * (base + 2))//4]
-            return tiles, meldType
-
-        def decodePon(data):
-            t4 = (data >> 5) & 0x3
-            t0, t1, t2 = ((1,2,3),(0,2,3),(0,1,3),(0,1,2))[t4]
-            baseAndCalled = data >> 9
-            called = baseAndCalled % 3
-            base = baseAndCalled // 3
-            if data & 0x8:
-                meldType = 1
-                tiles = [(t0 + 4 * base)//4, (t1 + 4 * base)//4, (t2 + 4 * base)//4]
-            else:
-                meldType = 4
-                tiles = [(t0 + 4 * base)//4, (t1 + 4 * base)//4, (t2 + 4 * base)//4]
-            return tiles, meldType
-
-        def decodeKan(data, fromPlayer):
-            baseAndCalled = data >> 8
-            if fromPlayer:
-                called = baseAndCalled % 4
-            base = baseAndCalled // 4
-            meldType = 2
-            tiles = [base, base, base, base]
-            return tiles, meldType
-
-        data = int(data)
-        meld = data & 0x3
-        if data & 0x4:
-            meld = decodeChi(data)
-        elif data & 0x18:
-            meld = decodePon(data)
-     #   elif data & 0x20:
-      #      meld = decodeNuki(data)
-        else:
-            meld = decodeKan(data, False)
-        return meld
 
     for index,item in enumerate(arr): 
         if item[1]:
@@ -781,20 +782,20 @@ def matrixify(arr):
                 # if player who called the meld and player who drew last tile match then it is a closed kan
                 if (player != matrix.getLastDrawPlayer() ):
                     matrix.setOpen(player)
-                    try: matrix.addPlayerMelds(player, meldInfo, False) 
-                    except TypeError: pass
+                    matrix.addPlayerMelds(player, meldInfo, False) 
 
                 # bug if i have else instead of this elif in a very specific case (see round 1)
                 elif arr[index-2][0] != "N":
                     matrix.addPlayerMelds(player, meldInfo, True) 
                     matrix.addClosedKan(player)
 
-                else: matrix.setOpen(player)
+                else: 
+                    matrix.setOpen(player)
+                    matrix.addPlayerMelds(player, meldInfo, False) 
 
                 #chi:0, pon:1, openKan:2, closedKain:3, chakan:4
                 matrix.addMeldNum(player, meldInfo[1])
-
-                
+ 
             # if new dora then adds it
             elif item[0] == "DORA":
                 matrix.addDoraIndicator( int(attr["hai"]) // 4 )
@@ -809,12 +810,12 @@ def matrixify(arr):
                 matrix.setLastDrawPlayer(0)   
                 hand = matrix.getPrivateHand(0)
 
-                matrix.decWallTiles()                   # remove a wall tile after drawing
+                matrix.decWallTiles()   # remove a wall tile after drawing
                 matrix.addTilePrivateHand(0, tile)      # add the drawn tile to hand
                 #riichi conditions are: the player is not already in riichi, hand is closed, is in tenpai, and >=4 tiles in live wall (rule)
                 #checks for riichi conditions, and then to reachArr if passes necessary conditions
                 if matrix.getnotRiichi(0) and matrix.getClosed(0) and (calcShanten(hand) <= 2*matrix.getClosedKan(0)) and matrix.getWallTiles() >= 4:
-                    matrix.buildMatrix(0)
+                    matrix.buildMatrix(0, False)
                     # if riichis then sets to riichi
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(0)
@@ -828,7 +829,7 @@ def matrixify(arr):
                 matrix.addTilePrivateHand(1, tile)
 
                 if matrix.getnotRiichi(1) and matrix.getClosed(1) and (calcShanten(hand) <= 2*matrix.getClosedKan(1)) and matrix.getWallTiles() >= 4:
-                    matrix.buildMatrix(1)
+                    matrix.buildMatrix(1, False)
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(1)
                     reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(1) else 1]) 
@@ -840,7 +841,7 @@ def matrixify(arr):
                 matrix.decWallTiles()        
                 matrix.addTilePrivateHand(2, tile) 
                 if matrix.getnotRiichi(2) and matrix.getClosed(2) and (calcShanten(hand) <= 2*matrix.getClosedKan(2)) and matrix.getWallTiles() >= 4:
-                    matrix.buildMatrix(2)
+                    matrix.buildMatrix(2, False)
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(2)
                     reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(2) else 1]) 
@@ -849,10 +850,10 @@ def matrixify(arr):
                 matrix.setLastDrawPlayer(3)   
                 hand = matrix.getPrivateHand(3)
 
-                matrix.decWallTiles()                          # remove a wall tile after drawing
-                matrix.addTilePrivateHand(3, tile)   # add the drawn tile to hand
+                matrix.decWallTiles()           
+                matrix.addTilePrivateHand(3, tile)  
                 if matrix.getnotRiichi(3) and matrix.getClosed(3) and (calcShanten(hand) <= 2*matrix.getClosedKan(3)) and matrix.getWallTiles() >= 4:
-                    matrix.buildMatrix(3)
+                    matrix.buildMatrix(3, False)
                     if arr[index+1][0] == "REACH": 
                         matrix.setRiichi(3)
                     reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(3) else 1]) 
@@ -860,7 +861,6 @@ def matrixify(arr):
             #### DISCARDS #### 
             elif moveIndex == "D":
                 matrix.setLastDiscardPlayer(0)
-
                 matrix.removeTilePrivateHand(0, tile)   # remove discarded tile from hand 
                 matrix.setLastDiscardTile(tile)
                 # If discarded tile doesn't get called, then adds it to pool
@@ -930,60 +930,27 @@ def num_to_wind(integer):
 def printNice(game):
     int_game = [[int(element) for element in row] for row in game]
     game=int_game
-    print("round wind: ", game[0][0], "| dealer: ", game[0][1], "| tilesInWall: ", game[0][5], "| doras: ", webFormat(game[1]), "| roundNum: ", game[0][33])
-    print("honba sticks: ", game[0][3], "| riichi sticks: ", game[0][4],"| scores", game[0][6:10])
-    
-    print("POV wind", num_to_wind(game[0][2]))  
+    print("round wind: ", game[0][0], "| dealer: ", game[0][1], "| tilesInWall: ", game[0][5], "| doras: ", webFormat(game[1]), "| roundNum: ", game[0][33], "| honba sticks: ", game[0][3], "| riichi sticks: ", game[0][4],"| scores", game[0][6:10])
+    print("POV wind: ", windDict[ game[0][2] ])  
     print("POVHand: ", webFormat(game[2]))
 
     for i in range(4):
         print("player"+str(i)+" melds: "+webFormat(game[3+i]) + "| #chi=", game[0][14+i], "| #pon=", game[0][18+i])
     for i in range(4):
-        print("player"+str(i)+" pool: "+webFormat(game[7+i]))
+        print("player"+str(i)+" pool: ",webFormat(game[7+i]))
 
 
 tupl = out[2]
 game = tupl[1]
-game = matrixify(game)
-#print("Lengh = ", len(game))
-print("game id", tupl[0])
-for i in game:
-    printNice(i[0])
+
+game_riichi = matrixify(game)
+game_chi = matrixifymelds(game)[0]
+
+for i in game_chi:
+    mat=i[0]
+    printNice(mat)
     print("label: ", i[1])
-    matprint(i[0])
+    print("last discard:", mat[0][22])
+    #matprint(i[0])
     print("")
-    print("")
-    print("")
-    print("")   
 
-
-
-
-
-def testMatrixifymelds(game):
-
-    chiArr, ponArr, kanArr = matrixifymelds(game)
-
-    for res in chiArr:
-        print()
-        print("matrix")
-        matprint(res[0])
-        print("label")
-        print(res[1])
-
-    # for res in ponArr:
-    #     print()
-    #     print("matrix")
-    #     matprint(res[0])
-    #     print("label")
-    #     print(res[1])
-
-    # for res in kanArr:
-    #     print()
-    #     print("matrix")
-    #     matprint(res[0])
-    #     print("label")
-    #     print(res[1])
-
-
-#testMatrixifymelds(game)
