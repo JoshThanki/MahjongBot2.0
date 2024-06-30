@@ -950,8 +950,8 @@ def printStates(states, file = None):
             printNice(mat, file=file)
             print("label: ", i[1] , file=file )
             print("last discard:", tile_dic[int(mat[0][30])] , file=file)
-            matprint(i[0], file=file)
-            print("" , file=file)
+            #matprint(i[0], file=file)
+            print("", file=file)
 
 def printTestToFile(gameNum):
 
@@ -966,25 +966,25 @@ def printTestToFile(gameNum):
         game_kan = matrixifymelds(game)[2]
 
 
-        print("gameid: ", tupl[0], file=file)
+        print("gameid: ", tupl[0], file=file,)
         
-        print("")
-        print("")
+        print("" , file=file )
+        print("" , file=file)
         print("Riichi States" , file=file )
         printStates(game_riichi, file=file)
 
-        print("")
-        print("") 
+        print("" , file=file)
+        print("" , file=file) 
         print("Chi States" , file=file)
         printStates(game_chi, file=file)
 
-        print("")
-        print("")
+        print("" , file=file)
+        print("" , file=file)
         print("Pon States" , file=file )
         printStates(game_pon, file=file)
 
-        print("")
-        print("")
+        print("" , file=file)
+        print("" , file=file)
         print("Kan States" , file=file)
         printStates(game_kan, file=file)
 
