@@ -13,7 +13,7 @@ import re
 
 import sqlite3
 
-dbfile = '2020.db'
+dbfile = "2020.db"
 
 con = sqlite3.connect(dbfile)
 
