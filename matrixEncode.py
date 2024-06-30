@@ -25,7 +25,7 @@ res = cur.execute("SELECT log_id, log_content FROM logs")
 
 logs = []
 
-for i in range(20):
+for i in range(200):
     logs.append(res.fetchone())
 
 con.close()
@@ -218,14 +218,15 @@ def format_xmlHand(string):
     return out
 
 
-def matprint(mat, fmt="g"):
+def matprint(mat, fmt="g", file = None):
     col_maxes = [max([len(("{:"+fmt+"}").format(x)) for x in col]) for col in mat.T]
     for x in mat:
         for i, y in enumerate(x):
-            print(("{:"+str(col_maxes[i])+fmt+"}").format(y), end="  ")
-        print("")
+            print(("{:"+str(col_maxes[i])+fmt+"}").format(y), end="  " , file=file)
+        print("" , file=file )
 
     # returns tiles, meldType
+
 
 
 def decodeMeld(data): #chi:0, pon:1, kan: 2, chakan:3
@@ -914,32 +915,83 @@ wind_arr = ["e", "s", "w", "n"]
 def num_to_wind(integer):
     return wind_arr[integer]
 
-def printNice(game):
+def printNice(game, file = None):
     int_game = [[int(element) for element in row] for row in game]
     game=int_game
-    print("round wind: ", game[0][0], "| dealer: ", game[0][1], "| tilesInWall: ", game[0][5], "| doras: ", webFormat(game[1]), "| roundNum: ", game[0][33], "| honba sticks: ", game[0][3], "| riichi sticks: ", game[0][4],"| scores", game[0][6:10])
-    print("POV wind: "+ windDict[ game[0][2] ]+ " | POVHand: ", webFormat(game[2]))  
+    print("round wind: ", game[0][0], "| dealer: ", game[0][1], "| tilesInWall: ", game[0][5], "| doras: ", webFormat(game[1]), "| roundNum: ", game[0][33], "| honba sticks: ", game[0][3], "| riichi sticks: ", game[0][4],"| scores", game[0][6:10] , file=file )
+    print("POV wind: "+ windDict[ game[0][2] ]+ " | POVHand: ", webFormat(game[2]) , file=file )  
 
     for i in range(4):
-        print("player"+str(i)+ "| #chi=", game[0][14+i], "| #pon=", game[0][18+i], "| #kan=", game[0][22+i], "| #isOpen=", game[0][26+i],"| melds: "+webFormat(game[3+i]))
+        print("player"+str(i)+ "| #chi=", game[0][14+i], "| #pon=", game[0][18+i], "| #kan=", game[0][22+i], "| #isOpen=", game[0][26+i],"| melds: "+webFormat(game[3+i]) , file=file )
     for i in range(4):
-        print("player"+str(i)+" pool: ",webFormat(game[7+i]))
+        print("player"+str(i)+" pool: ",webFormat(game[7+i]) , file=file)
 
 
-tupl = out[3]
-game = tupl[1]
+def manualTest(gameNum):
+    tupl = out[gameNum]
+    game = tupl[1]
 
-game_riichi = matrixify(game)
-game_chi = matrixifymelds(game)[0]
-game_pon = matrixifymelds(game)[1]
-game_kan = matrixifymelds(game)[2]
+    game_riichi = matrixify(game)
+    game_chi = matrixifymelds(game)[0]
+    game_pon = matrixifymelds(game)[1]
+    game_kan = matrixifymelds(game)[2]
 
-print("gameid: ", tupl[0])
-for i in game_kan:
-    mat=i[0]
-    printNice(mat)
-    print("label: ", i[1])
-    print("last discard:", mat[0][30])
-    matprint(i[0])
-    print("")
+    print("gameid: ", tupl[0])
+    for i in game_kan:
+        mat=i[0]
+        printNice(mat)
+        print("label: ", i[1])
+        print("last discard:", mat[0][30])
+        matprint(i[0])
+        print("")
 
+
+#takes in game number from (0 - 200)
+
+def printStates(states, file = None):
+    for i in states:
+            mat=i[0]
+            printNice(mat, file=file)
+            print("label: ", i[1] , file=file )
+            print("last discard:", mat[0][30] , file=file)
+            matprint(i[0], file=file)
+            print("" , file=file)
+
+def printTestToFile(gameNum):
+
+    with open("out.txt" , "w") as file:
+
+        tupl = out[gameNum]
+        game = tupl[1]
+
+        game_riichi = matrixify(game)
+        game_chi = matrixifymelds(game)[0]
+        game_pon = matrixifymelds(game)[1]
+        game_kan = matrixifymelds(game)[2]
+
+
+        print("gameid: ", tupl[0], file=file)
+        
+        print("")
+        print("")
+        print("Riichi States" , file=file )
+        printStates(game_riichi, file=file)
+
+        print("")
+        print("") 
+        print("Chi States" , file=file)
+        printStates(game_chi, file=file)
+
+        print("")
+        print("")
+        print("Pon States" , file=file )
+        printStates(game_pon, file=file)
+
+        print("")
+        print("")
+        print("Kan States" , file=file)
+        printStates(game_kan, file=file)
+
+
+#gameNumber (0-200)
+printTestToFile(3)
