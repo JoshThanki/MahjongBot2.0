@@ -909,11 +909,6 @@ def convertLog(log):
 
 out = [convertLog(log) for log in logs]
 
-wind_arr = ["e", "s", "w", "n"]
-
-def num_to_wind(integer):
-    return wind_arr[integer]
-
 def printNice(game):
     int_game = [[int(element) for element in row] for row in game]
     game=int_game
