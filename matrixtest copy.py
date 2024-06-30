@@ -922,13 +922,18 @@ def convertLog(log):
 
 out = [convertLog(log) for log in logs]
 
+wind_arr = ["e", "s", "w", "n"]
+
+def num_to_wind(integer):
+    return wind_arr[integer]
+
 def printNice(game):
     int_game = [[int(element) for element in row] for row in game]
     game=int_game
     print("round wind: ", game[0][0], "| dealer: ", game[0][1], "| tilesInWall: ", game[0][5], "| doras: ", webFormat(game[1]), "| roundNum: ", game[0][33])
     print("honba sticks: ", game[0][3], "| riichi sticks: ", game[0][4],"| scores", game[0][6:10])
     
-    print("POV wind", game[0][2])  
+    print("POV wind", num_to_wind(game[0][2]))  
     print("POVHand: ", webFormat(game[2]))
 
     for i in range(4):
@@ -937,11 +942,11 @@ def printNice(game):
         print("player"+str(i)+" pool: "+webFormat(game[7+i]))
 
 
-tupl = out[0]
+tupl = out[2]
 game = tupl[1]
 game = matrixify(game)
-print("Lengh = ", len(game))
-
+#print("Lengh = ", len(game))
+print("game id", tupl[0])
 for i in game:
     printNice(i[0])
     print("label: ", i[1])
