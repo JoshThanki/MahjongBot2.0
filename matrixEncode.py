@@ -579,12 +579,12 @@ def matrixifymelds(arr):
         for player in players:
             # resp. labels:   0 if doesn't call, 1 if does
             chiLabel, ponLabel, kanLabel = 0, 0, 0
-            
+
             # used for chi
             previousPlayer = ((player - 1) if player else 3)
 
             ### CHI ###
-            if discardPlayer == previousPlayer and matrix.canChi(player, tile):
+            if discardPlayer == previousPlayer and matrix.canChi(player, tile) and matrix.getnotRiichi(player):
                 matrix.buildMatrix(player, True)
                 # if the player calls the tile
                 if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player: 
@@ -595,7 +595,7 @@ def matrixifymelds(arr):
                 chiArr.append([copy.deepcopy(matrix.getMatrix()), chiLabel])
 
             ### PON ### 
-            if  matrix.canPon(player, tile):
+            if  matrix.canPon(player, tile) and matrix.getnotRiichi(player):
                 matrix.buildMatrix(player, True)
                 if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player: 
                     ponLabel = 1
@@ -603,7 +603,7 @@ def matrixifymelds(arr):
                 ponArr.append([copy.deepcopy(matrix.getMatrix()), ponLabel])
 
             ### KAN ###
-            if  matrix.canKan(player, tile):
+            if  matrix.canKan(player, tile) and matrix.getnotRiichi(player):
                 matrix.buildMatrix(player, True)
                 if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player: 
                     kanLabel = 1
