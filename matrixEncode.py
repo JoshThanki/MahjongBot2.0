@@ -534,7 +534,7 @@ class Matrix:
         return (self.privateHands[player][tile] >= 2)
 
     def canKan(self, player, tile):
-        return (self.privateHands[player][tile] >= 3)
+        return (self.privateHands[player][tile] == 3)
 
     def canChi(self, player, tile): # need to write logic to check for seat (can only chi from person before you)
         if tile//9 == 3: return False
@@ -595,7 +595,7 @@ def matrixifymelds(arr):
                 chiArr.append([copy.deepcopy(matrix.getMatrix()), chiLabel])
 
             ### PON ### 
-            elif  matrix.canPon(player, tile):
+            if  matrix.canPon(player, tile):
                 matrix.buildMatrix(player, True)
                 if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player: 
                     ponLabel = 1
@@ -603,7 +603,7 @@ def matrixifymelds(arr):
                 ponArr.append([copy.deepcopy(matrix.getMatrix()), ponLabel])
 
             ### KAN ###
-            elif  matrix.canKan(player, tile):
+            if  matrix.canKan(player, tile):
                 matrix.buildMatrix(player, True)
                 if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player: 
                     kanLabel = 1
