@@ -1,5 +1,7 @@
 import json
+import os
 import random
+import traceback
 import numpy as np
 from numpy.typing import NDArray
 
@@ -25,7 +27,9 @@ res = cur.execute("SELECT log_id, log_content FROM logs")
 
 logs = []
 
-for i in range(200):
+NUMGAMES = 50
+
+for i in range(NUMGAMES):
     logs.append(res.fetchone())
 
 con.close()
@@ -999,9 +1003,32 @@ def printStates(states, file = None):
             #matprint(i[0], file=file)
             print("", file=file)
 
+#statetype (0-4) 0 - riichi, 1 - chi, 2 - pon, 3- kan
+
+def flatformat(states, logid, statetype):
+    arr = []
+    for i in states:
+        mat = i[0]
+        label = i[1]
+        flat = mat.flatten()
+        flat = np.append(flat, label)
+        arr.append(flat)
+    
+
+    arr_np = np.array(arr)
+    
+    directory = os.path.join(".", "Data", "2020")
+    
+    os.makedirs(directory, exist_ok=True)
+    
+    file_path = os.path.join(directory, f"{statetype}_{logid}.npz")
+    
+    np.savez(file_path, arr_np)
+    
+
 def printTestToFile(gameNum):
 
-    with open("out.txt" , "w") as file:
+    with open("out.txt" , "w+") as file:
 
         tupl = out[gameNum]
         game = tupl[1]
@@ -1013,7 +1040,7 @@ def printTestToFile(gameNum):
 
 
         print("gameid: ", tupl[0], file=file,)
-        
+
         print("" , file=file )
         print("" , file=file)
         print("Riichi States" , file=file )
