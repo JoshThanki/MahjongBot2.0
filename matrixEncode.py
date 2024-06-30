@@ -990,4 +990,4 @@ def printTestToFile(gameNum):
 
 
 #gameNumber (0-200)
-printTestToFile(3)
+printTestToFile(76)
