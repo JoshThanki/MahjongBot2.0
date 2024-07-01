@@ -1,6 +1,7 @@
 import json
 import os
 import random
+import time
 import traceback
 import numpy as np
 from numpy.typing import NDArray
@@ -1053,17 +1054,16 @@ def flatformat(states, logid, statetype, year):
         flat = np.append(flat, label)
         arr.append(flat)
     
-
     arr_np = np.array(arr)
     
     directory = os.path.join(".", "Data", str(year))
-    
     os.makedirs(directory, exist_ok=True)
     
     file_path = os.path.join(directory, f"{statetype}_{logid}.npz")
     
-    np.savez(file_path, arr_np)
-    
+    # Save the array as a compressed .npz file
+    np.savez_compressed(file_path, arr_np)
+        
 
 
 
@@ -1103,7 +1103,7 @@ def saveFilesPerYear(year):
 
     #redefine games so it doesn't pull all of them 
     #DO NOT COMMENT UNLESS YOU WANT TO DOWNLOAD EVERYTHING
-    NUMGAMES = 5
+    NUMGAMES = 50
     
     for i in range(NUMGAMES):
         log = res.fetchone()
@@ -1122,4 +1122,12 @@ def saveAll():
         saveFilesPerYear(year)
 
 
-saveAll()
+# start_time = time.time()
+
+# saveAll()
+
+# end_time = time.time()
+
+# duration = end_time - start_time
+
+# print(f"saveAll() took {duration:.4f} seconds")
