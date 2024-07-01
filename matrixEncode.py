@@ -339,9 +339,6 @@ class Matrix:
         self.Closed = [True, True, True, True]  
         self.playerPons = [[], [], [], []]        #pons for each player, need for closed kan/chankan 
 
-    def setLastDrawTile(self, tile):
-        self.lastDrawTile = tile
-
     def getnotRiichi(self, player):   #needed
         return self.notRiichi[player]
     
@@ -399,7 +396,7 @@ class Matrix:
             self.gameState[0][30] = self.lastDiscardTile
     
 
-    def getMatrix(self):  #needed
+    def getMatrix(self):  
         return self.gameState
     
     def addPlayerPonTiles(self, player, tiles):
@@ -411,9 +408,9 @@ class Matrix:
     def getPlayerPonTiles(self, player):
         return self.playerPons[player]
 
-    # hand [34]
     def addClosedKan(self, player):
         self.closedKans[player] += 1           
+
     def getClosedKan(self, player):  #needed
         return self.closedKans[player]
 
@@ -443,9 +440,6 @@ class Matrix:
         elif meldType == 2:
             self.addKan(player)    
 
-    def getPlayerPool(self, player):
-        return self.playerPool[player]
-
     # initialises starting hands for each player
     def initialisePrivateHands(self, hands):
         for player in range(4):
@@ -467,21 +461,11 @@ class Matrix:
         dealer = self.roundDealer
         self.playerWinds = np.roll(self.playerWinds, dealer)
 
-    def getPlayerWinds(self):
-        return self.playerWinds
-
-    #input - 0,1,2,3
     def setRoundWind(self, wind):
         self.roundWind = wind
-
-    def getRoundWind(self):
-        return self.roundWind
     
     def setDealer(self, dealer):
         self.roundDealer = dealer
-
-    def getDealer(self):
-        return self.roundDealer
 
     #input amount 
     def setHonbaSticks(self, amount):
@@ -509,7 +493,6 @@ class Matrix:
     def getLastDiscardPlayer(self):
         return self.lastDiscardPlayer
 
-
     def setLastDiscardTile(self, tile):
         self.lastDiscardTile = tile
 
@@ -521,6 +504,9 @@ class Matrix:
 
     def getLastDrawPlayer(self):
         return self.lastDrawPlayer
+    
+    def setLastDrawTile(self, tile):
+        self.lastDrawTile = tile
 
     def getLastDrawTile(self):
         return self.lastDrawTile
@@ -529,11 +515,6 @@ class Matrix:
     def addDoraIndicator(self, doraIndicator):
         self.gameState[1][doraIndicator] += 1
     
-    def getDoraIndicators(self):
-        return (self.gameState[1])
-    
-    #input player (0-3), meldinfo(([3-4] , (0-3) 0: chi,  1: pon, 2: open kan, 3: closed kan
-
     # meldInfo:  (tiles in meld (0-3),  meldType)
     # meldType: 0-chi, 1-pon, 2-kan, 3-chakan
     def addPlayerMelds(self, player, meldinfo, isClosedKan):
@@ -568,15 +549,6 @@ class Matrix:
             #adds tiles back into player
             self.privateHands[player][ meldTiles[0] ] += 3
             
-
-    
-    def getPlayerMelds(self):
-        return self.playerMelds
-
-    
-
-
-    #meld functions
     def canPon(self, player, tile):
         return (self.privateHands[player][tile] >= 2)
 
@@ -594,7 +566,6 @@ class Matrix:
             elif t == 1: return (h[tile+1]>0 and h[tile+2]>0) or (h[tile-1]>0 and h[tile+1]>0)
             elif t == 7: return (h[tile-1]>0 and h[tile-2]>0) or (h[tile-1]>0 and h[tile+1]>0)
             else: return (h[tile-1]>0 and h[tile-2]>0) or (h[tile-1]>0 and h[tile+1]>0) or (h[tile+1]>0 and h[tile+2]>0)
-
     
     def setOpen(self, player):
         self.Closed[player] = False
@@ -608,10 +579,6 @@ def matrixifymelds(arr):
     chiArr = []
     ponArr = []
     kanArr = []
-
-    def format_seed(string):
-        return [int(i)//4 for i in string.split(",")]
-
 
     def checkMeldsOtherPlayers():
         discardPlayer = matrix.getLastDiscardPlayer()
@@ -730,7 +697,7 @@ def matrixifymelds(arr):
                     matrix.setOpen(player)
                     matrix.addPlayerMelds(player, meldInfo, False) 
 
-                #chi:0, pon:1, openKan:2, closedKain:3, chakan:4
+                #chi:0, pon:1, kan:2, chakan: 3
                 matrix.addMeldNum(player, meldInfo[1])
           
             elif item[0] == "DORA":
