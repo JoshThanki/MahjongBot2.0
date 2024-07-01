@@ -18,7 +18,7 @@ import sqlite3
 
 import copy
 
-dbfile = '2020.db'
+dbfile = 'es4p.db'
 
 con = sqlite3.connect(dbfile)
 
@@ -958,7 +958,6 @@ out = [convertLog(logs) for logs in logs]
 
 
 
-
 def printNice(game, file = None):
     int_game = [[int(element) for element in row] for row in game]
     game=int_game
@@ -1121,6 +1120,7 @@ def saveAll():
     for year in range(2016, 2021):
         saveFilesPerYear(year)
 
+# printTestToFile(5)
 
 # start_time = time.time()
 
