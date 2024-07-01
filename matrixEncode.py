@@ -23,18 +23,18 @@ con = sqlite3.connect(dbfile)
 
 cur = con.cursor()
 
-res = cur.execute("SELECT log_id, log_content FROM logs")
+res = cur.execute(f"SELECT log_id, log_content FROM logs")
+
+#redefine numGames so don't cook my computer
+NUMGAMES = 200
 
 logs = []
-
-NUMGAMES = 50
-
 for i in range(NUMGAMES):
     logs.append(res.fetchone())
 
 con.close()
 
-out = {}
+
 
 
 #global functions
@@ -952,7 +952,10 @@ def convertLog(log):
 
     return game, arr
 
-out = [convertLog(log) for log in logs]
+
+out = [convertLog(logs) for logs in logs]
+
+
 
 
 def printNice(game, file = None):
@@ -1001,28 +1004,6 @@ def printStates(states, file = None):
             #matprint(i[0], file=file)
             print("", file=file)
 
-#statetype (0-4) 0 - riichi, 1 - chi, 2 - pon, 3- kan
-
-def flatformat(states, logid, statetype):
-    arr = []
-    for i in states:
-        mat = i[0]
-        label = i[1]
-        flat = mat.flatten()
-        flat = np.append(flat, label)
-        arr.append(flat)
-    
-
-    arr_np = np.array(arr)
-    
-    directory = os.path.join(".", "Data", "2020")
-    
-    os.makedirs(directory, exist_ok=True)
-    
-    file_path = os.path.join(directory, f"{statetype}_{logid}.npz")
-    
-    np.savez(file_path, arr_np)
-    
 
 def printTestToFile(gameNum):
 
@@ -1060,5 +1041,85 @@ def printTestToFile(gameNum):
         printStates(game_kan, file=file)
 
 
-#gameNumber (0-200)
-printTestToFile(49)
+
+
+#statetype (0-4) 0 - riichi, 1 - chi, 2 - pon, 3- kan
+def flatformat(states, logid, statetype, year):
+    arr = []
+    for i in states:
+        mat = i[0]
+        label = i[1]
+        flat = mat.flatten()
+        flat = np.append(flat, label)
+        arr.append(flat)
+    
+
+    arr_np = np.array(arr)
+    
+    directory = os.path.join(".", "Data", str(year))
+    
+    os.makedirs(directory, exist_ok=True)
+    
+    file_path = os.path.join(directory, f"{statetype}_{logid}.npz")
+    
+    np.savez(file_path, arr_np)
+    
+
+
+
+def saveToFile(log, year):
+
+    tupl = convertLog(log)
+
+    game = tupl[1]
+    gameid = tupl[0]
+
+    game_riichi = matrixify(game)
+    game_chi = matrixifymelds(game)[0]
+    game_pon = matrixifymelds(game)[1]
+    game_kan = matrixifymelds(game)[2]
+
+    flatformat(game_riichi, gameid, 0, year)
+    flatformat(game_chi, gameid, 1 , year)
+    flatformat(game_pon, gameid, 2 , year) 
+    flatformat(game_kan, gameid, 3 , year)
+
+
+def saveFilesPerYear(year):
+
+    dbfile = 'es4p.db'
+
+    con = sqlite3.connect(dbfile)
+
+    cur = con.cursor()
+
+    res = cur.execute(f"SELECT COUNT(*) FROM logs WHERE year = {year}")
+
+    NUMGAMES = res.fetchone()[0]
+
+    print(NUMGAMES)
+
+    res = cur.execute(f"SELECT log_id, log_content FROM logs WHERE year = {year}")
+
+    #redefine games so it doesn't pull all of them 
+    #DO NOT COMMENT UNLESS YOU WANT TO DOWNLOAD EVERYTHING
+    NUMGAMES = 5
+    
+    for i in range(NUMGAMES):
+        log = res.fetchone()
+
+        try:
+            saveToFile(log, year)
+        except Exception as e:
+            pass
+            # print(f"An error occurred with i={i}: {e}")
+            # traceback.print_exc()
+
+    con.close()
+
+def saveAll():
+    for year in range(2016, 2021):
+        saveFilesPerYear(year)
+
+
+saveAll()

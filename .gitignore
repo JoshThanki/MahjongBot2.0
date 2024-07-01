@@ -1,5 +1,5 @@
 .venv
-2020.db
+*.db
 test.py
 matrixformat.pptm
 out.txt
