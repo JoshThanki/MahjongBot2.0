@@ -405,6 +405,9 @@ class Matrix:
     def addPlayerPonTiles(self, player, tiles):
         self.playerPons[player].append(tiles[0])
 
+    def decPlayerPonTiles(self, player, tiles):
+        self.playerPons[player].remove(tiles[0])
+
     def getPlayerPonTiles(self, player):
         return self.playerPons[player]
 
@@ -425,6 +428,9 @@ class Matrix:
 
     def addPon(self, player):
         self.ponsNum[player] += 1
+
+    def decPon(self, player):
+        self.ponsNum[player] -= 1
 
     def addKan(self, player):
         self.kansNum[player] += 1
@@ -528,11 +534,15 @@ class Matrix:
     
     #input player (0-3), meldinfo(([3-4] , (0-3) 0: chi,  1: pon, 2: open kan, 3: closed kan
 
+    # meldInfo:  (tiles in meld (0-3),  meldType)
+    # meldType: 0-chi, 1-pon, 2-kan, 3-chakan
     def addPlayerMelds(self, player, meldinfo, isClosedKan):
         meldTiles = meldinfo[0]
+        # adds the meld to the playerMeld attribute
         for tile in meldTiles:
             self.playerMelds[player][tile] += 1 
 
+        # it doesnt get called from other player so special handling
         if isClosedKan:
             tile = meldTiles[0]
             self.privateHands[player][tile] -= 4 
@@ -543,8 +553,22 @@ class Matrix:
                 self.privateHands[player][tile] -= 1
 
         meldType = meldinfo[1]
+        #if pon
         if meldType == 1:
             self.addPlayerPonTiles(player, meldTiles)
+
+        # if chakan
+        elif meldType == 3:
+            #removes pon
+            self.decPlayerPonTiles(player, meldTiles)
+            self.decPon(player)
+            self.playerMelds[player][ meldTiles[0] ] -= 2
+            #adds kan number
+            self.addKan(player)
+            #adds tiles back into player
+            self.privateHands[player][ meldTiles[0] ] += 3
+            
+
     
     def getPlayerMelds(self):
         return self.playerMelds
@@ -638,24 +662,32 @@ def matrixifymelds(arr):
     def checkMeldsSelf():
         drawPlayer = matrix.getLastDrawPlayer()   
         drawTile = matrix.getLastDrawTile()  
+        hand = matrix.getPrivateHand(drawPlayer)
        
         ### CLOSED KAN ###
         # If the player has 4 of the same tile then builds the matrix and appends it with the label to kanArr
-        if matrix.getPrivateHand(drawPlayer)[drawTile] == 4:
-            closedKanLabel = 0
-            matrix.buildMatrix(drawPlayer, True)
-            if arr[index+1][0] == "N":
-                closedKanLabel = 1
-            kanArr.append([copy.deepcopy(matrix.getMatrix()), closedKanLabel])
-            ##### perhaps have lastDiscard = lastDraw in this,  altough that would cause issues
+        for tile in range(34):
+            if hand[tile] == 4:
+                closedKanLabel = 0
+                matrix.buildMatrix(drawPlayer, True)
+                if arr[index+1][0] == "N":
+                    closedKanLabel = 1
+                kanArr.append([copy.deepcopy(matrix.getMatrix()), closedKanLabel])
+                break
+                ##### perhaps have lastDiscard = lastDraw in this,  altough that would cause issues
 
+        hand[tile ]
         ### CHANKAN ###
+      #  for tile in range(34):
+      #  if hand[tile] == 0: continue
+
         if drawTile in matrix.getPlayerPonTiles(drawPlayer):
             chankanLabel = 0
             matrix.buildMatrix(drawPlayer, True)
             if arr[index+1][0] == "N":
                 chankanLabel = 1
             kanArr.append([copy.deepcopy(matrix.getMatrix()), chankanLabel])
+         #   break
 
     for index,item in enumerate(arr): 
         if item[1]:
@@ -1065,4 +1097,4 @@ def printTestToFile(gameNum):
 
 
 #gameNumber (0-200)
-printTestToFile(3)
+printTestToFile(49)

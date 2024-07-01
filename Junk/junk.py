@@ -62,4 +62,9 @@ def load_npz_file(file):
         print(f"Error loading {file}: {e}")
         return None, None
     
-npzfiles(file_list)
+#npzfiles(file_list)
+
+a = [0,1,2,3,4]
+
+for i in a if i != 0:
+    print(i)
