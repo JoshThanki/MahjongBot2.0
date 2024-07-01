@@ -557,7 +557,7 @@ class Matrix:
         if meldType == 1:
             self.addPlayerPonTiles(player, meldTiles)
 
-        # if chakan
+        ### CHAKAN ### 
         elif meldType == 3:
             #removes pon
             self.decPlayerPonTiles(player, meldTiles)
@@ -676,18 +676,15 @@ def matrixifymelds(arr):
                 break
                 ##### perhaps have lastDiscard = lastDraw in this,  altough that would cause issues
 
-        hand[tile ]
         ### CHANKAN ###
-      #  for tile in range(34):
-      #  if hand[tile] == 0: continue
-
-        if drawTile in matrix.getPlayerPonTiles(drawPlayer):
-            chankanLabel = 0
-            matrix.buildMatrix(drawPlayer, True)
-            if arr[index+1][0] == "N":
-                chankanLabel = 1
-            kanArr.append([copy.deepcopy(matrix.getMatrix()), chankanLabel])
-         #   break
+        for tile in range(34):
+            if (hand[tile] !=0) and (tile in matrix.getPlayerPonTiles(drawPlayer)):
+                chankanLabel = 0
+                matrix.buildMatrix(drawPlayer, True)
+                if arr[index+1][0] == "N":
+                    chankanLabel = 1
+                kanArr.append([copy.deepcopy(matrix.getMatrix()), chankanLabel])
+                break
 
     for index,item in enumerate(arr): 
         if item[1]:
