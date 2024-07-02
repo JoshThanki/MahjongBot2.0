@@ -574,6 +574,52 @@ class Matrix:
     def getClosed(self, player):
         return self.Closed[player]
 
+    def handleDraw(self, player, tile):
+        self.setLastDrawPlayer(player)   
+        self.setLastDrawTile(tile)
+        self.decWallTiles()                   # remove a wall tile after drawing
+        self.addTilePrivateHand(player, tile)      # add the drawn tile to hand
+
+    def handleDiscard(self, player, tile):
+        self.setLastDiscardPlayer(player)
+        self.removeTilePrivateHand(player, tile)   # remove discarded tile from hand 
+        self.setLastDiscardTile(tile)
+
+    def initialiseGame(self, data):
+        #sets points
+        points = [int(i) for i in data["ten"].split(",")]
+        self.setPlayerScore(points)
+        
+        #sets player winds
+        self.setDealer(int(data["oya"]))
+        self.setPlayerWinds()
+
+        #sets starting hands
+        initialHands = [format_xmlHand(data["hai"+str(i)]) for i in range(4) ]
+        self.initialisePrivateHands(initialHands)
+
+        #sets more metadata form seed
+        seed = [int(i) for i in data["seed"].split(',')]
+        self.addDoraIndicator(seed[5] // 4)
+        self.setHonbaSticks(seed[1])
+        self.setRoundWind(seed[0] //4)
+        self.setDealer(seed[0] % 4)
+
+
+
+drawDic = {
+    'T': 0,
+    'U': 1,
+    'V': 2,
+    'W': 3
+}
+
+discardDic = {
+    'D': 0,
+    'E': 1,
+    'F': 2,
+    'G': 3
+}
 
 def matrixifymelds(arr):
 
@@ -581,7 +627,7 @@ def matrixifymelds(arr):
     ponArr = []
     kanArr = []
 
-    def checkMeldsOtherPlayers():
+    def handleMeldsOtherPlayers():
         discardPlayer = matrix.getLastDiscardPlayer()
         tile = matrix.getLastDiscardTile()
         
@@ -589,21 +635,30 @@ def matrixifymelds(arr):
         players.remove(discardPlayer)  # discard player cant call the tile
 
         for player in players:
-            # resp. labels:   0 if doesn't call, 1 if does
+            isNextCallChi, isNextCallPon, isNextCallKan = False, False, False,
             chiLabel, ponLabel, kanLabel = 0, 0, 0
 
             # used for chi
-            previousPlayer = ((player - 1) if player else 3)
+            previousPlayer = (player+3)%4
+            isValidChiPlayer =  (discardPlayer == previousPlayer)
+            isCurrentPlayerInRiichi = matrix.getnotRiichi(player)
 
-            nextCall = arr[index+1]
-            if nextCall[0] == "N":
-                meldType = decodeMeld( int(nextCall[1]["m"]) )[1]
-            
+            nextMove  = arr[index+1]
+            isNextMoveCall = (nextMove[0] == "N")
+
+            if isNextMoveCall:
+                meldType = decodeMeld( int(nextMove[1]["m"]) )[1]
+                isCurrentPlayerCallPlayer = (int(nextMove[1]["who"])==player)
+                isNextCallChi = (meldType==0)
+                isNextCallPon = (meldType==1)
+                isNextCallKan = (meldType==2)
+
+    
             ### CHI ###
-            if discardPlayer == previousPlayer and matrix.canChi(player, tile) and matrix.getnotRiichi(player):
+            if isValidChiPlayer and matrix.canChi(player, tile) and isCurrentPlayerInRiichi:
                 matrix.buildMatrix(player, True)
                 # if the player calls the tile and the call is chi
-                if nextCall[0]=="N" and int(nextCall[1]["who"])==player and meldType==0: 
+                if isNextCallChi and isCurrentPlayerCallPlayer: 
                     chiLabel = 1
                     # removes the tile from the wall since it got called
                     matrix.decPlayerPool(discardPlayer, tile)
@@ -611,34 +666,37 @@ def matrixifymelds(arr):
                 chiArr.append([copy.deepcopy(matrix.getMatrix()), chiLabel])
 
             ### PON ### 
-            if  matrix.canPon(player, tile) and matrix.getnotRiichi(player):
+            if matrix.canPon(player, tile) and isCurrentPlayerInRiichi:
                 matrix.buildMatrix(player, True)
-                if nextCall[0] == "N" and int(nextCall[1]["who"]) == player and meldType == 1: 
+                if isNextCallPon and isCurrentPlayerCallPlayer: 
                     ponLabel = 1
                     matrix.decPlayerPool(discardPlayer, tile)
                 ponArr.append([copy.deepcopy(matrix.getMatrix()), ponLabel])
 
             ### KAN ###
-            if  matrix.canKan(player, tile) and matrix.getnotRiichi(player):
+            if matrix.canKan(player, tile) and isCurrentPlayerInRiichi:
                 matrix.buildMatrix(player, True)
-                if nextCall[0] == "N" and int(nextCall[1]["who"]) == player and meldType == 2: 
+                if isNextCallKan and isCurrentPlayerCallPlayer: 
                     kanLabel = 1
                     matrix.decPlayerPool(discardPlayer, tile)
                 kanArr.append([copy.deepcopy(matrix.getMatrix()), kanLabel])
 
 
-    def checkMeldsSelf():
+    def handleMeldsSelf():
         drawPlayer = matrix.getLastDrawPlayer()   
         drawTile = matrix.getLastDrawTile()  
         hand = matrix.getPrivateHand(drawPlayer)
-       
+
+        isNextMoveCall = (arr[index+1] == "N")
+
+        closedKanLabel, chankanLabel = 0, 0
+
         ### CLOSED KAN ###
         # If the player has 4 of the same tile then builds the matrix and appends it with the label to kanArr
         for tile in range(34):
             if hand[tile] == 4:
-                closedKanLabel = 0
                 matrix.buildMatrix(drawPlayer, True)
-                if arr[index+1][0] == "N":
+                if isNextMoveCall:
                     closedKanLabel = 1
                 kanArr.append([copy.deepcopy(matrix.getMatrix()), closedKanLabel])
                 break
@@ -646,54 +704,35 @@ def matrixifymelds(arr):
 
         ### CHANKAN ###
         for tile in range(34):
-            if (hand[tile] !=0) and (tile in matrix.getPlayerPonTiles(drawPlayer)):
-                chankanLabel = 0
+            playerHasTile_inHand = (hand[tile]>0)
+            playerHasTile_inPon = (tile in matrix.getPlayerPonTiles(drawPlayer))
+
+            if playerHasTile_inHand and playerHasTile_inPon:
                 matrix.buildMatrix(drawPlayer, True)
-                if arr[index+1][0] == "N":
+                if isNextMoveCall:
                     chankanLabel = 1
                 kanArr.append([copy.deepcopy(matrix.getMatrix()), chankanLabel])
                 break
 
+
     for index,item in enumerate(arr): 
         if item[1]:
             attr = item[1]
+
             if item[0] == "INIT":
                 #clears matrix attributes
                 matrix = Matrix() 
-                
-                #sets points
-                points = [int(i) for i in attr["ten"].split(",")]
-                matrix.setPlayerScore(points)
-                
-                #sets player winds
-                matrix.setDealer(int(attr["oya"]))
-                matrix.setPlayerWinds()
-
-                #sets starting hands
-                initialHands = [format_xmlHand(attr["hai"+str(i)]) for i in range(4) ]
-                matrix.initialisePrivateHands(initialHands)
-
-                #sets more metadata form seed
-                seed = [int(i) for i in attr["seed"].split(',')]
-                matrix.addDoraIndicator(seed[5] // 4)
-                matrix.setHonbaSticks(seed[1])
-                matrix.setRoundWind(seed[0] //4)
-                matrix.setDealer(seed[0] % 4)
+                #initializes start of game
+                matrix.initialiseGame(attr)
 
             elif item[0] == "N":
                 meldInfo = decodeMeld(attr["m"])
                 player = int( attr["who"] )
 
-                # if player who called the meld and player who drew last tile match then it is a closed kan
-                if (player != matrix.getLastDrawPlayer() ):
-                    matrix.setOpen(player)
-                    matrix.addPlayerMelds(player, meldInfo, False) 
-
-                # bug if i have else instead of this elif in a very specific case (see round 1)
-                elif arr[index-2][0] != "N":
+                # checking for closed kan
+                if (player == matrix.getLastDrawPlayer()) and arr[index-2][0] != "N":
                     matrix.addPlayerMelds(player, meldInfo, True) 
                     matrix.addClosedKan(player)
-
                 else: 
                     matrix.setOpen(player)
                     matrix.addPlayerMelds(player, meldInfo, False) 
@@ -711,72 +750,23 @@ def matrixifymelds(arr):
                     matrix.setPlayerScore(points) 
 
         else:
-            #### DRAWS ####
             attr = item[0]        # attr in the form of, say, T46
             moveIndex = attr[0]   # T
             tile = int(attr[1:]) // 4  # 46 // 4
 
-            if moveIndex == "T":
-                matrix.setLastDrawPlayer(0)   
-                matrix.setLastDrawTile(tile)
-                matrix.decWallTiles()                   # remove a wall tile after drawing
-                matrix.addTilePrivateHand(0, tile)      # add the drawn tile to hand
 
-                checkMeldsSelf()    
-            elif moveIndex == "U":
-                matrix.setLastDrawPlayer(1)                   
-                matrix.setLastDrawTile(tile)
-                matrix.decWallTiles()             
-                matrix.addTilePrivateHand(1, tile)
-                
-                checkMeldsSelf()
-            elif moveIndex == "V":
-                matrix.setLastDrawPlayer(2)   
-                matrix.setLastDrawTile(tile)
-                matrix.decWallTiles()        
-                matrix.addTilePrivateHand(2, tile) 
-                
-                checkMeldsSelf()
-            elif moveIndex == "W":
-                matrix.setLastDrawPlayer(3)   
-                matrix.setLastDrawTile(tile)
-                matrix.decWallTiles()           
-                matrix.addTilePrivateHand(3, tile)  
-                
-                checkMeldsSelf()
-            #### DISCARDS #### 
-            elif moveIndex == "D":
-                matrix.setLastDiscardPlayer(0)
-                matrix.removeTilePrivateHand(0, tile)   # remove discarded tile from hand 
-                matrix.setLastDiscardTile(tile)
-                matrix.addPlayerPool(0, tile)  # Always adds pool in this function and if the tile gets called then it deletes it from pool
+            #### DRAWS ####
+            if moveIndex in drawDic:
+                curPlayer = drawDic[moveIndex]
+                matrix.handleDraw(curPlayer, tile)
+                handleMeldsSelf()    
 
-                # this function checks for any valid meld calls, builds the matrix if neeeded and appends it to the output arrays
-                checkMeldsOtherPlayers()
-
-            elif moveIndex == "E":
-                matrix.setLastDiscardPlayer(1)
-                matrix.removeTilePrivateHand(1, tile)  
-                matrix.setLastDiscardTile(tile)
-                matrix.addPlayerPool(1, tile)
-                
-                checkMeldsOtherPlayers()
-
-            elif moveIndex == "F":
-                matrix.setLastDiscardPlayer(2)
-                matrix.removeTilePrivateHand(2, tile) 
-                matrix.setLastDiscardTile(tile)
-                matrix.addPlayerPool(2, tile)
-                
-                checkMeldsOtherPlayers()
-
-            elif moveIndex == "G":
-                matrix.setLastDiscardPlayer(3)
-                matrix.removeTilePrivateHand(3, tile)
-                matrix.setLastDiscardTile(tile)
-                matrix.addPlayerPool(3, tile)
-                
-                checkMeldsOtherPlayers()
+            #### DISCARDS ####  
+            else:
+                curPlayer = discardDic[moveIndex]
+                matrix.handleDiscard(curPlayer, tile)
+                matrix.addPlayerPool(curPlayer, tile)  # Always adds pool in this function and if the tile gets called then it deletes it from pool
+                handleMeldsOtherPlayers()
                 
     return chiArr, ponArr, kanArr
 
@@ -786,55 +776,35 @@ def matrixify(arr):
 
     #riichi conditions are: the player is not already in riichi, hand is closed, is in tenpai, and >=4 tiles in live wall (rule)
     #checks for riichi conditions, and then appends to reachArr if passes necessary conditions
-    def checkRiichi(p):
+    def handleRiichi(p):
         hand = matrix.getPrivateHand(p)
         if matrix.getnotRiichi(p) and matrix.getClosed(p) and (calcShanten(hand) <= 2*matrix.getClosedKan(p)) and matrix.getWallTiles() >= 4:
+            riichiLabel = 0
             matrix.buildMatrix(p, False)
             # if riichis then sets to riichi
             if arr[index+1][0] == "REACH": 
+                riichiLabel = 1
                 matrix.setRiichi(p)
-            reachArr.append([copy.deepcopy(matrix.getMatrix()), 0 if matrix.getnotRiichi(p) else 1]) 
+            reachArr.append([copy.deepcopy(matrix.getMatrix()), riichiLabel]) 
 
     for index,item in enumerate(arr): 
         if item[1]:
             attr = item[1]
+
             if item[0] == "INIT":
                 #clears matrix attributes
                 matrix = Matrix() 
-                
-                #sets points
-                points = [int(i) for i in attr["ten"].split(",")]
-                matrix.setPlayerScore(points)
-                
-                #sets player winds
-                matrix.setDealer(int(attr["oya"]))
-                matrix.setPlayerWinds()
-
-                #sets starting hands
-                initialHands = [format_xmlHand(attr["hai"+str(i)]) for i in range(4) ]
-                matrix.initialisePrivateHands(initialHands)
-
-                #sets more metadata form seed
-                seed = [int(i) for i in attr["seed"].split(',')]
-                matrix.addDoraIndicator(seed[5] // 4)
-                matrix.setHonbaSticks(seed[1])
-                matrix.setRoundWind(seed[0] //4)
-                matrix.setDealer(seed[0] % 4) 
+                #initializes start of game 
+                matrix.initialiseGame(attr)
 
             elif item[0] == "N":
                 meldInfo = decodeMeld(attr["m"])
                 player = int( attr["who"] )
 
-                # if player who called the meld and player who drew last tile match then it is a closed kan
-                if (player != matrix.getLastDrawPlayer() ):
-                    matrix.setOpen(player)
-                    matrix.addPlayerMelds(player, meldInfo, False) 
-
-                # bug if i have else instead of this elif in a very specific case (see round 1)
-                elif arr[index-2][0] != "N":
+                # checking for closed kan
+                if (player == matrix.getLastDrawPlayer()) and arr[index-2][0] != "N":
                     matrix.addPlayerMelds(player, meldInfo, True) 
                     matrix.addClosedKan(player)
-
                 else: 
                     matrix.setOpen(player)
                     matrix.addPlayerMelds(player, meldInfo, False) 
@@ -852,74 +822,22 @@ def matrixify(arr):
 
 
         else:
-            #### DRAWS ####
             attr = item[0]             # attr in the form of, say, T46
             moveIndex = attr[0]        # T
             tile = int(attr[1:]) // 4  # 46 // 4
-            if moveIndex == "T":
-                matrix.setLastDrawPlayer(0)   
-                hand = matrix.getPrivateHand(0)
-                matrix.decWallTiles()   # remove a wall tile after drawing
-                matrix.addTilePrivateHand(0, tile)      # add the drawn tile to hand
+            
+            #### DRAWS ####
+            if moveIndex in drawDic:
+                curPlayer = drawDic[moveIndex]
+                matrix.handleDraw(curPlayer, tile)
+                handleRiichi(curPlayer)
 
-                checkRiichi(0)
-
-            elif moveIndex == "U":
-                matrix.setLastDrawPlayer(1)                   
-                hand = matrix.getPrivateHand(1)
-
-                matrix.decWallTiles()             
-                matrix.addTilePrivateHand(1, tile)
-                
-                checkRiichi(1) 
-
-            elif moveIndex == "V":
-                matrix.setLastDrawPlayer(2)   
-                hand = matrix.getPrivateHand(2)
-
-                matrix.decWallTiles()        
-                matrix.addTilePrivateHand(2, tile) 
-                
-                checkRiichi(2)
-  
-            elif moveIndex == "W":
-                matrix.setLastDrawPlayer(3)   
-                hand = matrix.getPrivateHand(3)
-
-                matrix.decWallTiles()           
-                matrix.addTilePrivateHand(3, tile)  
-                
-                checkRiichi(3)
-
-            #### DISCARDS #### 
-            elif moveIndex == "D":
-                matrix.setLastDiscardPlayer(0)
-                matrix.removeTilePrivateHand(0, tile)   # remove discarded tile from hand 
-                matrix.setLastDiscardTile(tile)
-                # If discarded tile doesn't get called, then adds it to pool
+            #### DISCARDS ####  
+            else:
+                curPlayer = discardDic[moveIndex]
+                matrix.handleDiscard(curPlayer, tile)
                 if arr[index+1][0] != "N":
-                    matrix.addPlayerPool(0, tile)
-
-            elif moveIndex == "E":
-                matrix.setLastDiscardPlayer(1)
-                matrix.removeTilePrivateHand(1, tile)  
-                matrix.setLastDiscardTile(tile)
-                if arr[index+1][0] != "N":
-                    matrix.addPlayerPool(1, tile)
-
-            elif moveIndex == "F":
-                matrix.setLastDiscardPlayer(2)
-                matrix.removeTilePrivateHand(2, tile) 
-                matrix.setLastDiscardTile(tile)
-                if arr[index+1][0] != "N":
-                    matrix.addPlayerPool(2, tile)
-                
-            elif moveIndex == "G":
-                matrix.setLastDiscardPlayer(3)
-                matrix.removeTilePrivateHand(3, tile)
-                matrix.setLastDiscardTile(tile)
-                if arr[index+1][0] != "N":
-                    matrix.addPlayerPool(3, tile)
+                    matrix.addPlayerPool(curPlayer, tile)
 
     return reachArr
 
