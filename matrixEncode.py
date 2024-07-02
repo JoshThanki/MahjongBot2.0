@@ -332,10 +332,10 @@ class Matrix:
         self.kansNum = [0,0,0,0]    #
 
         #used to keep track of things
-        self.lastDrawPlayer = -1
-        self.lastDrawTile = -1        
-        self.lastDiscardPlayer = -1
-        self.lastDiscardTile = -1
+        self.lastDrawPlayer = 0
+        self.lastDrawTile = 0       
+        self.lastDiscardPlayer = 0
+        self.lastDiscardTile = 0
         self.closedKans = [0,0,0,0]       
         self.Closed = [True, True, True, True]  
         self.playerPons = [[], [], [], []]        #pons for each player, need for closed kan/chankan 
@@ -1120,7 +1120,7 @@ def saveAll():
     for year in range(2016, 2021):
         saveFilesPerYear(year)
 
-# printTestToFile(5)
+printTestToFile(67)
 
 # start_time = time.time()
 
