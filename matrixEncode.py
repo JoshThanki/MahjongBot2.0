@@ -348,7 +348,7 @@ class Matrix:
 
     # builds matrix for POV player
     # forMeld   Riichi: False , Meld: true   (only difference is last discard)   
-    def buildMatrix(self, player, forMeld):
+    def buildMatrix(self, player, forOpenCall):
         # player ordering relative to input player. e.g. player =2  => player_ordering = [2,3,0,1]   (counterclockwise on table)
         player_ordering = [i%4 for i in range(player,player+4)]
 
@@ -393,8 +393,10 @@ class Matrix:
 
 
         # sets last discard for the meld matrices
-        if forMeld:
+        if forOpenCall:
             self.gameState[0][30] = self.lastDiscardTile
+
+
     
 
     def getMatrix(self):  
@@ -592,6 +594,7 @@ class Matrix:
 
         # handles regular call
         else:
+            self.setOpen(player)
             # adds meld tiles to meld attribute
             for tile in meldTiles:
                 self.playerMelds[player][tile] += 1 
@@ -639,10 +642,9 @@ def matrixifymelds(arr):
             isNextCallChi, isNextCallPon, isNextCallKan = False, False, False,
             chiLabel, ponLabel, kanLabel = 0, 0, 0
 
-            # used for chi
             previousPlayer = (player+3)%4
             isValidChiPlayer =  (discardPlayer == previousPlayer)
-            isCurrentPlayerInRiichi = matrix.getnotRiichi(player)
+            isCurrentPlayer_NotInRiichi = matrix.getnotRiichi(player)
 
             nextMove  = arr[index+1]
             isNextMoveCall = (nextMove[0] == "N")
@@ -656,7 +658,7 @@ def matrixifymelds(arr):
 
     
             ### CHI ###
-            if isValidChiPlayer and matrix.canChi(player, tile) and isCurrentPlayerInRiichi:
+            if isValidChiPlayer and matrix.canChi(player, tile) and isCurrentPlayer_NotInRiichi:
                 matrix.buildMatrix(player, True)
                 # if the player calls the tile and the call is chi
                 if isNextCallChi and isCurrentPlayerCallPlayer: 
@@ -667,7 +669,7 @@ def matrixifymelds(arr):
                 chiArr.append([copy.deepcopy(matrix.getMatrix()), chiLabel])
 
             ### PON ### 
-            if matrix.canPon(player, tile) and isCurrentPlayerInRiichi:
+            if matrix.canPon(player, tile) and isCurrentPlayer_NotInRiichi:
                 matrix.buildMatrix(player, True)
                 if isNextCallPon and isCurrentPlayerCallPlayer: 
                     ponLabel = 1
@@ -675,7 +677,7 @@ def matrixifymelds(arr):
                 ponArr.append([copy.deepcopy(matrix.getMatrix()), ponLabel])
 
             ### KAN ###
-            if matrix.canKan(player, tile) and isCurrentPlayerInRiichi:
+            if matrix.canKan(player, tile) and isCurrentPlayer_NotInRiichi:
                 matrix.buildMatrix(player, True)
                 if isNextCallKan and isCurrentPlayerCallPlayer: 
                     kanLabel = 1
@@ -709,7 +711,6 @@ def matrixifymelds(arr):
             playerHasTile_inPon = (tile in matrix.getPlayerPonTiles(drawPlayer))
 
             if playerHasTile_inHand and playerHasTile_inPon:
-                print("test")
                 matrix.buildMatrix(drawPlayer, True)
                 if isNextMoveCall:
                     chankanLabel = 1
@@ -903,7 +904,7 @@ def printStates(states, file = None):
             mat=i[0]
             printNice(mat, file=file)
             print("label: ", i[1] , file=file )
-            print("last discard:", tile_dic[int(mat[0][30])] , file=file)
+            print("call tile:", tile_dic[int(mat[0][30])] , file=file)
             #matprint(i[0], file=file)
             print("", file=file)
 
