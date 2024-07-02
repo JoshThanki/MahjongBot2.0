@@ -27,7 +27,7 @@ cur = con.cursor()
 res = cur.execute(f"SELECT log_id, log_content FROM logs")
 
 #redefine numGames so don't cook my computer
-NUMGAMES = 200
+NUMGAMES = 300
 
 logs = []
 for i in range(NUMGAMES):
@@ -574,23 +574,24 @@ class Matrix:
         self.setDealer(seed[0] % 4)
 
 
-    def handleMeld(self, player, meldInfo, isClosedKan):
+    def handleMeld(self, player, meldInfo, isClosedCall):
         meldTiles = meldInfo[0]
         meldType = meldInfo[1]
 
-        # handles closed kan
-        if isClosedKan:
-            self.privateHands[player][ meldTiles[0] ] = 0
-            self.addKan(player)
-            self.playerMelds[player][ meldTiles[0] ] = 4
-            
+        # (ordering of if and elif is important here)
         # handles chakan
-        elif meldType == 3: 
+        if meldType == 3: 
             self.decPlayerPonTiles(player, meldTiles)
             self.decPon(player)
             self.playerMelds[player][ meldTiles[0] ] = 4
             self.addKan(player)
             self.privateHands[player][ meldTiles[0] ] = 0
+       
+        # handles closed kan       
+        elif isClosedCall:
+            self.privateHands[player][ meldTiles[0] ] = 0
+            self.addKan(player)
+            self.playerMelds[player][ meldTiles[0] ] = 4
 
         # handles regular call
         else:
@@ -731,9 +732,9 @@ def matrixifymelds(arr):
             elif item[0] == "N":
                 meldInfo = decodeMeld(attr["m"])
                 player = int( attr["who"] )
-                isClosedKan = (player == matrix.getLastDrawPlayer()) and arr[index-2][0] != "N"
+                isClosedCall = (player == matrix.getLastDrawPlayer()) and arr[index-2][0] != "N"
 
-                matrix.handleMeld(player, meldInfo, isClosedKan)
+                matrix.handleMeld(player, meldInfo, isClosedCall)
           
             elif item[0] == "DORA":
                 matrix.addDoraIndicator( int(attr["hai"]) // 4 )
@@ -1026,11 +1027,16 @@ def saveAll():
         #IMPORTANT - if you don't include this parameter it will save EVERYTHING
         saveFilesPerYear(year, 50)
 
-# for i in range(1):
-    
-#     print(i)
-#     printTestToFile(19)
-    
+#for i in range(200,1000):
+#   
+#    print(i)
+#    printTestToFile(i)
+
+printTestToFile(219)
+
+
+"""
+start_time = time.time()
 
 # start_time = time.time()
 
