@@ -988,7 +988,7 @@ def saveToFile(log, year):
     flatformat(game_kan, gameid, 3 , year)
 
 
-def saveFilesPerYear(year):
+def saveFilesPerYear(year, numFiles = None):
 
     dbfile = 'es4p.db'
 
@@ -998,17 +998,17 @@ def saveFilesPerYear(year):
 
     res = cur.execute(f"SELECT COUNT(*) FROM logs WHERE year = {year}")
 
-    NUMGAMES = 50
+    numGames = res.fetchone()[0]
 
-    print(NUMGAMES)
+    print(year)
 
     res = cur.execute(f"SELECT log_id, log_content FROM logs WHERE year = {year}")
 
-    #redefine games so it doesn't pull all of them 
-    #DO NOT COMMENT UNLESS YOU WANT TO DOWNLOAD EVERYTHING
-    NUMGAMES = 50
-    
-    for i in range(NUMGAMES):
+    if numFiles:
+        numGames = numFiles
+        
+
+    for i in range(numGames):
         log = res.fetchone()
 
         try:
@@ -1022,20 +1022,22 @@ def saveFilesPerYear(year):
 
 def saveAll():
     for year in range(2016, 2021):
-        saveFilesPerYear(year)
+        #Change this Parameter to change number of games saved per year
+        #IMPORTANT - if you don't include this parameter it will save EVERYTHING
+        saveFilesPerYear(year, 50)
 
-for i in range(1):
+# for i in range(1):
     
-    print(i)
-    printTestToFile(19)
-"""
-start_time = time.time()
+#     print(i)
+#     printTestToFile(19)
+    
 
-saveAll()
+# start_time = time.time()
 
-end_time = time.time()
+# saveAll()
 
-duration = end_time - start_time
+# end_time = time.time()
 
-print(f"saveAll() took {duration:.4f} seconds")
-"""
+# duration = end_time - start_time
+
+# print(f"saveAll() took {duration:.4f} seconds")
