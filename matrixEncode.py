@@ -613,7 +613,7 @@ def matrixifymelds(arr):
             ### PON ### 
             if  matrix.canPon(player, tile) and matrix.getnotRiichi(player):
                 matrix.buildMatrix(player, True)
-                if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player and meldType == 1: 
+                if nextCall[0] == "N" and int(nextCall[1]["who"]) == player and meldType == 1: 
                     ponLabel = 1
                     matrix.decPlayerPool(discardPlayer, tile)
                 ponArr.append([copy.deepcopy(matrix.getMatrix()), ponLabel])
@@ -621,7 +621,7 @@ def matrixifymelds(arr):
             ### KAN ###
             if  matrix.canKan(player, tile) and matrix.getnotRiichi(player):
                 matrix.buildMatrix(player, True)
-                if arr[index+1][0] == "N" and int(arr[index+1][1]["who"]) == player and meldType == 2: 
+                if nextCall[0] == "N" and int(nextCall[1]["who"]) == player and meldType == 2: 
                     kanLabel = 1
                     matrix.decPlayerPool(discardPlayer, tile)
                 kanArr.append([copy.deepcopy(matrix.getMatrix()), kanLabel])
