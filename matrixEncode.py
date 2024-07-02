@@ -515,40 +515,6 @@ class Matrix:
     #input tile (0-34)
     def addDoraIndicator(self, doraIndicator):
         self.gameState[1][doraIndicator] += 1
-    
-    # meldInfo:  (tiles in meld (0-3),  meldType)
-    # meldType: 0-chi, 1-pon, 2-kan, 3-chakan
-    def addPlayerMelds(self, player, meldinfo, isClosedKan):
-        meldTiles = meldinfo[0]
-        # adds the meld to the playerMeld attribute
-        for tile in meldTiles:
-            self.playerMelds[player][tile] += 1 
-
-        # it doesnt get called from other player so special handling
-        if isClosedKan:
-            tile = meldTiles[0]
-            self.privateHands[player][tile] -= 4 
-        else:
-            called = self.lastDiscardTile
-            meldTiles.remove(called)  
-            for tile in meldTiles:
-                self.privateHands[player][tile] -= 1
-
-        meldType = meldinfo[1]
-        #if pon
-        if meldType == 1:
-            self.addPlayerPonTiles(player, meldTiles)
-
-        ### CHAKAN ### 
-        elif meldType == 3:
-            #removes pon
-            self.decPlayerPonTiles(player, meldTiles)
-            self.decPon(player)
-            self.playerMelds[player][ meldTiles[0] ] -= 2
-            #adds kan number
-            self.addKan(player)
-            #adds tiles back into player
-            self.privateHands[player][ meldTiles[0] ] += 3
             
     def canPon(self, player, tile):
         return (self.privateHands[player][tile] >= 2)
@@ -605,6 +571,41 @@ class Matrix:
         self.setRoundWind(seed[0] //4)
         self.setDealer(seed[0] % 4)
 
+
+    def handleMeld(self, player, meldInfo, isClosedKan):
+        meldTiles = meldInfo[0]
+        meldType = meldInfo[1]
+
+        # handles closed kan
+        if isClosedKan:
+            self.privateHands[player][ meldTiles[0] ] = 0
+            self.addKan(player)
+            self.playerMelds[player][ meldTiles[0] ] = 4
+            
+        # handles chakan
+        elif meldType == 3: 
+            self.decPlayerPonTiles(player, meldTiles)
+            self.decPon(player)
+            self.playerMelds[player][ meldTiles[0] ] = 4
+            self.addKan(player)
+            self.privateHands[player][ meldTiles[0] ] = 0
+
+        # handles regular call
+        else:
+            # adds meld tiles to meld attribute
+            for tile in meldTiles:
+                self.playerMelds[player][tile] += 1 
+
+            called = self.lastDiscardTile
+            meldTiles.remove(called)  
+            #removes tiles from player hand
+            for tile in meldTiles:
+                self.privateHands[player][tile] -= 1
+            # adds pon if pon
+            if meldType == 1:
+                self.addPlayerPonTiles(player, meldTiles)
+            # adds meld number
+            self.addMeldNum(player, meldType)
 
 
 drawDic = {
@@ -687,7 +688,7 @@ def matrixifymelds(arr):
         drawTile = matrix.getLastDrawTile()  
         hand = matrix.getPrivateHand(drawPlayer)
 
-        isNextMoveCall = (arr[index+1] == "N")
+        isNextMoveCall = (arr[index+1][0] == "N")
 
         closedKanLabel, chankanLabel = 0, 0
 
@@ -708,6 +709,7 @@ def matrixifymelds(arr):
             playerHasTile_inPon = (tile in matrix.getPlayerPonTiles(drawPlayer))
 
             if playerHasTile_inHand and playerHasTile_inPon:
+                print("test")
                 matrix.buildMatrix(drawPlayer, True)
                 if isNextMoveCall:
                     chankanLabel = 1
@@ -728,17 +730,9 @@ def matrixifymelds(arr):
             elif item[0] == "N":
                 meldInfo = decodeMeld(attr["m"])
                 player = int( attr["who"] )
+                isClosedKan = (player == matrix.getLastDrawPlayer()) and arr[index-2][0] != "N"
 
-                # checking for closed kan
-                if (player == matrix.getLastDrawPlayer()) and arr[index-2][0] != "N":
-                    matrix.addPlayerMelds(player, meldInfo, True) 
-                    matrix.addClosedKan(player)
-                else: 
-                    matrix.setOpen(player)
-                    matrix.addPlayerMelds(player, meldInfo, False) 
-
-                #chi:0, pon:1, kan:2, chakan: 3
-                matrix.addMeldNum(player, meldInfo[1])
+                matrix.handleMeld(player, meldInfo, isClosedKan)
           
             elif item[0] == "DORA":
                 matrix.addDoraIndicator( int(attr["hai"]) // 4 )
@@ -753,7 +747,6 @@ def matrixifymelds(arr):
             attr = item[0]        # attr in the form of, say, T46
             moveIndex = attr[0]   # T
             tile = int(attr[1:]) // 4  # 46 // 4
-
 
             #### DRAWS ####
             if moveIndex in drawDic:
@@ -800,17 +793,9 @@ def matrixify(arr):
             elif item[0] == "N":
                 meldInfo = decodeMeld(attr["m"])
                 player = int( attr["who"] )
-
-                # checking for closed kan
-                if (player == matrix.getLastDrawPlayer()) and arr[index-2][0] != "N":
-                    matrix.addPlayerMelds(player, meldInfo, True) 
-                    matrix.addClosedKan(player)
-                else: 
-                    matrix.setOpen(player)
-                    matrix.addPlayerMelds(player, meldInfo, False) 
-
-                #chi:0, pon:1, openKan:2, closedKain:3, chakan:4
-                matrix.addMeldNum(player, meldInfo[1])
+                isClosedKan = (player == matrix.getLastDrawPlayer()) and arr[index-2][0] != "N"
+                
+                matrix.handleMeld(player, meldInfo, isClosedKan)
  
             # if new dora then adds it
             elif item[0] == "DORA":
@@ -1012,7 +997,7 @@ def saveFilesPerYear(year):
 
     res = cur.execute(f"SELECT COUNT(*) FROM logs WHERE year = {year}")
 
-    NUMGAMES = res.fetchone()[0]
+    NUMGAMES = 50
 
     print(NUMGAMES)
 
@@ -1038,14 +1023,18 @@ def saveAll():
     for year in range(2016, 2021):
         saveFilesPerYear(year)
 
-printTestToFile(67)
+for i in range(1):
+    
+    print(i)
+    printTestToFile(19)
+"""
+start_time = time.time()
 
-# start_time = time.time()
+saveAll()
 
-# saveAll()
+end_time = time.time()
 
-# end_time = time.time()
+duration = end_time - start_time
 
-# duration = end_time - start_time
-
-# print(f"saveAll() took {duration:.4f} seconds")
+print(f"saveAll() took {duration:.4f} seconds")
+"""

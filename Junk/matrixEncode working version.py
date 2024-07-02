@@ -557,6 +557,15 @@ class Matrix:
         return self.Closed[player]
 
 
+    def handleMeld(self, player, meldinfo):
+        if (player == matrix.getLastDrawPlayer()) and arr[index-2][0] != "N":
+            matrix.addPlayerMelds(player, meldInfo, True) 
+            matrix.addClosedKan(player)
+        else: 
+            matrix.setOpen(player)
+            matrix.addPlayerMelds(player, meldInfo, False) 
+
+
 def matrixifymelds(arr):
 
     chiArr = []
