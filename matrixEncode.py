@@ -960,12 +960,20 @@ def flatformat(states, logid, statetype, year):
     
     arr_np = np.array(arr)
     
-    directory = os.path.join(".", "Data", str(year))
+    if statetype == 0:
+        directory = os.path.join(".", "Data", str(year), "Riichi")
+    elif statetype == 1:
+        directory = os.path.join(".", "Data", str(year), "Chi")
+    elif statetype == 2:
+        directory = os.path.join(".", "Data", str(year), "Pon")
+    else:
+        directory = os.path.join(".", "Data", str(year), "Kan")
+
+
     os.makedirs(directory, exist_ok=True)
     
-    file_path = os.path.join(directory, f"{statetype}_{logid}.npz")
+    file_path = os.path.join(directory, f"{logid}.npz")
     
-    # Save the array as a compressed .npz file
     np.savez_compressed(file_path, arr_np)
         
 
@@ -1035,14 +1043,14 @@ def saveAll():
 printTestToFile(219)
 
 
-# start_time = time.time()
+start_time = time.time()
 
-# start_time = time.time()
+start_time = time.time()
 
-# saveAll()
+saveAll()
 
-# end_time = time.time()
+end_time = time.time()
 
-# duration = end_time - start_time
+duration = end_time - start_time
 
-# print(f"saveAll() took {duration:.4f} seconds")
+print(f"saveAll() took {duration:.4f} seconds")

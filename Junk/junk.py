@@ -5,15 +5,64 @@ from pathlib import Path
 import os
 from tqdm import tqdm
 
+
+def printNice(game, file = None):
+    int_game = [[int(element) for element in row] for row in game]
+    game=int_game
+    print("round wind: ", game[0][0], "| dealer: ", game[0][1], "| tilesInWall: ", game[0][5], "| doras: ", webFormat(game[1]), "| roundNum: ", game[0][33], "| honba sticks: ", game[0][3], "| riichi sticks: ", game[0][4],"| scores", game[0][6:10] , file=file )
+    print("POV wind: "+ windDict[ game[0][2] ]+ " | POVHand: ", webFormat(game[2]) , file=file )  
+
+    for i in range(4):
+        print("player"+str(i)+ "| #chi=", game[0][14+i], "| #pon=", game[0][18+i], "| #kan=", game[0][22+i], "| #isOpen=", game[0][26+i],"| melds: "+webFormat(game[3+i]) , file=file )
+    for i in range(4):
+        print("player"+str(i)+" pool: ",webFormat(game[7+i]) , file=file)
+
+
+# formatting hand into web format from mahjong 1.0
+def webFormat(handArray):
+    dict = {0: 'm',
+        1: 'p',
+        2: 's',
+        3: 'z'         #note the ordering here: manzu, pinzu, souzu (same as paper)
+    }
+    split_indices=[9,18,27]
+    handArray =  np.split(handArray, split_indices) 
+    string = ''
+
+    for k, suit in enumerate(handArray):
+        if sum(suit) == 0:
+            continue
+        for num in range(len(suit)):
+            if suit[num] == 0:
+                continue
+            else:
+                string += str(num+1)*suit[num]
+
+        string += dict[k]
+
+    return string
+
+
+windDict = {
+        0 : "E",
+        1 : "S",
+        2: "W",
+        3 : "N"
+    }
+
+
+
+
+
 def one_hot(array):
     out = np.zeros((array.size, 34))
     out[np.arange(array.size), array] = 1
     return out
 
 discard_dataset_path = "Data"
-dataset_folder_train = Path(discard_dataset_path) / "2020"
+dataset_folder_train = Path(discard_dataset_path) / "2020" / "Riichi"
 
-file_list = list(dataset_folder_train.glob('0*'))
+file_list = [file for file in dataset_folder_train.iterdir() if file.suffix == '.npz']
 
 def npz_generator(file_paths):
     for file in file_paths:
@@ -30,7 +79,9 @@ def npzfiles(file_paths):
             print(file)
             mats, labels = load_npz_file(file)
 
-            print(mats)
+            for mat in mats:
+                printNice(mat)
+
             print()
             print(labels)
 
@@ -39,7 +90,7 @@ def npzfiles(file_paths):
         
 def load_npz_file(file):
     try:
-        loaded_data = np.load(file)
+        loaded_data = np.load(file, allow_pickle=True)
         # Initialize lists to store matrices and labels
         matrices = []
         labels = []
@@ -50,8 +101,11 @@ def load_npz_file(file):
         for arr in data:
 
             matrix = arr[:-1]
+
             label = arr[-1] 
-            
+
+            matrix = matrix.reshape(11,34)
+
             matrices.append(matrix)
             labels.append(label)
 
@@ -62,9 +116,6 @@ def load_npz_file(file):
         print(f"Error loading {file}: {e}")
         return None, None
     
-#npzfiles(file_list)
+npzfiles(file_list)
 
-a = [0,1,2,3,4]
 
-for i in a if i != 0:
-    print(i)
