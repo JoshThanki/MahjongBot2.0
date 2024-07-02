@@ -1035,15 +1035,14 @@ def saveAll():
 printTestToFile(219)
 
 
-"""
-start_time = time.time()
+# start_time = time.time()
 
-start_time = time.time()
+# start_time = time.time()
 
-saveAll()
+# saveAll()
 
-end_time = time.time()
+# end_time = time.time()
 
-duration = end_time - start_time
+# duration = end_time - start_time
 
-print(f"saveAll() took {duration:.4f} seconds")
+# print(f"saveAll() took {duration:.4f} seconds")
