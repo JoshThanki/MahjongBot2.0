@@ -1009,7 +1009,7 @@ def saveFilesPerYear(year, numFiles = None):
         numGames = numFiles
         
 
-    for i in range(numGames):
+    for i in tqdm(range(numGames), desc="Processing games"):
         log = res.fetchone()
 
         try:
@@ -1038,12 +1038,12 @@ printTestToFile(219)
 """
 start_time = time.time()
 
-# start_time = time.time()
+start_time = time.time()
 
-# saveAll()
+saveAll()
 
-# end_time = time.time()
+end_time = time.time()
 
-# duration = end_time - start_time
+duration = end_time - start_time
 
-# print(f"saveAll() took {duration:.4f} seconds")
+print(f"saveAll() took {duration:.4f} seconds")
