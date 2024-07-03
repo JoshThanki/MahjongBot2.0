@@ -35,7 +35,7 @@ file_list = list(dataset_folder_train.iterdir())[:num_train]
 def npz_generator(file_paths):
     for file in file_paths:
         matrix = sp.load_npz(file).toarray()
-        X = matrix[:, :510]
+        X = matrix[:, :374]
         y = one_hot( matrix[:, -1] )
         for i in range(len(X)):
             yield X[i], y[i]
@@ -45,7 +45,7 @@ def npz_generator(file_paths):
 dataset = tf.data.Dataset.from_generator(
     lambda: npz_generator(file_list),
     output_signature=(
-        tf.TensorSpec(shape=(510,), dtype=tf.float32),  # Adjust the shape and dtype according to your data
+        tf.TensorSpec(shape=(374,), dtype=tf.float32),  # Adjust the shape and dtype according to your data
         tf.TensorSpec(shape=(34), dtype=tf.int32)         # Adjust the shape and dtype according to your labels
     )
 )
@@ -63,7 +63,7 @@ y_validate = one_hot( matrix_validate[:, -1] )
 
 
 
-input_layer = Input(shape=(510, 1))
+input_layer = Input(shape=(374, 1))
 
 attention_output = MultiHeadAttention(num_heads=1, key_dim=1)(query=input_layer, value=input_layer, key=input_layer)
 flattened_output = Flatten()(attention_output)

@@ -757,7 +757,7 @@ def saveFilesPerYear(year, numFiles = None):
     con.close()
 
 def saveAll():
-    for year in range(2016, 2018):
+    for year in range(2017, 2018):
         #Change this Parameter to change number of games saved per year
         #IMPORTANT - if you don't include this parameter it will save EVERYTHING
         saveFilesPerYear(year)
