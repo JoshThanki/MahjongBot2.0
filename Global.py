@@ -247,7 +247,7 @@ def printNice(game, file = None):
         print("player"+str(i)+" pool: ",webFormat(game[7+i]) , file=file)
 
 
-# decodes meld (integer)
+# decodes meld (from integer)
 def decodeMeld(data): #chi:0, pon:1, kan: 2, chakan:3
     def decodeChi(data):
         meldType = 0

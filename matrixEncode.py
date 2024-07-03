@@ -19,7 +19,7 @@ import sqlite3
 import copy
 
 #global functions
-import Global
+from Global import *
 
 
 dbfile = 'es4p.db'
@@ -35,8 +35,6 @@ for i in range(NUMGAMES):
     logs.append(res.fetchone())
 
 con.close()
-
-
 
 class Matrix:     
     def __init__(self):
@@ -257,16 +255,24 @@ class Matrix:
     def canKan(self, player, tile):
         return (self.privateHands[player][tile] == 3)
 
-    def canChi(self, player, tile): # need to write logic to check for seat (can only chi from person before you)
+    def canChi(self, player, tile): 
+        #checks whether it's a honour tile
         if tile//9 == 3: return False
         else:
+            #number of the tile
             t = tile % 9
+            #hand of player
             h = self.privateHands[player]
-            # skull
+            
+            #if tileNum is 1
             if t == 0: return (h[tile+1]>0 and h[tile+2]>0)
+            #if tileNum is 9
             elif t == 8: return (h[tile-1]>0 and h[tile-2]>0)
+            #if tileNum is 2
             elif t == 1: return (h[tile+1]>0 and h[tile+2]>0) or (h[tile-1]>0 and h[tile+1]>0)
+            #if tileNum is 8
             elif t == 7: return (h[tile-1]>0 and h[tile-2]>0) or (h[tile-1]>0 and h[tile+1]>0)
+            # else:  3 <= tileNum <= 7 so can make any chi with it
             else: return (h[tile-1]>0 and h[tile-2]>0) or (h[tile-1]>0 and h[tile+1]>0) or (h[tile+1]>0 and h[tile+2]>0)
     
     def setOpen(self, player):
@@ -364,35 +370,42 @@ def matrixifymelds(arr):
     chiArr = []
     ponArr = []
     kanArr = []
-
     def handleMeldsOtherPlayers():
         discardPlayer = matrix.getLastDiscardPlayer()
         tile = matrix.getLastDiscardTile()
         
         players = [0,1,2,3]
         players.remove(discardPlayer)  # discard player cant call the tile
+        callPlayer = None
+        # true if next call is Pon or Kan; they get priority over chi.
+        isPonInPriotity = lambda player: False
+       
+        nextMove  = arr[index+1]
+        isNextMoveCall = (nextMove[0] == "N")
 
+        isNextCallChi, isNextCallPon, isNextCallKan = False, False, False
+
+        if isNextMoveCall:
+            meldType = decodeMeld( int(nextMove[1]["m"]) )[1]
+            callPlayer = int(nextMove[1]["who"])
+
+            isNextCallChi = (meldType==0)
+            isNextCallPon = (meldType==1)
+            isNextCallKan = (meldType==2)
+
+            isPonInPriotity = lambda player:  (isNextCallPon or isNextCallKan) and (player != CallPlayer)
+       
         for player in players:
-            isNextCallChi, isNextCallPon, isNextCallKan = False, False, False,
             chiLabel, ponLabel, kanLabel = 0, 0, 0
 
             previousPlayer = (player+3)%4
             isValidChiPlayer =  (discardPlayer == previousPlayer)
             isCurrentPlayer_NotInRiichi = matrix.getnotRiichi(player)
-
-            nextMove  = arr[index+1]
-            isNextMoveCall = (nextMove[0] == "N")
-
-            if isNextMoveCall:
-                meldType = decodeMeld( int(nextMove[1]["m"]) )[1]
-                isCurrentPlayerCallPlayer = (int(nextMove[1]["who"])==player)
-                isNextCallChi = (meldType==0)
-                isNextCallPon = (meldType==1)
-                isNextCallKan = (meldType==2)
-
     
+            isCurrentPlayerCallPlayer = (callPlayer == player)
+
             ### CHI ###
-            if isValidChiPlayer and matrix.canChi(player, tile) and isCurrentPlayer_NotInRiichi:
+            if isValidChiPlayer and matrix.canChi(player, tile) and isCurrentPlayer_NotInRiichi and (not isPonInPriotity(player)):
                 matrix.buildMatrix(player=player, forMeld=True)
                 # if the player calls the tile and the call is chi
                 if isNextCallChi and isCurrentPlayerCallPlayer: 
@@ -420,7 +433,8 @@ def matrixifymelds(arr):
 
 
     def handleMeldsSelf():
-        drawPlayer = matrix.getLastDrawPlayer()   
+        drawPlayer = matrix.getLastDrawPlayer()
+
         drawTile = matrix.getLastDrawTile()  
         hand = matrix.getPrivateHand(drawPlayer)
 
@@ -701,9 +715,8 @@ def saveToFile(log, year):
     gameid = tupl[0]
 
     game_riichi = matrixify(game)
-    game_chi = matrixifymelds(game)[0]
-    game_pon = matrixifymelds(game)[1]
-    game_kan = matrixifymelds(game)[2]
+
+    game_chi, game_pon, game_kan = matrixifymelds(game)
 
     flatformat(game_riichi, gameid, 0, year)
     flatformat(game_chi, gameid, 1 , year)
@@ -744,22 +757,20 @@ def saveFilesPerYear(year, numFiles = None):
     con.close()
 
 def saveAll():
-    for year in range(2016, 2021):
+    for year in range(2016, 2018):
         #Change this Parameter to change number of games saved per year
         #IMPORTANT - if you don't include this parameter it will save EVERYTHING
-        saveFilesPerYear(year, 50)
-
-printTestToFile(219)
+        saveFilesPerYear(year)
 
 
-# start_time = time.time()
+start_time = time.time()
 
-# start_time = time.time()
+start_time = time.time()
 
-# saveAll()
+saveAll()
 
-# end_time = time.time()
+end_time = time.time()
 
-# duration = end_time - start_time
+duration = end_time - start_time
 
-# print(f"saveAll() took {duration:.4f} seconds")
+print(f"saveAll() took {duration:.4f} seconds")
