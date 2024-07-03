@@ -686,24 +686,26 @@ def flatformat(states, logid, statetype, year):
         flat = np.append(flat, label)
         arr.append(flat)
     
-    arr_np = np.array(arr)
-    
-    if statetype == 0:
-        directory = os.path.join(".", "Data", str(year), "Riichi")
-    elif statetype == 1:
-        directory = os.path.join(".", "Data", str(year), "Chi")
-    elif statetype == 2:
-        directory = os.path.join(".", "Data", str(year), "Pon")
-    else:
-        directory = os.path.join(".", "Data", str(year), "Kan")
+    if arr:
 
-
-    os.makedirs(directory, exist_ok=True)
-    
-    file_path = os.path.join(directory, f"{logid}.npz")
-    
-    np.savez_compressed(file_path, arr_np)
+        arr_np = np.array(arr)
         
+        if statetype == 0:
+            directory = os.path.join(".", "Data", str(year), "Riichi")
+        elif statetype == 1:
+            directory = os.path.join(".", "Data", str(year), "Chi")
+        elif statetype == 2:
+            directory = os.path.join(".", "Data", str(year), "Pon")
+        else:
+            directory = os.path.join(".", "Data", str(year), "Kan")
+
+
+        os.makedirs(directory, exist_ok=True)
+        
+        file_path = os.path.join(directory, f"{logid}.npz")
+        
+        np.savez_compressed(file_path, arr_np)
+            
 
 
 
