@@ -90,10 +90,6 @@ class Matrix:
             else:
                 self.gameState[0][30] = self.lastDiscardTile
             
-         
-
-
-    
 
     def getMatrix(self):  
         return self.gameState
@@ -249,12 +245,12 @@ class Matrix:
     def handleDraw(self, player, tile):
         self.setLastDrawPlayer(player)   
         self.setLastDrawTile(tile)
-        self.decWallTiles()                   # remove a wall tile after drawing
+        self.decWallTiles()                 # remove a wall tile after drawing
         self.addTilePrivateHand(player, tile)      # add the drawn tile to hand
 
     def handleDiscard(self, player, tile):
         self.setLastDiscardPlayer(player)
-        self.removeTilePrivateHand(player, tile)   # remove discarded tile from hand 
+        self.removeTilePrivateHand(player, tile)   # remove discarded tile from hand
         self.setLastDiscardTile(tile)
 
     def initialiseGame(self, data):
