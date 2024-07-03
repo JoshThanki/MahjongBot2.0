@@ -3,3 +3,4 @@
 matrixformat.pptm
 out.txt
 Data/*
+__pycache__/*
