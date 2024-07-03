@@ -686,6 +686,7 @@ def flatformat(states, logid, statetype, year):
         flat = np.append(flat, label)
         arr.append(flat)
     
+    #make sure that states are non empty, before saving to file
     if arr:
 
         arr_np = np.array(arr)
