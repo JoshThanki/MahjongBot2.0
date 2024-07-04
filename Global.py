@@ -258,7 +258,7 @@ def printNice(game, file = None):
     print("POV wind: "+ windDict[ game[0][2] ]+ " | POVHand: ", webFormat(game[2]) , file=file )  
 
     for i in range(4):
-        print("player"+str(i)+ "| #chi=", game[0][14+i], "| #pon=", game[0][18+i], "| #kan=", game[0][22+i], "| #isOpen=", game[0][26+i],"| melds: "+webFormat(game[3+i]) , file=file )
+        print("player"+str(i)+ "| #chi=", game[0][14+i], "| #pon=", game[0][18+i], "| #kan=", game[0][22+i], "| #isOpen=", game[0][26+i],"| #isRiichi=", game[0][10+i],"| melds: "+webFormat(game[3+i]) , file=file )
     for i in range(4):
         print("player"+str(i)+" pool: ",webFormat(game[7+i]) , file=file)
 
