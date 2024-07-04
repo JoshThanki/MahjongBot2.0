@@ -3,7 +3,7 @@ import random
 import numpy as np
 from numpy.typing import NDArray
 from Global import *
-
+from player import Player
 
 from matrix import Matrix
 
@@ -13,38 +13,89 @@ class Game():
     
     def __init__(self):
 
-        self.gameData = GameData()
-        self.gameData.initGame()
-
         
+        #points = [250,250,250,250] 
+        #round = east
+        #dealer = east
+        #honba sticks = 0
+
+        self.gameData = GameData() 
+        self.gameData.buildMatrix(0)
+        print(self.gameData)
+
+        self.players = [Player(i) for i in range(4)]
+
     
-        
+    def drawStep(self):
+        turnPlayer = self.gameData.playerTurn
+        draw = self.gameData.getRandTile()
+        self.gameData.handleDraw(turnPlayer, draw)
     
-    #game action functions:
+    def drawActionStep(self):
+        turnPlayer = self.gameData.playerTurn
+        action = self.players[turnPlayer].drawAction()
 
-    def draw(self):
-        availableTile = list(self._tileWall.keys())
-        numAvailable = list(self._tileWall.values())
+        #action = {actionType : (0-8) 0-Nothing, 1-TSUMO, 2-RIICHI, 3-CLOSEDKAN, 4-CHAKAN, 4-RON, 5-PON, 6-KAN, 7-CHI
+        #, arr : [], player : (0-3)}
+        actionType = action[0]
 
-        drawnTile = random.choices(availableTile, weights=numAvailable, k=1)[0]
-        self._tileWall[drawnTile] -= 1
-        return drawnTile
+        if actionType == 1:
+            self.handleTsumo(turnPlayer, action["arr"][0])
+        elif actionType == 2:
+            self.handleRiichi(turnPlayer, action["arr"][0])
+        elif actionType == 3:
+            self.handleCKAN(turnPlayer, action["arr"][0])
+        elif actionType == 4:
+            self.handleCHAKAN(turnPlayer, action["arr"][0])
+
+
+    def discardStep(self):
+        turnPlayer = self.gameData.playerTurn
+        discard = self.players[turnPlayer].discard()
+        self.gameData.handleDiscard(turnPlayer, discard)
     
-if False: #add tests here
-    testGame = Game()
+    def discardActionStep(self):
+        turnPlayer = self.gameData.playerTurn
+        otherPlayers = [0,1,2,3]
+        otherPlayers.remove(turnPlayer)
 
-    testGame.gameState[1][1] = 1
-    testGame.addDoraIndicator("3_char")
-    testGame.addDoraIndicator("3_char")
-    doraIndicators = testGame.getDoraIndicators()
-    print(doraIndicators)
+        #action = {actionType : (0-8) 0-Nothing, 1-TSUMO, 2-RIICHI, 3-CLOSEDKAN, 4-CHAKAN, 5-RON, 6-PON, 7-KAN, 8-CHI
+        #, arr : [], player : (0-3)}
 
-    doraIndicatorsVectors = testGame.readableToVector(doraIndicators)
-    print(doraIndicatorsVectors)
+        actionList = [self.players[player].discardAction() for player in otherPlayers]
 
-    print(testGame.draw())
-    print(testGame._tileWall)
+        filtered_actions = [action for action in actionList if action['actionType'] != 0]
 
+        filtered_actions.sort(key=lambda x: x['actionType'])
+
+        ronList = []
+
+        for action in filtered_actions:
+            if action['actionType'] == 5:
+                ronList.append(action)
+            elif ronList:
+                self.handleRon([action["player"] for action in ronList],[action["arr"][0] for action in ronList])
+            
+            elif action['actionType'] == 6 :
+                self.handlePon(action["player"], action["arr"][0])
+
+            elif action['actionType'] == 7:
+                self.handleKan(action["player"], action["arr"][0])
+
+            elif action['actionType'] == 8:
+                self.handleChi(action["player"], action["arr"])
+            else:
+                self.gameData.incPlayerTurn()
+            
+
+
+
+
+
+
+
+
+#Class used to store all data about the game
 
 class GameData(Matrix):
     
@@ -55,7 +106,9 @@ class GameData(Matrix):
         ### Define Variables ###
 
         with open('tiles.json', 'r') as file:
-            self.start_tiles = json.load(file)
+            start_tiles = json.load(file)
+
+        self.playerTurn = dealer 
 
         #self.orderedMelds = [[([5,6,7],1) , ([5,5,5],1) , [] ],[],[],[]]
         self.orderedMelds = [[],[],[],[]]
@@ -69,9 +122,9 @@ class GameData(Matrix):
 
         ### Initialise Game ###
 
-        self.tilePool = self.start_tiles
+        self.tilePool = start_tiles
             
-        initialHands = [[self.getRandTile() for i in range(13)] for j in range(4)]
+        initialHands = [self.convertHandFormat([self.getRandTile() for i in range(13)]) for j in range(4)]
         
         #sets points
         self.setPlayerScore(points)
@@ -87,16 +140,27 @@ class GameData(Matrix):
         
         self.setHonbaSticks(honbaSticks)
         self.setRoundWind(roundWind)
+        self.newDora()
 
     
+    def incPlayerTurn(self):
+        self.playerTurn = (self.playerTurn + 1) % 3
+
+    def convertHandFormat(self, hand):
+        newHand = [0] * 34
+        for tile in hand:
+            newHand[tile] += 1
+        
+        return newHand
+
 
     def getRandTile(self):
         keys, weights = zip(*self.tilePool.items())
 
         if any(weights):
-            self.tempRandomElement = random.choices(keys, weights=weights)[0]
-            self.tilePool[self.tempRandomElement] -= 1
-            return self.tempRandomElement
+            tempRandomElement = random.choices(keys, weights=weights)[0]
+            self.tilePool[tempRandomElement] -= 1
+            return int(tempRandomElement)
         
         else:
             return None
@@ -124,6 +188,37 @@ class GameData(Matrix):
         super().addDoraIndicator(doraIndicator)
 
 
+    def __str__(self):
+        return self.get_all_attributes()
+    
+    def get_all_attributes(self):
+        attributes = {}
+        current_class = self.__class__
+        
+        # Traverse through the MRO (Method Resolution Order)
+        for cls in current_class.__mro__:
+            if cls == object:
+                continue  # Skip the base 'object' class
+            # Get instance attributes if the current object is an instance of the class
+            if '__dict__' in cls.__dict__:
+                attributes.update(self.__dict__)
+
+        # Format attributes manually
+        def format_value(value):
+            if isinstance(value, np.ndarray):
+                if value.ndim == 1:
+                    return '[' + ', '.join(map(str, value.tolist())) + ']'
+                elif value.ndim == 2:
+                    return '[\n ' + ',\n '.join(['[' + ', '.join(map(str, row.tolist())) + ']' for row in value]) + '\n]'
+            return repr(value)
+
+        formatted_attributes = []
+        for key, value in attributes.items():
+            formatted_attributes.append(f'    "{key}": {format_value(value)}')
+
+        formatted_string = "{\n" + ",\n".join(formatted_attributes) + "\n}"
+        return f'{self.__class__.__name__}:\n{formatted_string}'
+    
     def handleMeld(self, player, meldInfo, isClosedCall):
         meldTiles = meldInfo[0]
         meldType = meldInfo[1]
@@ -169,6 +264,3 @@ class GameData(Matrix):
     
 
 
-gameData = GameData()
-
-print(gameData.wallTiles)

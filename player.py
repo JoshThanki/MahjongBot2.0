@@ -1,21 +1,15 @@
 import numpy as np
 from numpy.typing import NDArray
 
-from game import Game
+from game import GameData
 
 class Player:
-    def __init__(self, activeGame: Game) -> None:
-        self.activeGame = activeGame
-        self._readableHand = []
-        for i in range(13):
-            self.drawTile()
-        self._vectorHand = Game.readableToVector(self.getReadableHand())
-        self._readableHand = Game.vectorToReadable(self.getVectorHand()) #lazy way to sort the readable hand
+    def __init__(self, playerNo, gameData: GameData) -> None:
+        self.gameData = gameData
+        self.playerNo = playerNo
+        self.discardTile = -1
 
-    def drawTile(self):
-        self._readableHand.append(self.activeGame.draw())
-        self._vectorHand = Game.readableToVector(self._readableHand)
-        self._readableHand = Game.vectorToReadable(self._vectorHand)
+    def discard(self):
 
     def getReadableHand(self):
         return self._readableHand
