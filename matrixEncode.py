@@ -428,21 +428,20 @@ def saveFilesPerYear(year, numFiles = None):
     con.close()
 
 def saveAll():
-    for year in range(2016, 2018):
+    for year in range(2017, 2018):
         #Change this Parameter to change number of games saved per year
         #IMPORTANT - if you don't include this parameter it will save EVERYTHING
-        saveFilesPerYear(year)
+        saveFilesPerYear(year, 500)
 
 
+start_time = time.time()
 
-# start_time = time.time()
+start_time = time.time()
 
-# start_time = time.time()
+saveAll()
 
-# saveAll()
+end_time = time.time()
 
-# end_time = time.time()
+duration = end_time - start_time
 
-# duration = end_time - start_time
-
-# print(f"saveAll() took {duration:.4f} seconds")
+print(f"saveAll() took {duration:.4f} seconds")
