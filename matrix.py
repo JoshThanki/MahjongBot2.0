@@ -3,7 +3,7 @@ from Global import *
 
 class Matrix:     
     def __init__(self):
-        self.gameState = np.zeros((11, 34))
+        self.gameState = np.zeros((11, 34), dtype=int)
         self.privateHands = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
         self.playerMelds = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
         self.playerPool = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
@@ -154,7 +154,7 @@ class Matrix:
     # this is dependant on roundDealer so should only be called once the dealer is set
     def setPlayerWinds(self):
         dealer = self.roundDealer
-        self.playerWinds = np.roll(self.playerWinds, dealer)
+        self.playerWinds = [(i-dealer)%4 for i in range(4)]
 
     def setRoundWind(self, wind):
         self.roundWind = wind
