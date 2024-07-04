@@ -8,7 +8,7 @@ class Matrix:
         self.playerMelds = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
         self.playerPool = [[0]*34 , [0]*34 , [0]*34 , [0]*34]
         self.doras = [0]*34
-        self.notRiichi = [True, True, True, True]
+        self.Riichi = [False, False, False, False]
 
         # metadata
         self.roundWind = 0   #0:E, 1:S, ...
@@ -31,11 +31,11 @@ class Matrix:
         self.Closed = [True, True, True, True]  
         self.playerPons = [[], [], [], []]        #pons for each player, need for closed kan/chankan 
 
-    def getnotRiichi(self, player):   #needed
-        return self.notRiichi[player]
+    def getRiichi(self, player):   #needed
+        return self.Riichi[player]
     
     def setRiichi(self, player):
-        self.notRiichi[player] = False
+        self.Riichi[player] = True
 
     # builds matrix for POV player
     # forMeld   Riichi: False , Meld: true   (only difference is last discard)   
@@ -52,7 +52,7 @@ class Matrix:
         #num of honba sticks
         self.gameState[0][3] = self.honbaSticks
         #num of riichi sticks
-        self.gameState[0][4] = self.notRiichi.count(False)  
+        self.gameState[0][4] = self.Riichi.count(True)  
         #num of tiles left in wall (kans might mess this up need to check)
         self.gameState[0][5] = self.wallTiles
         #padding
@@ -72,7 +72,7 @@ class Matrix:
             #scores
             self.gameState[0][6+index] = self.playerScores[player]
             #riichis
-            self.gameState[0][10+index] = 0 if self.notRiichi[player] else 1 
+            self.gameState[0][10+index] = 1 if self.Riichi[player] else 0
             #number of chis
             self.gameState[0][14+index] = self.chisNum[player]
             #number of pons

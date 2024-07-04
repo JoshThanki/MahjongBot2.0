@@ -68,7 +68,7 @@ def matrixifymelds(arr):
 
             previousPlayer = (player+3)%4
             isValidChiPlayer =  (discardPlayer == previousPlayer)
-            isCurrentPlayer_NotInRiichi = matrix.getnotRiichi(player)
+            isCurrentPlayer_NotInRiichi = not matrix.getRiichi(player)
     
             isCurrentPlayerCallPlayer = (callPlayer == player)
 
@@ -190,7 +190,7 @@ def matrixify(arr):
     #checks for riichi conditions, and then appends to reachArr if passes necessary conditions
     def handleRiichi(p):
         hand = matrix.getPrivateHand(p)
-        if matrix.getnotRiichi(p) and matrix.getClosed(p) and (calcShanten(hand) <= 2*matrix.getClosedKan(p)) and matrix.getWallTiles() >= 4:
+        if (not matrix.getRiichi(p)) and matrix.getClosed(p) and (calcShanten(hand) <= 2*matrix.getClosedKan(p)) and matrix.getWallTiles() >= 4:
             riichiLabel = 0
             matrix.buildMatrix(player=p)
             # if riichis then sets to riichi
@@ -434,14 +434,16 @@ def saveAll():
         saveFilesPerYear(year, 500)
 
 
-start_time = time.time()
 
-start_time = time.time()
 
-saveAll()
+# start_time = time.time()
 
-end_time = time.time()
+# start_time = time.time()
 
-duration = end_time - start_time
+# saveAll()
 
-print(f"saveAll() took {duration:.4f} seconds")
+# end_time = time.time()
+
+# duration = end_time - start_time
+
+# print(f"saveAll() took {duration:.4f} seconds")
