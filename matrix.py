@@ -274,6 +274,8 @@ class Matrix:
         self.setDealer(seed[0] % 4)
 
 
+    #meldInfo = [1,2,3]
+    #meldType (0-3) 0 chi, 1 pon, 2 Kan, 3 Chakan
     def handleMeld(self, player, meldInfo, isClosedCall):
         meldTiles = meldInfo[0]
         meldType = meldInfo[1]

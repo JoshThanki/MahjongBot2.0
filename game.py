@@ -4,7 +4,6 @@ import numpy as np
 from numpy.typing import NDArray
 from Global import *
 from player import Player
-
 from matrix import Matrix
 
  #Creates a dictionary containing an entire set of tiles
@@ -18,7 +17,8 @@ class Game():
         #round = east
         #dealer = east
         #honba sticks = 0
-
+        
+        self.running = True
         self.gameData = GameData() 
         self.gameData.buildMatrix(0)
         print(self.gameData)
@@ -40,19 +40,20 @@ class Game():
         actionType = action[0]
 
         if actionType == 1:
-            self.handleTsumo(turnPlayer, action["arr"][0])
+            self.handleTsumo(turnPlayer)
         elif actionType == 2:
-            self.handleRiichi(turnPlayer, action["arr"][0])
+            self.handleRiichi(turnPlayer)
         elif actionType == 3:
-            self.handleCKAN(turnPlayer, action["arr"][0])
+            self.handleCKAN(turnPlayer)
         elif actionType == 4:
-            self.handleCHAKAN(turnPlayer, action["arr"][0])
+            self.handleCHAKAN(turnPlayer)
 
 
     def discardStep(self):
         turnPlayer = self.gameData.playerTurn
         discard = self.players[turnPlayer].discard()
         self.gameData.handleDiscard(turnPlayer, discard)
+        self.gameData.addPlayerPool(turnPlayer, discard)
     
     def discardActionStep(self):
         turnPlayer = self.gameData.playerTurn
@@ -74,25 +75,110 @@ class Game():
             if action['actionType'] == 5:
                 ronList.append(action)
             elif ronList:
-                self.handleRon([action["player"] for action in ronList],[action["arr"][0] for action in ronList])
+                self.handleRon([action["player"] for action in ronList],[action["arr"][0] for action in ronList], fromPlayer=turnPlayer)
             
             elif action['actionType'] == 6 :
-                self.handlePon(action["player"], action["arr"][0])
+                self.handlePon(action["player"], fromPlayer=turnPlayer)
 
             elif action['actionType'] == 7:
-                self.handleKan(action["player"], action["arr"][0])
+                self.handleKan(action["player"], fromPlayer=turnPlayer)
 
             elif action['actionType'] == 8:
-                self.handleChi(action["player"], action["arr"])
+                self.handleChi(action["player"], action["arr"], fromPlayer=turnPlayer)
             else:
                 self.gameData.incPlayerTurn()
-            
 
 
+    def handleTsumo(self, player):
+        #condition TSUMO = 0, RON = 1,(For now)
+        condition = 0
+
+        newPoints = self.pointExchange(player, condition, fromPlayer = None)
+
+        self.gameData.newRound(newPoints, player)
 
 
+    def handleRiichi(self, player):
+
+        self.gameData.setRiichi(player)
+
+    def handleCKAN(self, player, tile):
+        drawTile = self.gameData.lastDrawTile
+        meld = [[drawTile]*4, 2]
+
+        self.gameData.handleMeld(player, meld, isClosedCall=True)
+
+    def handleCHAKAN(self, player, tile):
+        drawTile = self.gameData.lastDrawTile
+
+        meld = [[drawTile]*3, 3]
+        
+        self.gameData.handleMeld(player, meld)
+
+    def handleRon(self, player, fromPlayer):
+        #condition TSUMO = 0, RON = 1,(For now)
+        condition = 1
+
+        newPoints = self.pointExchange(player, condition, fromPlayer)
+
+        self.gameData.newRound(newPoints, player)
+    
+    def handlePon(self, player, fromPlayer):
+        discard = self.gameData.lastDiscardTile
+
+        meld = [[discard]*3, 1]
+        
+        self.gameData.handleMeld(player, meld, fromPlayer = fromPlayer)
+
+    def handleKan(self, player, fromPlayer):
+        discard = self.gameData.lastDiscardTile
+
+        meld = [[discard]*3, 2]
+        
+        self.gameData.handleMeld(player, meld, fromPlayer = fromPlayer)
+
+    def handleChi(self, player, tileList, fromPlayer):
+
+        meld = [tileList, 3]
+    
+        self.gameData.handleMeld(player, meld, fromPlayer = fromPlayer)
 
 
+    def pointExchange(self, player, condition, fromPlayer):
+        lastDraw = self.gameData.lastDrawTile
+        lastDiscard = self.gameData.lastDiscardTile
+
+        return [30] * 250 #random ahh point assingment
+    
+    def newRound(self, newPoints, winningPlayer):
+        
+        #NOT IMPLEMENTING HONBA JUST YET
+
+        oldDealer = self.gameData.roundDealer
+        eastOnly = self.gameData.eastOnly
+        honbaSticks = self.gameData.honbaSticks
+        newRound = self.gameData.roundWind
+
+        if not (oldDealer == winningPlayer):
+            newDealer = oldDealer + 1
+    
+        else:
+            newDealer = oldDealer
+        
+        if newDealer > 3:
+            if eastOnly:
+                self.printScore(newPoints)
+            elif self.gameData.roundWind == 1:
+                self.printScore(newPoints)
+            else:
+                newRound+=1
+                newDealer = 0
+        
+        self.gameData = GameData(newPoints, newDealer, newRound, honbaSticks, eastOnly)
+
+    def printScore(self, points):
+        print(points)
+        self.running = False
 
 
 #Class used to store all data about the game
@@ -101,12 +187,14 @@ class GameData(Matrix):
     
     #points [1,2,3,4], dealer (0-3), roundWind (0-3) honbaSticks (int)
 
-    def __init__(self, points = [250,250,250,250], dealer = 0, roundWind = 0, honbaSticks = 0):
+    def __init__(self, points = [250,250,250,250], dealer = 0, roundWind = 0, honbaSticks = 0, eastOnly = False):
         
         ### Define Variables ###
 
         with open('tiles.json', 'r') as file:
             start_tiles = json.load(file)
+
+        self.eastOnly = eastOnly
 
         self.playerTurn = dealer 
 
@@ -142,7 +230,8 @@ class GameData(Matrix):
         self.setRoundWind(roundWind)
         self.newDora()
 
-    
+
+        
     def incPlayerTurn(self):
         self.playerTurn = (self.playerTurn + 1) % 3
 
@@ -219,7 +308,7 @@ class GameData(Matrix):
         formatted_string = "{\n" + ",\n".join(formatted_attributes) + "\n}"
         return f'{self.__class__.__name__}:\n{formatted_string}'
     
-    def handleMeld(self, player, meldInfo, isClosedCall):
+    def handleMeld(self, player, meldInfo, isClosedCall=False, fromPlayer = None):
         meldTiles = meldInfo[0]
         meldType = meldInfo[1]
 
@@ -243,9 +332,11 @@ class GameData(Matrix):
 
         # handles regular call
         else:
+            lastDiscard = self.lastDiscardTile
             self.setOpen(player)
             # adds meld tiles to meld attribute
             self.orderedMelds[player].add(meldTiles)
+            self.decPlayerPool(fromPlayer, lastDiscard) 
 
             for tile in meldTiles:
                 self.playerMelds[player][tile] += 1 
