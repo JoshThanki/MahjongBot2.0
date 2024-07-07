@@ -35,7 +35,7 @@ class Game():
             self.discardStep()
             self.discardActionStep()
     
-
+    # Have the given POV Player draw a tile    
     def drawStep(self):
         turnPlayer = self.gameData.playerTurn
         draw = self.gameData.getRandTile()
@@ -44,6 +44,7 @@ class Game():
 
         self.gameData.handleDraw(turnPlayer, draw)
     
+    # On Draw, a player can tsumo, riichi, closed kan or chakan. Handles the draw action a player can make
     def drawActionStep(self):
         turnPlayer = self.gameData.playerTurn
         action = self.players[turnPlayer].drawAction()
@@ -62,36 +63,41 @@ class Game():
             self.handleCHAKAN(turnPlayer)
 
 
+    # Have the given POV Player discard a tile   
     def discardStep(self):
         turnPlayer = self.gameData.playerTurn
-        discard = self.players[turnPlayer].discard()
+        discard = self.players[turnPlayer].discard() # Tile to discard
         self.gameData.handleDiscard(turnPlayer, discard)
         self.gameData.addPlayerPool(turnPlayer, discard)
     
+    # On Discard, all other players can chii, pon, kan or ron. Handles the discard actions a player can make
     def discardActionStep(self):
+
+        # Get all players that arent the POV player as a list 
         turnPlayer = self.gameData.playerTurn
         otherPlayers = [0,1,2,3]
         otherPlayers.remove(turnPlayer)
 
         #action = {actionType : (0-8) 0-Nothing, 1-TSUMO, 2-RIICHI, 3-CLOSEDKAN, 4-CHAKAN, 5-RON, 6-PON, 7-KAN, 8-CHI
         #, arr : [], player : (0-3)}
-
+        
+        # Get the discard actions of the players that choose to actually take an action (0 indicates the player does nothing)
         actionList = [self.players[player].discardAction() for player in otherPlayers]
-
         filtered_actions = [action for action in actionList if action.type != 0]
 
+        # Sort the player actions based on a given priority (Ron -> Pon -> Kan -> Chii)
         filtered_actions.sort(key=lambda x: x.type)
 
         ronList = []
 
         for action in filtered_actions:
             if action['actionType'] == 5:
-                ronList.append(action)
+                ronList.append(action) # If a player chooses to ron, add that player to a list of ronned players
             elif ronList:
                 self.handleRon([action["player"] for action in ronList],[action.arr[0] for action in ronList], fromPlayer=turnPlayer)
             
             elif action['actionType'] == 6 :
-                self.handlePon(action["player"], fromPlayer=turnPlayer)
+                self.handlePon(action["player"], fromPlayer=turnPlayer) # If a player chooses to pon, handle the pon interaction with the POV player
 
             elif action['actionType'] == 7:
                 self.handleKan(action["player"], fromPlayer=turnPlayer)
@@ -105,7 +111,7 @@ class Game():
     def handleRyuukyoku(self):
         pass 
     
-
+        # Function to handle a player calling Tsumo
     def handleTsumo(self, player):
         #condition TSUMO = 0, RON = 1,(For now)
         condition = 0
