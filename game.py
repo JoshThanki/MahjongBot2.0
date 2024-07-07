@@ -35,7 +35,6 @@ class Game():
             self.newGame = False
 
             self.drawStep()
-
             self.drawActionStep()
 
             if self.checkOver():
@@ -186,12 +185,19 @@ class Game():
 
         self.gameData.handleMeld(player, meld, isClosedCall=True)
 
+        self.drawStep()
+        self.drawActionStep()
+
+
     def handleCHAKAN(self, player, tile):
         drawTile = self.gameData.lastDrawTile
 
         meld = [[drawTile]*3, 3]
         
         self.gameData.handleMeld(player, meld)
+
+        self.drawStep()
+        self.drawActionStep()
 
     def handleRon(self, player, fromPlayer):
         #condition TSUMO = 0, RON = 1,(For now)
