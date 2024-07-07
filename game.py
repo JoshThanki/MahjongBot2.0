@@ -25,6 +25,9 @@ class Game():
     def main(self):
         while self.running:
 
+            if self.checkOver():
+                continue
+
             if self.newGame:
                 print("Starting a new game")
                 # print(self.gameData)
@@ -47,9 +50,6 @@ class Game():
             if self.checkRyuukyoku():
                 continue
 
-            self.gameData.incTurnNumber()
-
-            time.sleep(0.01)
     
     # Have the given POV Player draw a tile    
     def drawStep(self):
@@ -143,6 +143,10 @@ class Game():
         else:
             self.gameData.incPlayerTurn()
 
+        self.gameData.incTurnNumber()
+
+
+
     def checkOver(self):
         return self.newGame or not self.running
 
@@ -204,6 +208,12 @@ class Game():
         
         self.gameData.handleMeld(player, meld, fromPlayer = fromPlayer)
 
+        self.gameData.setPlayerTurn(player)
+
+        
+        self.discardStep()
+        self.discardActionStep()
+
     def handleKan(self, player, fromPlayer):
         discard = self.gameData.lastDiscardTile
 
@@ -211,11 +221,21 @@ class Game():
         
         self.gameData.handleMeld(player, meld, fromPlayer = fromPlayer)
 
+        self.gameData.setPlayerTurn(player)
+
+        self.discardStep()
+        self.discardActionStep()
+
     def handleChi(self, player, tileList, fromPlayer):
 
         meld = [tileList, 3]
-    
+
         self.gameData.handleMeld(player, meld, fromPlayer = fromPlayer)
+
+        self.gameData.setPlayerTurn(player)
+        
+        self.discardStep()
+        self.discardActionStep()
 
 
     def pointExchange(self, condition, player = None , fromPlayer = None):

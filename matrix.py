@@ -91,7 +91,7 @@ class Matrix:
                 self.gameState[0][30] = self.lastDiscardTile
             
 
-    def getMatrix(self):  
+    def getMatrix(self, player):  
         return self.gameState
     
     def addPlayerPonTiles(self, player, tiles):
@@ -134,6 +134,9 @@ class Matrix:
             self.addPon(player)
         elif meldType == 2:
             self.addKan(player)    
+
+    def getOpenMeldNum(self, player):
+        return self.chisNum[player] + self.ponsNum[player] + self.kansNum[player]
 
     # initialises starting hands for each player
     def initialisePrivateHands(self, hands):

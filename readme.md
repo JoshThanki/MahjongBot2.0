@@ -1,6 +1,6 @@
 To activate Venv
 
-python -m venv .venv
+python3.10 -m venv .venv
 
 .\.venv\Scripts\activate.ps1
 
