@@ -104,7 +104,7 @@ class Game():
 
     def handleRyuukyoku(self):
         pass 
-    
+
 
     def handleTsumo(self, player):
         #condition TSUMO = 0, RON = 1,(For now)
@@ -160,8 +160,12 @@ class Game():
     
         self.gameData.handleMeld(player, meld, fromPlayer = fromPlayer)
 
+    
 
-    def pointExchange(self, player, condition, fromPlayer):
+    #condition - 0 - TSUMO, 1 - RON , 3 - Ryuukyoku
+
+    def pointExchange(self, condition, player = -1, fromPlayer = -1) :
+        
         lastDraw = self.gameData.lastDrawTile
         lastDiscard = self.gameData.lastDiscardTile
 
