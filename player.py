@@ -21,9 +21,4 @@ class Player:
     def discard(self):
         return self.gameData.lastDrawTile
     
-    def getReadableHand(self):
-        return self._readableHand
-    
-    def getVectorHand(self):
-        return self._vectorHand
 

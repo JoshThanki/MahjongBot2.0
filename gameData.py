@@ -55,7 +55,8 @@ class GameData(Matrix):
 
         
     def incPlayerTurn(self):
-        self.playerTurn = (self.playerTurn + 1) % 3
+        
+        self.playerTurn = (self.playerTurn + 1) % 4
 
     def convertHandFormat(self, hand):
         newHand = [0] * 34
