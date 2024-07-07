@@ -47,7 +47,7 @@ class Game():
             if self.checkOver():
                 continue
 
-            time.sleep(5)
+            time.sleep(0.01)
     
     # Have the given POV Player draw a tile    
     def drawStep(self):
@@ -160,7 +160,7 @@ class Game():
         #condition TSUMO = 0, RON = 1,(For now)
         condition = 0
 
-        newPoints = self.pointExchange(player, condition, fromPlayer = None)
+        newPoints = self.pointExchange(condition, player)
 
         self.newRound(newPoints, player)
 
@@ -186,7 +186,7 @@ class Game():
         #condition TSUMO = 0, RON = 1,(For now)
         condition = 1
 
-        newPoints = self.pointExchange(player, condition, fromPlayer)
+        newPoints = self.pointExchange(condition, player, fromPlayer)
 
         self.newRound(newPoints, player)
     
@@ -211,7 +211,7 @@ class Game():
         self.gameData.handleMeld(player, meld, fromPlayer = fromPlayer)
 
 
-    def pointExchange(self, player, condition, fromPlayer):
+    def pointExchange(self, condition, player = None , fromPlayer = None):
         lastDraw = self.gameData.lastDrawTile
         lastDiscard = self.gameData.lastDiscardTile
 
