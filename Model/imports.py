@@ -8,5 +8,4 @@ from keras.layers import Input, Dense, MultiHeadAttention, Flatten, LeakyReLU
 from keras.optimizers import SGD
 from keras.metrics import categorical_crossentropy
 import os
-from tqdm import tqdm
 import tensorflow as tf

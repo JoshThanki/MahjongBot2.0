@@ -1,9 +1,9 @@
-from MLimports import *
+from imports import *
 
 # num of games for
 num_train = 1     #training
 num_test=1        #testing 
-num_validate=500  #validating (used in training)
+num_validate=10  #validating (used in training)
 
 
 #converting label to one-hot format for training
@@ -25,9 +25,9 @@ files_test = list(dataset_folder_test.iterdir())[:num_test]
 files_validate = list(dataset_folder_validate.iterdir())[:num_validate]
 
 #pulling data from files
-matrix_train = np.vstack([sp.load_npz(npz_file).toarray() for npz_file in tqdm(files_train)])
-matrix_test = np.vstack([sp.load_npz(npz_file).toarray() for npz_file in tqdm(files_test)])
-matrix_validate = np.vstack([sp.load_npz(npz_file).toarray() for npz_file in tqdm(files_validate)])
+matrix_train = np.vstack([sp.load_npz(npz_file).toarray() for npz_file in files_train])
+matrix_test = np.vstack([sp.load_npz(npz_file).toarray() for npz_file in files_test])
+matrix_validate = np.vstack([sp.load_npz(npz_file).toarray() for npz_file in files_validate])
 
 #formatting data (X are states and y are labels)
 X_train = matrix_train[:, :510]

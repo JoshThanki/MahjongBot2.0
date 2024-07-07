@@ -30,7 +30,8 @@ class Player:
     
     def discard(self):
         model = tf.keras.models.load_model('Saved Models\discardModel')
-
-        return self.gameData.lastDrawTile
+        gameData.buildMatrix(player)
+        prediction = model( np.array([gameData.getMatrix(player).flatten()]) )
+        return np.argmax(prediction)
     
 

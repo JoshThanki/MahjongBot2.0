@@ -1,7 +1,5 @@
-# I used this for manually looking at games
+from imports import *
 
-from MLimports import *
-np.set_printoptions(formatter={'float': '{:0.8f}'.format})
 
 # defining dictionary containing each tile and its index
 tile_dictionary = {i: f"{i+1}_man" if i <= 8 else f"{i-8}_pin" if i <= 17 else f"{i-17}_sou" for i in range(27)}
@@ -44,28 +42,16 @@ def format_prediction(array):
     return {tile_dictionary[i]: array[i].numpy() for i in range(34)}
 
 
-from data import X_test, y_test
-model = tf.keras.models.load_model('D:\BOT TRAINING')
-predictions = model(X_test)
+from data import X_validate, y_validate
 
-
-num=131
-predictions_dict = format_prediction(predictions[num])
-predictions_dict_sorted = {k: v for k, v in sorted(predictions_dict.items(), key=lambda item: item[1], reverse=True)}
-
-print(f'hand: {webFormat(X_test[num][68:102])}')
-print('')
-print(f'prediction: {predictions_dict}')
-print('')
-print(f'prediction_sorted: {predictions_dict_sorted}')
-print('')
-print(f"actual tile discard: {format_label(y_test[num])}")
+X_validate = X_validate[:, :374][:3]
+test = np.array([X_validate[0]])
+model = tf.keras.models.load_model('Saved Models\discardModel')
+predictions = model(test)
 
 
 
-#test= [0,1,0,1,1,0,2,0,0,0,1,0,1,1,0,2,0,0,0,1,0,1,1,0,2,0,0,2,0,0,0,0,0,0]
-#pred = format_prediction(test)
-#sorte = {k: v for k, v in sorted(pred.items(), key=lambda item: item[1], reverse=True)}
-#print(webFormat(test))
-#print(pred)
-#print(sorte)
+print(webFormat(X_validate[0][68:102]))
+print(predictions)
+print(format_label(predictions))
+print(np.argmax(predictions))
