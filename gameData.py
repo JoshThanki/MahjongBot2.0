@@ -19,6 +19,7 @@ class GameData(Matrix):
         self.eastOnly = eastOnly
 
         self.playerTurn = dealer 
+        self.turnNumber = 1
 
         #self.orderedMelds = [[([5,6,7],1) , ([5,5,5],1) , [] ],[],[],[]]
         self.orderedMelds = [[],[],[],[]]
@@ -84,6 +85,8 @@ class GameData(Matrix):
         dora = self.getRandTile()
         self.addDoraIndicator(dora)
 
+    def incTurnNumber(self):
+        self.turnNumber +=1
 
     ### Overriden Methods ### 
 

@@ -1,6 +1,6 @@
 # I used this for manually looking at games
 
-from imports import *
+from MLimports import *
 np.set_printoptions(formatter={'float': '{:0.8f}'.format})
 
 # defining dictionary containing each tile and its index

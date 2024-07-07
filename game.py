@@ -18,7 +18,7 @@ class Game():
         
         self.running = True
         self.newGame = True
-        self.gameData = GameData() 
+        self.gameData = GameData(eastOnly=True) 
 
         self.players = [Player(i, self.gameData) for i in range(4)]
 
@@ -29,12 +29,9 @@ class Game():
                 print("Starting a new game")
                 # print(self.gameData)
             
-
             self.newGame = False
 
             self.drawStep()
-            if self.checkOver():
-                continue
 
             self.drawActionStep()
 
@@ -47,15 +44,17 @@ class Game():
             if self.checkOver():
                 continue
 
+            if self.checkRyuukyoku():
+                continue
+
+            self.gameData.incTurnNumber()
+
             time.sleep(0.01)
     
     # Have the given POV Player draw a tile    
     def drawStep(self):
         turnPlayer = self.gameData.playerTurn
         draw = self.gameData.getRandTile()
-        if not draw:
-            print("Game Draws")
-            self.handleRyuukyoku()
 
         print(turnPlayer, "Draws: ", draw)
 
@@ -145,15 +144,23 @@ class Game():
             self.gameData.incPlayerTurn()
 
     def checkOver(self):
-        return self.newGame
+        return self.newGame or not self.running
 
 
-    def handleRyuukyoku(self):
-        condition = 3
+    def checkRyuukyoku(self):
+        if self.gameData.getWallTiles() == 0:
+            
+            print("Game Draws")
 
-        newPoints = self.pointExchange(condition)
+            condition = 3
 
-        self.newRound(newPoints)
+            newPoints = self.pointExchange(condition)
+
+            self.newRound(newPoints)
+
+            return True
+        
+        return False
 
 
     def handleTsumo(self, player):
@@ -247,7 +254,7 @@ class Game():
         self.players = [Player(i, self.gameData) for i in range(4)]
 
     def printScore(self, points):
-        print(points)
+        # print(points)
         self.running = False
 
 

@@ -1,4 +1,4 @@
-from imports import *
+from MLimports import *
 
 # num of games for
 num_train = 1     #training
