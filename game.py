@@ -103,14 +103,16 @@ class Game():
 
 
     def handleRyuukyoku(self):
-        pass 
+        condition = 3
+
+        newPoints = self.pointExchange(condition)
 
 
     def handleTsumo(self, player):
         #condition TSUMO = 0, RON = 1,(For now)
         condition = 0
 
-        newPoints = self.pointExchange(player, condition, fromPlayer = None)
+        newPoints = self.pointExchange(condition, player)
 
         self.gameData.newRound(newPoints, player)
 
@@ -136,7 +138,7 @@ class Game():
         #condition TSUMO = 0, RON = 1,(For now)
         condition = 1
 
-        newPoints = self.pointExchange(player, condition, fromPlayer)
+        newPoints = self.pointExchange(condition, player, fromPlayer)
 
         self.gameData.newRound(newPoints, player)
     
@@ -164,8 +166,8 @@ class Game():
 
     #condition - 0 - TSUMO, 1 - RON , 3 - Ryuukyoku
 
-    def pointExchange(self, condition, player = -1, fromPlayer = -1) :
-        
+    def pointExchange(self, condition, player = None, fromPlayer = None) :
+
         lastDraw = self.gameData.lastDrawTile
         lastDiscard = self.gameData.lastDiscardTile
 
