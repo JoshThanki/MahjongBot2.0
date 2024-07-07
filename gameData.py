@@ -59,6 +59,9 @@ class GameData(Matrix):
         
         self.playerTurn = (self.playerTurn + 1) % 4
 
+    def setPlayerTurn(self, playerTurn):
+        self.playerTurn = playerTurn
+    
     def convertHandFormat(self, hand):
         newHand = [0] * 34
         for tile in hand:
