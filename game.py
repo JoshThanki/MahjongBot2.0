@@ -17,16 +17,31 @@ class Game():
         #honba sticks = 0
         
         self.running = True
+        self.newGame = True
         self.gameData = GameData() 
-        self.gameData.buildMatrix(0)
-        print(self.gameData)
 
-        self.players = [Player(i) for i in range(4)]
+        self.players = [Player(i, self.gameData) for i in range(4)]
 
+    def main(self):
+        while self.running:
+            self.newGame = False
+
+            self.drawStep()
+            self.drawActionStep()
+
+            if self.newGame:
+                continue
+
+            self.discardStep()
+            self.discardActionStep()
     
+
     def drawStep(self):
         turnPlayer = self.gameData.playerTurn
         draw = self.gameData.getRandTile()
+        if not draw:
+            self.handleRyuukyoku()
+
         self.gameData.handleDraw(turnPlayer, draw)
     
     def drawActionStep(self):
@@ -35,7 +50,7 @@ class Game():
 
         #action = {actionType : (0-8) 0-Nothing, 1-TSUMO, 2-RIICHI, 3-CLOSEDKAN, 4-CHAKAN, 4-RON, 5-PON, 6-KAN, 7-CHI
         #, arr : [], player : (0-3)}
-        actionType = action[0]
+        actionType = action.type
 
         if actionType == 1:
             self.handleTsumo(turnPlayer)
@@ -63,9 +78,9 @@ class Game():
 
         actionList = [self.players[player].discardAction() for player in otherPlayers]
 
-        filtered_actions = [action for action in actionList if action['actionType'] != 0]
+        filtered_actions = [action for action in actionList if action.type != 0]
 
-        filtered_actions.sort(key=lambda x: x['actionType'])
+        filtered_actions.sort(key=lambda x: x.type)
 
         ronList = []
 
@@ -73,7 +88,7 @@ class Game():
             if action['actionType'] == 5:
                 ronList.append(action)
             elif ronList:
-                self.handleRon([action["player"] for action in ronList],[action["arr"][0] for action in ronList], fromPlayer=turnPlayer)
+                self.handleRon([action["player"] for action in ronList],[action.arr[0] for action in ronList], fromPlayer=turnPlayer)
             
             elif action['actionType'] == 6 :
                 self.handlePon(action["player"], fromPlayer=turnPlayer)
@@ -82,10 +97,14 @@ class Game():
                 self.handleKan(action["player"], fromPlayer=turnPlayer)
 
             elif action['actionType'] == 8:
-                self.handleChi(action["player"], action["arr"], fromPlayer=turnPlayer)
+                self.handleChi(action["player"], action.arr, fromPlayer=turnPlayer)
             else:
                 self.gameData.incPlayerTurn()
 
+
+    def handleRyuukyoku(self):
+        pass 
+    
 
     def handleTsumo(self, player):
         #condition TSUMO = 0, RON = 1,(For now)
@@ -148,7 +167,7 @@ class Game():
 
         return [30] * 250 #random ahh point assingment
     
-    def newRound(self, newPoints, winningPlayer):
+    def newRound(self, newPoints, winningPlayer = -1):
         
         #NOT IMPLEMENTING HONBA JUST YET
 
@@ -172,7 +191,9 @@ class Game():
                 newRound+=1
                 newDealer = 0
         
+        self.newGame = True
         self.gameData = GameData(newPoints, newDealer, newRound, honbaSticks, eastOnly)
+        self.players = [Player(i, self.gameData) for i in range(4)]
 
     def printScore(self, points):
         print(points)
@@ -182,5 +203,7 @@ class Game():
 
 
     
+game = Game()
+game.main()
 
 

@@ -1,7 +1,6 @@
-import numpy as np
-from numpy.typing import NDArray
-
-from game import GameData
+from Global import *
+from gameData import GameData
+from action import Action
 
 class Player:
     def __init__(self, playerNo, gameData: GameData) -> None:
@@ -9,22 +8,22 @@ class Player:
         self.playerNo = playerNo
         self.discardTile = -1
 
-    def discard(self):
+    def drawAction(self):
+        action = Action(self.playerNo)
 
+        return action
+
+    def discardAction(self):
+        action = Action(self.playerNo)
+
+        return action
+    
+    def discard(self):
+        return self.gameData.lastDrawTile
+    
     def getReadableHand(self):
         return self._readableHand
     
     def getVectorHand(self):
         return self._vectorHand
 
-if True: #add tests here
-    testGame = Game()
-    testPlayer = Player(testGame)
-    print(testPlayer.getReadableHand())
-    print()
-    print(testPlayer.getVectorHand())
-    print()
-    testPlayer.drawTile()
-    print(testPlayer.getReadableHand())
-    print()
-    print(testPlayer.getVectorHand())
