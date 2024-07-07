@@ -46,12 +46,13 @@ from data import X_validate, y_validate
 
 X_validate = X_validate[:, :374][:3]
 test = np.array([X_validate[0]])
+print(test)
 model = tf.keras.models.load_model('Saved Models\discardModel')
 predictions = model(test)
 
+print(predictions[0].numpy())
 
-
-print(webFormat(X_validate[0][68:102]))
-print(predictions)
-print(format_label(predictions))
-print(np.argmax(predictions))
+# print(webFormat(X_validate[0][68:102]))
+# print(predictions)
+# print(format_label(predictions))
+# print(np.argmax(predictions))
