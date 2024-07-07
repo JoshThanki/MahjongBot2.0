@@ -5,7 +5,6 @@ import time
 import traceback
 import numpy as np
 from numpy.typing import NDArray
-
 from xml.dom import minidom
 import xml.etree.ElementTree as ET
 
