@@ -31,7 +31,7 @@ def format_xmlHand(string):
 
 # Calculates shanten number for a given hand
 # input: hand array of length 34
-def calcShanten(hand, numOpenMelds=0):    
+def calcShanten(hand, numCalledMelds=0):    
     #converting to mahjong 1.0 format
     split_indices=[9,18,27]
     handArray =  np.split(hand, split_indices) 
@@ -181,7 +181,7 @@ def calcShanten(hand, numOpenMelds=0):
     def general_shanten(handArray):
         totalSplit = splitsTotal(handArray)
         tatNum = totalSplit[1]
-        groupNum = totalSplit[0]
+        groupNum = totalSplit[0] + numCalledMelds
         pairPresence = totalSplit[2]
         p=0
 
@@ -341,3 +341,7 @@ def decodeMeld(data): #chi:0, pon:1, kan: 2, chakan:3
 #     return content1 == content2
 
 # print(files_match("out.txt", "out2.txt"))
+
+test = [2,2,2,2]+[0]*30
+
+print(calcShanten(hand=test, numCalledMelds=2))
