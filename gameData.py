@@ -111,7 +111,8 @@ class GameData(Matrix):
         print()
         printNice(self.gameState)
         print()
-        
+        print(f"Shanten: {calcShanten(self.privateHands[player])}")
+
 
     def __str__(self):
 

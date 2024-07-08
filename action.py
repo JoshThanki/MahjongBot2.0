@@ -6,3 +6,8 @@ class Action():
     
     #action = {actionType : (0-8) 0-Nothing, 1-TSUMO, 2-RIICHI, 3-CLOSEDKAN, 4-CHAKAN, 4-RON, 5-PON, 6-KAN, 7-CHI
         #, arr : [], player : (0-3)}
+
+
+    def __str__(self) -> str:
+        
+        return f"Action:  Type: {str(self.type)} , Player: {str(self.player)} , Arr: {str(self.arr)} "
