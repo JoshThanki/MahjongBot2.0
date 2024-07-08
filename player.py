@@ -63,30 +63,36 @@ class Player:
         hand = self.gameData.getPrivateHand( self.playerNo )
 
         if self.canTsumo(player):
-            action = Action(self.playerNo, 1)
+            return Action(self.playerNo, 1)
 
-
-        elif self.gamedata.canClosedKan( self.playerNo )[0] or self.gamedata.canClosedKan(self.playerNo)[0]:   #placeholder
-            self.gameData.buildMatrix( player=self.playerNo, forMeld=True, forClosedMeld=True, callTile=0 )
-            matrix = self.gameData.getMatrix( player )
+        if self.gameData.canClosedKan( self.playerNo )[0]:
+            callTile = self.canClosedKan( self.playerNo )[1]
+            self.gameData.buildMatrix( player=self.playerNo, forMeld=True, forClosedMeld=True, callTile=callTile )
+          
             prediction = getPrediction( kanModel )
-
+            
             if prediction:
-                action = Action(self.playerNo, 3,)
+                return Action(self.playerNo, 3)        
+        
+        if self.gameData.canChakan( self.playerNo )[0]:
+            callTile = self.canChakan( self.playerNo )[1]
+            self.gameData.buildMatrix( player=self.playerNo, forMeld=True, forClosedMeld=True, callTile=callTile )
+          
+            prediction = getPrediction( kanModel )
+            
+            if prediction:
+                return Action(self.playerNo, 4)  
 
 
-        elif self.gameData.canRiichi( self.playerNo ):
+        if self.gameData.canRiichi( self.playerNo ):
             self.gameData.buildMatrix( player=self.playerNo )
-            matrix = self.gameData.getMatrix(player)
             prediction = getPrediction( riichiModel )
 
             if prediction:
-                action = Action(self.playerNo, 2)
+                return Action(self.playerNo, 2)
             
-        else:
-            action = Action(self.playerNo, 0)
 
-        return action
+        return Action(self.playerNo, 0)
 
 
     def discardAction(self):
