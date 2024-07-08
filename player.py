@@ -18,10 +18,6 @@ chiModel = tf.keras.models.load_model('Saved Models\chiModel')
 ponModel = tf.keras.models.load_model('Saved Models\ponModel')
 kanModel = tf.keras.models.load_model('Saved Models\kanModel')
 
-def getPrediction(model, state):
-    prediction = model( np.array([ state.flatten() ]) )
-    return np.argmax(prediction)
-
 
 
 class Player:
@@ -30,27 +26,59 @@ class Player:
         self.playerNo = playerNo
         self.discardTile = -1
 
-    def drawAction(self):
-        meldNum = self.gameData.getOpenMeldNum(playerNo)
-        hand = self.gameData.getPrivateHand(playerNo)
 
-        if canWin(player):
+    discardModel = tf.keras.models.load_model('Saved Models\discardModel')
+    riichiModel = tf.keras.models.load_model('Saved Models\discardModel')   ##############
+    chiModel = tf.keras.models.load_model('Saved Models\chiModel')
+    ponModel = tf.keras.models.load_model('Saved Models\ponModel')
+    kanModel = tf.keras.models.load_model('Saved Models\kanModel')    
+
+    def getPrediction(self):
+        state = self.gameData.gameState()
+        prediction = model( np.array([state.flatten()]) )
+
+        prediction = prediction[0].numpy()
+
+        if model == discardModel:
+            hand = self.gameData.getPrivateHand(self.playerNo)
+            prediction = [prediction[i] if hand[i] != 0 else 0 for i in range(34)]
+
+        return np.argmax(prediction)   
+
+    def canTsumo(self):
+        return self.gameData.totalHandShanten( self.playerNo ) == -1
+ 
+
+    def canRon(self, player):
+        copyHand = copy.copy( self.gameData.privateHand[ self.playerNo ] )
+        copyHand[ self.gameData.lastDiscard ] +=1
+
+        numCalledMelds = self.gameData.getOpenMeldNum( self.playerNo )
+
+        return calcShanten( hand=copyHand, numCalledMelds=numCalledMelds ) == -1 
+
+
+    def drawAction(self):
+        meldNum = self.gameData.getOpenMeldNum( self.playerNo )
+        hand = self.gameData.getPrivateHand( self.playerNo )
+
+        if self.canTsumo(player):
             action = Action(self.playerNo, 1)
 
 
-        elif canClosedKan(player) or canChakan(player):   #placeholder
-            self.gameData.buildMatrix( player=playerNo, forMeld=True, forClosedMeld=True, callTile=0 )
+        elif self.gamedata.canClosedKan( self.playerNo )[0] or self.gamedata.canClosedKan(self.playerNo)[0]:   #placeholder
+            self.gameData.buildMatrix( player=self.playerNo, forMeld=True, forClosedMeld=True, callTile=0 )
             matrix = self.gameData.getMatrix( player )
-            prediction = getPrediction( kanModel, matrix )
+            prediction = getPrediction( kanModel )
 
             if prediction:
                 action = Action(self.playerNo, 3,)
 
-        elif self.gameData.canRiichi(player):
-            action = Action(self.playerNo, 2)
-            self.gameData.buildMatrix( player=playerNo )
+
+        elif self.gameData.canRiichi( self.playerNo ):
+            self.gameData.buildMatrix( player=self.playerNo )
             matrix = self.gameData.getMatrix(player)
-            prediction = getPrediction(riichiModel, matrix)
+            prediction = getPrediction( riichiModel )
 
             if prediction:
                 action = Action(self.playerNo, 2)
@@ -59,6 +87,7 @@ class Player:
             action = Action(self.playerNo, 0)
 
         return action
+
 
     def discardAction(self):
         action = Action(self.playerNo)

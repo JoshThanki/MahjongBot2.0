@@ -333,15 +333,13 @@ def decodeMeld(data): #chi:0, pon:1, kan: 2, chakan:3
 
 
 
-# def files_match(file1, file2):
-#     with open(file1, 'r') as f1, open(file2, 'r') as f2:
-#         content1 = f1.read()
-#         content2 = f2.read()
+def files_match(file1, file2):
+    with open(file1, 'r') as f1, open(file2, 'r') as f2:
+        content1 = f1.read()
+        content2 = f2.read()
         
-#     return content1 == content2
+    return content1 == content2
 
-# print(files_match("out.txt", "out2.txt"))
+print(files_match("out.txt", "out2.txt"))
 
-test = [2,2,2,2]+[0]*30
 
-print(calcShanten(hand=test, numCalledMelds=2))

@@ -270,6 +270,9 @@ class Matrix:
         
         return canChackan, callTile
 
+    def canRiichi(self, player):
+        return (not self.Riichi[player])  and  (self.Closed[player])  and  (calcShanten(hand=self.privateHands[player]) <= 2*self.closedKans[player])  and  (self.wallTiles >= 4)
+
 
         
     

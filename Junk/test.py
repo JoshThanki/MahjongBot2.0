@@ -1,5 +1,9 @@
 import numpy as np
 
-arr = np.array([True, True, True])
+arr = [1,2,3]
 
-print(arr.any())
+arr2 = arr
+
+arr2[0]+=1
+
+print(arr)

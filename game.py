@@ -292,11 +292,6 @@ class Game():
         return calcShanten( hand=hand, numCalledMelds=numCalledMelds)
  
 
-    def canTsumo(self, player):
-        meldNum = self.getOpenMeldNum( player )
-        return calcShanten( hand = self.privateHand(player), Open ) == -1 
- 
-
 
 
     

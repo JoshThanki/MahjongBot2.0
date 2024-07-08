@@ -184,16 +184,18 @@ def matrixify(arr):
 
     #riichi conditions are: the player is not already in riichi, hand is closed, is in tenpai, and >=4 tiles in live wall (rule)
     #checks for riichi conditions, and then appends to reachArr if passes necessary conditions
-    def handleRiichi(p):
-        hand = matrix.getPrivateHand(p)
-        if (not matrix.getRiichi(p)) and matrix.getClosed(p) and (calcShanten(hand=hand) <= 2*matrix.getClosedKan(p)) and matrix.getWallTiles() >= 4:
+    def handleRiichi(player):
+        if matrix.canRiichi(player):
             riichiLabel = 0
-            matrix.buildMatrix(player=p)
+            matrix.buildMatrix(player=player)
+
             # if riichis then sets to riichi
             if arr[index+1][0] == "REACH": 
                 riichiLabel = 1
-                matrix.setRiichi(p)
+                matrix.setRiichi(player)
+
             reachArr.append([copy.deepcopy(matrix.getMatrix()), riichiLabel]) 
+
 
     for index,item in enumerate(arr): 
         if item[1]:
