@@ -25,9 +25,6 @@ class Game():
     def main(self):
         while self.running:
 
-            if self.checkOver():
-                continue
-
             if self.newGame:
                 print("Starting a new game")
                 # print(self.gameData)
@@ -41,6 +38,9 @@ class Game():
                 continue
 
             self.discardStep()
+
+            self.gameData.printGood(self.gameData.playerTurn)
+
             self.discardActionStep()
 
             if self.checkOver():
@@ -48,6 +48,10 @@ class Game():
 
             if self.checkRyuukyoku():
                 continue
+            
+            
+
+
 
     
     # Have the given POV Player draw a tile    
@@ -284,12 +288,7 @@ class Game():
         self.running = False
 
 
-    # calculates actual shanten on the player (melds mess this up)
-    def totalHandShanten(self, player):
-        hand = self.privateHand[player]
-        numCalledMelds = self.getOpenMeldNum(player)
 
-        return calcShanten( hand=hand, numCalledMelds=numCalledMelds)
  
 
 
