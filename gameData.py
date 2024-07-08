@@ -106,8 +106,22 @@ class GameData(Matrix):
         super().addDoraIndicator(doraIndicator)
 
 
+    def printGood(self, player):
+        self.buildMatrix(player)
+        print()
+        printNice(self.gameState)
+        print()
+        
+
     def __str__(self):
-        return self.get_all_attributes()
+
+        # self.buildMatrix(0)
+        # printNice(self.gameState)
+        print("")
+        print(self.privateHands)
+        print("")
+
+        return ""
     
     def get_all_attributes(self):
         attributes = {}
@@ -136,6 +150,13 @@ class GameData(Matrix):
 
         formatted_string = "{\n" + ",\n".join(formatted_attributes) + "\n}"
         return f'{self.__class__.__name__}:\n{formatted_string}'
+    
+        # calculates actual shanten on the player (melds mess this up)
+    def totalHandShanten(self, player):
+        hand = self.privateHands[player]
+        numCalledMelds = self.getOpenMeldNum(player)
+
+        return calcShanten( hand=hand, numCalledMelds=numCalledMelds)
     
     def handleMeld(self, player, meldInfo, isClosedCall=False, fromPlayer = None):
         meldTiles = meldInfo[0]

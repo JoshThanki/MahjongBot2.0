@@ -33,8 +33,8 @@ class Player:
     ponModel = tf.keras.models.load_model('Saved Models\ponModel')
     kanModel = tf.keras.models.load_model('Saved Models\kanModel')    
 
-    def getPrediction(self):
-        state = self.gameData.gameState()
+    def getPrediction(self, model):
+        state = self.gameData.gameState
         prediction = model( np.array([state.flatten()]) )
 
         prediction = prediction[0].numpy()
@@ -59,26 +59,28 @@ class Player:
 
 
     def drawAction(self):
-        meldNum = self.gameData.getOpenMeldNum( self.playerNo )
-        hand = self.gameData.getPrivateHand( self.playerNo )
+        player = self.playerNo
 
-        if self.canTsumo(player):
+        meldNum = self.gameData.getOpenMeldNum( player )
+        hand = self.gameData.getPrivateHand( player )
+
+        if self.canTsumo():
             action = Action(self.playerNo, 1)
 
 
-        elif self.gamedata.canClosedKan( self.playerNo )[0] or self.gamedata.canClosedKan(self.playerNo)[0]:   #placeholder
+        elif self.gameData.canClosedKan(player)[0] or self.gameData.canClosedKan(self.playerNo)[0]:   #placeholder
             self.gameData.buildMatrix( player=self.playerNo, forMeld=True, forClosedMeld=True, callTile=0 )
-            matrix = self.gameData.getMatrix( player )
-            prediction = getPrediction( kanModel )
+            matrix = self.gameData.getMatrix()
+            prediction = self.getPrediction( kanModel )
 
             if prediction:
                 action = Action(self.playerNo, 3,)
 
 
-        elif self.gameData.canRiichi( self.playerNo ):
-            self.gameData.buildMatrix( player=self.playerNo )
-            matrix = self.gameData.getMatrix(player)
-            prediction = getPrediction( riichiModel )
+        elif self.gameData.canRiichi(player):
+            self.gameData.buildMatrix(player)
+            matrix = self.gameData.getMatrix()
+            prediction = self.getPrediction( riichiModel )
 
             if prediction:
                 action = Action(self.playerNo, 2)
