@@ -213,14 +213,17 @@ class Matrix:
     def addDoraIndicator(self, doraIndicator):
         self.gameState[1][doraIndicator] += 1
             
-    def canPon(self, player, tile):
+    def canPon(self, player):
+        tile = self.lastDiscardTile
         return (self.privateHands[player][tile] >= 2)
 
-    def canKan(self, player, tile):
+    def canKan(self, player):
+        tile = self.lastDiscardTile
         return (self.privateHands[player][tile] == 3)
 
-    def canChi(self, player, tile): 
+    def canChi(self, player): 
         #checks whether it's a honour tile
+        tile = self.lastDiscardTile
         if tile//9 == 3: return False
         else:
             #number of the tile
@@ -254,7 +257,7 @@ class Matrix:
         return canClosedKan, callTile
 
 
-    def canChackan(self, player):
+    def canChakan(self, player):
         hand = self.privateHands[player]
         canChackan = False
         callTile = None

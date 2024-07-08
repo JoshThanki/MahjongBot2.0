@@ -73,7 +73,7 @@ def matrixifymelds(arr):
             isCurrentPlayerCallPlayer = (callPlayer == player)
 
             ### CHI ###
-            if isValidChiPlayer and matrix.canChi(player, tile) and isCurrentPlayer_NotInRiichi and (not isPonInPriotity(player)):
+            if isValidChiPlayer and matrix.canChi(player) and isCurrentPlayer_NotInRiichi and (not isPonInPriotity(player)):
                 matrix.buildMatrix(player=player, forMeld=True)
                 # if the player calls the tile and the call is chi
                 if isNextCallChi and isCurrentPlayerCallPlayer: 
@@ -84,7 +84,7 @@ def matrixifymelds(arr):
                 chiArr.append([copy.deepcopy(matrix.getMatrix()), chiLabel])
 
             ### PON ### 
-            if matrix.canPon(player, tile) and isCurrentPlayer_NotInRiichi:
+            if matrix.canPon(player) and isCurrentPlayer_NotInRiichi:
                 matrix.buildMatrix(player=player, forMeld=True)
                 if isNextCallPon and isCurrentPlayerCallPlayer: 
                     ponLabel = 1
@@ -92,7 +92,7 @@ def matrixifymelds(arr):
                 ponArr.append([copy.deepcopy(matrix.getMatrix()), ponLabel])
 
             ### KAN ###
-            if matrix.canKan(player, tile) and isCurrentPlayer_NotInRiichi:
+            if matrix.canKan(player) and isCurrentPlayer_NotInRiichi:
                 matrix.buildMatrix(player, forMeld=True)
                 if isNextCallKan and isCurrentPlayerCallPlayer: 
                     kanLabel = 1
@@ -123,9 +123,9 @@ def matrixifymelds(arr):
 
 
         ### CHANKAN ###
-        canChackan, callTile = matrix.canChackan(drawPlayer)
+        canChakan, callTile = matrix.canChakan(drawPlayer)
 
-        if canChackan:
+        if canChakan:
             matrix.buildMatrix(player=drawPlayer, forMeld=True, forClosedMeld=True, callTile=callTile)
             if isNextMoveCall:
                 chankanLabel = 1
