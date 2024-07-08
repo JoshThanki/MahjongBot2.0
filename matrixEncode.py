@@ -73,7 +73,7 @@ def matrixifymelds(arr):
             isCurrentPlayerCallPlayer = (callPlayer == player)
 
             ### CHI ###
-            if isValidChiPlayer and matrix.canChi(player, tile) and isCurrentPlayer_NotInRiichi and (not isPonInPriotity(player)):
+            if isValidChiPlayer and matrix.canChi(player) and isCurrentPlayer_NotInRiichi and (not isPonInPriotity(player)):
                 matrix.buildMatrix(player=player, forMeld=True)
                 # if the player calls the tile and the call is chi
                 if isNextCallChi and isCurrentPlayerCallPlayer: 
@@ -84,7 +84,7 @@ def matrixifymelds(arr):
                 chiArr.append([copy.deepcopy(matrix.getMatrix()), chiLabel])
 
             ### PON ### 
-            if matrix.canPon(player, tile) and isCurrentPlayer_NotInRiichi:
+            if matrix.canPon(player) and isCurrentPlayer_NotInRiichi:
                 matrix.buildMatrix(player=player, forMeld=True)
                 if isNextCallPon and isCurrentPlayerCallPlayer: 
                     ponLabel = 1
@@ -92,7 +92,7 @@ def matrixifymelds(arr):
                 ponArr.append([copy.deepcopy(matrix.getMatrix()), ponLabel])
 
             ### KAN ###
-            if matrix.canKan(player, tile) and isCurrentPlayer_NotInRiichi:
+            if matrix.canKan(player) and isCurrentPlayer_NotInRiichi:
                 matrix.buildMatrix(player, forMeld=True)
                 if isNextCallKan and isCurrentPlayerCallPlayer: 
                     kanLabel = 1
@@ -110,30 +110,26 @@ def matrixifymelds(arr):
 
         closedKanLabel, chankanLabel = 0, 0
 
+
         ### CLOSED KAN ###
         # If the player has 4 of the same tile then builds the matrix and appends it with the label to kanArr
-        for tile in range(34):
-            if hand[tile] == 4:
-                callTile = tile
-                matrix.buildMatrix(player=drawPlayer, forMeld=True, forClosedMeld=True, callTile=callTile)
-                if isNextMoveCall:
-                    closedKanLabel = 1
-                kanArr.append([copy.deepcopy(matrix.getMatrix()), closedKanLabel])
-                break
-                ##### perhaps have lastDiscard = lastDraw in this,  altough that would cause issues
+        canClosedKan, callTile = matrix.canClosedKan(drawPlayer)
+        
+        if canClosedKan:
+            matrix.buildMatrix(player=drawPlayer, forMeld=True, forClosedMeld=True, callTile=callTile)
+            if isNextMoveCall:
+                closedKanLabel = 1
+            kanArr.append([copy.deepcopy(matrix.getMatrix()), closedKanLabel])
+
 
         ### CHANKAN ###
-        for tile in range(34):
-            playerHasTile_inHand = (hand[tile]>0)
-            playerHasTile_inPon = (tile in matrix.getPlayerPonTiles(drawPlayer))
+        canChakan, callTile = matrix.canChakan(drawPlayer)
 
-            if playerHasTile_inHand and playerHasTile_inPon:
-                callTile = tile
-                matrix.buildMatrix(player=drawPlayer, forMeld=True, forClosedMeld=True, callTile=callTile)
-                if isNextMoveCall:
-                    chankanLabel = 1
-                kanArr.append([copy.deepcopy(matrix.getMatrix()), chankanLabel])
-                break
+        if canChakan:
+            matrix.buildMatrix(player=drawPlayer, forMeld=True, forClosedMeld=True, callTile=callTile)
+            if isNextMoveCall:
+                chankanLabel = 1
+            kanArr.append([copy.deepcopy(matrix.getMatrix()), chankanLabel])
 
 
     for index,item in enumerate(arr): 
@@ -188,16 +184,18 @@ def matrixify(arr):
 
     #riichi conditions are: the player is not already in riichi, hand is closed, is in tenpai, and >=4 tiles in live wall (rule)
     #checks for riichi conditions, and then appends to reachArr if passes necessary conditions
-    def handleRiichi(p):
-        hand = matrix.getPrivateHand(p)
-        if (not matrix.getRiichi(p)) and matrix.getClosed(p) and (calcShanten(hand) <= 2*matrix.getClosedKan(p)) and matrix.getWallTiles() >= 4:
+    def handleRiichi(player):
+        if matrix.canRiichi(player):
             riichiLabel = 0
-            matrix.buildMatrix(player=p)
+            matrix.buildMatrix(player=player)
+
             # if riichis then sets to riichi
             if arr[index+1][0] == "REACH": 
                 riichiLabel = 1
-                matrix.setRiichi(p)
+                matrix.setRiichi(player)
+
             reachArr.append([copy.deepcopy(matrix.getMatrix()), riichiLabel]) 
+
 
     for index,item in enumerate(arr): 
         if item[1]:
@@ -309,7 +307,7 @@ def printStates(states, file = None):
 
 def printTestToFile(gameNum):
 
-    with open("out.txt" , "w+") as file:
+    with open("out2.txt" , "w+") as file:
 
         tupl = out[gameNum]
         game = tupl[1]
@@ -433,7 +431,7 @@ def saveAll():
         #IMPORTANT - if you don't include this parameter it will save EVERYTHING
         saveFilesPerYear(year, 500)
 
-
+printTestToFile(0)
 
 
 # start_time = time.time()

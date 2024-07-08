@@ -25,9 +25,6 @@ class Game():
     def main(self):
         while self.running:
 
-            if self.checkOver():
-                continue
-
             if self.newGame:
                 print("Starting a new game")
                 # print(self.gameData)
@@ -35,13 +32,15 @@ class Game():
             self.newGame = False
 
             self.drawStep()
-
             self.drawActionStep()
 
             if self.checkOver():
                 continue
 
             self.discardStep()
+
+            self.gameData.printGood(self.gameData.playerTurn)
+
             self.discardActionStep()
 
             if self.checkOver():
@@ -49,6 +48,10 @@ class Game():
 
             if self.checkRyuukyoku():
                 continue
+            
+            
+
+
 
     
     # Have the given POV Player draw a tile    
@@ -186,12 +189,19 @@ class Game():
 
         self.gameData.handleMeld(player, meld, isClosedCall=True)
 
+        self.drawStep()
+        self.drawActionStep()
+
+
     def handleCHAKAN(self, player, tile):
         drawTile = self.gameData.lastDrawTile
 
         meld = [[drawTile]*3, 3]
         
         self.gameData.handleMeld(player, meld)
+
+        self.drawStep()
+        self.drawActionStep()
 
     def handleRon(self, player, fromPlayer):
         #condition TSUMO = 0, RON = 1,(For now)
@@ -277,6 +287,9 @@ class Game():
         # print(points)
         self.running = False
 
+
+
+ 
 
 
 

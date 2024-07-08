@@ -1,10 +1,9 @@
-import tensorflow as tf
+import numpy as np
 
+arr = [1,2,3]
 
-data = [[0]*374]
+arr2 = arr
 
-model = tf.keras.models.load_model('Saved Models\discardModel')
-#gameData.buildMatrix(player)
-prediction = model( data )
+arr2[0]+=1
 
-print(prediction)
+print(arr)

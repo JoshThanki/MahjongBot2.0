@@ -91,7 +91,7 @@ class Matrix:
                 self.gameState[0][30] = self.lastDiscardTile
             
 
-    def getMatrix(self, player):  
+    def getMatrix(self):  
         return self.gameState
     
     def addPlayerPonTiles(self, player, tiles):
@@ -216,14 +216,17 @@ class Matrix:
     def addDoraIndicator(self, doraIndicator):
         self.gameState[1][doraIndicator] += 1
             
-    def canPon(self, player, tile):
+    def canPon(self, player):
+        tile = self.lastDiscardTile
         return (self.privateHands[player][tile] >= 2)
 
-    def canKan(self, player, tile):
+    def canKan(self, player):
+        tile = self.lastDiscardTile
         return (self.privateHands[player][tile] == 3)
 
-    def canChi(self, player, tile): 
+    def canChi(self, player): 
         #checks whether it's a honour tile
+        tile = self.lastDiscardTile
         if tile//9 == 3: return False
         else:
             #number of the tile
@@ -241,6 +244,43 @@ class Matrix:
             elif t == 7: return (h[tile-1]>0 and h[tile-2]>0) or (h[tile-1]>0 and h[tile+1]>0)
             # else:  3 <= tileNum <= 7 so can make any chi with it
             else: return (h[tile-1]>0 and h[tile-2]>0) or (h[tile-1]>0 and h[tile+1]>0) or (h[tile+1]>0 and h[tile+2]>0)
+
+
+    def canClosedKan(self, player):
+        hand = self.privateHands[player]
+        canClosedKan = False
+        callTile = None
+
+        for tile in range(34):
+            if hand[tile] == 4:
+                canClosedKan = True
+                callTile = tile
+                break
+
+        return canClosedKan, callTile
+
+
+    def canChakan(self, player):
+        hand = self.privateHands[player]
+        canChackan = False
+        callTile = None
+
+        for tile in range(34):
+            playerHasTile_inHand = (hand[tile]>0)
+            playerHasTile_inPon = (tile in self.playerPons[player])
+
+            if playerHasTile_inHand and playerHasTile_inPon:
+                canChackan = True
+                callTile = tile
+                break
+        
+        return canChackan, callTile
+
+    def canRiichi(self, player):
+        return (not self.Riichi[player])  and  (self.Closed[player])  and  (calcShanten(hand=self.privateHands[player]) <= 2*self.closedKans[player])  and  (self.wallTiles >= 4)
+
+
+        
     
     def setOpen(self, player):
         self.Closed[player] = False
