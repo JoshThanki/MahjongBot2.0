@@ -31,7 +31,7 @@ def format_xmlHand(string):
 
 # Calculates shanten number for a given hand
 # input: hand array of length 34
-def calcShanten(hand):    
+def calcShanten(hand, numOpenMelds=0):    
     #converting to mahjong 1.0 format
     split_indices=[9,18,27]
     handArray =  np.split(hand, split_indices) 
@@ -56,7 +56,7 @@ def calcShanten(hand):
                 possible_triplets.append(out)
         return possible_triplets
     
-    def complete_sequences(suit_arr):
+    def completeSequences(suit_arr):
         possible_sequences=[]
         for i in range(2,9):
             if suit_arr[i]>0 and suit_arr[i-1]>0 and suit_arr[i-2]>0:
@@ -67,7 +67,7 @@ def calcShanten(hand):
                 possible_sequences.append(out)
         return possible_sequences
     
-    def incomplete_sequences(suit_arr):
+    def incompleteSequences(suit_arr):
         possible_insequences=[]
         if suit_arr[0]>0 and suit_arr[1]>0:
             out = [0]*9
@@ -87,117 +87,141 @@ def calcShanten(hand):
                 possible_insequences.append(out)
         return possible_insequences
     
-    def resulting_hand(arr1,arr2):
-        out=[0]*9
-        for i in range(9):
-            out[i] = arr1[i] - arr2[i]
-        return out
-    
-    def splits_nogroups(hand):
-        set_insequences = incomplete_sequences(hand)
-        current_shan=0
-        set_pairs = pairs(hand)
-        pair_bool = False
 
-        for i in set_pairs:
-            current = splits_nogroups(resulting_hand(hand, i))[0]+1
-            if current>current_shan:
-                current_shan = current
-                pair_bool = True
+    def splitsNoGroups(hand):
+        maxTaatsuNum = 0
+        maxPairPresence = False
 
-        for i in set_insequences:
-            current = splits_nogroups(resulting_hand(hand, i))[0]+1
-            if current > current_shan:
-                current_shan = current
-                pair_bool = splits_nogroups(resulting_hand(hand, i))[1]
+        setInseqs = incompleteSequences(hand)
+        setPairs = pairs(hand)
 
-        return current_shan, pair_bool
+        for pair in setPairs:
+            currTaatsuNu = splitsNoGroups( hand - pair )[0] + 1
+            if currTaatsuNu > maxTaatsuNum:
+                maxTaatsuNum = currTaatsuNu
+                maxPairPresence = True
 
-    def splits(g, hand):                  #******
-        current_g_n = g                   #number of groups
-        current_i_n = 0                   #number of taatsu
-        pair_presance = False             #used for an edge case(s?)                            
-        set_seq = complete_sequences(hand)
-        set_triplets = triplets(hand)
+        for inSeq in setInseqs:
+            currTaatsuNum, currPairPresence = splitsNoGroups( hand - inSeq )
+            currTaatsuNum += 1
+            if currTaatsuNum > maxTaatsuNum:
+                maxTaatsuNum = currTaatsuNum
+                maxPairPresence = currPairPresence
 
-        for j in set_seq:
-            current_split = splits(g+1, resulting_hand(hand,j))   
-            current = current_split[0]
-            if current>current_g_n:
-                current_g_n = current
-                current_i_n = current_split[1]
-                pair_presance = current_split[2]   #*
-            elif current == current_g_n:
-                if current_split[1] > current_i_n:
-                    current_i_n = current_split[1]
-                    pair_presance = current_split[2]   #*
+        return maxTaatsuNum, maxPairPresence
 
-        for j in set_triplets:
-            current_split = splits(g+1, resulting_hand(hand,j))
-            current = current_split[0]
-            if current>current_g_n:
-                current_g_n = current
-                current_i_n = current_split[1]
-                pair_presance = current_split[2]   #*
-            elif current == current_g_n:
-                if current_split[1] > current_i_n:
-                    current_i_n = current_split[1]
-                    pair_presance = current_split[2]   #*
+
+    def splits(hand, groupNum=0, pair_presence=False):  
+        maxGroupNum = groupNum                   #number of groups
+        maxTaatsuNum = 0                          #number of taatsu           #used for an edge case(s?)                            
+        maxPairPresence = pair_presence        
+        
+        setSeqs = completeSequences(hand)
+        setTriplets = triplets(hand)
+
+        for seq in setSeqs:
+            currGroupNum, currTaatsuNum, currPairPresence  = splits( hand-seq, groupNum+1, pair_presence)   
+            
+            if currGroupNum > maxGroupNum:
+                maxGroupNum = currGroupNum
+                maxTaatsuNum = currTaatsuNum
+                maxPairPresence = currPairPresence
+
+            elif currGroupNum == maxGroupNum:
+                if currTaatsuNum > maxTaatsuNum:
+                    maxTaatsuNum = maxGroupNum
+                    maxPairPresence = currPairPresence
+
+                elif (currTaatsuNum == maxTaatsuNum) and (pair_presence):
+                    maxTaatsuNum = currTaatsuNum
+                    maxPairPresence = currPairPresence
+
+        for triplet in setTriplets:
+            currGroupNum, currTaatsuNum, currPairPresence  = splits( hand-triplet, groupNum+1, pair_presence)   
+            if currGroupNum > maxGroupNum:
+                maxGroupNum = currGroupNum
+                maxTaatsuNum = currTaatsuNum
+                maxPairPresence = currPairPresence
+
+            elif currGroupNum == maxGroupNum:
+                if currTaatsuNum > maxTaatsuNum:
+                    maxTaatsuNum = maxGroupNum
+                    maxPairPresence = currPairPresence
+                
+                elif (currTaatsuNum == maxTaatsuNum) and (pair_presence):
+                    maxTaatsuNum = currTaatsuNum
+                    maxPairPresence = currPairPresence
  
-        if (not set_seq) and (not set_triplets):     #if no more groups then counts maximum of taatsu    
-            s=splits_nogroups(hand)
-            return g, s[0], s[1]
+        if (not setSeqs) and (not setTriplets):     #if no more groups then counts maximum of taatsu    
+            maxTaatsuNum, maxPairPresence = splitsNoGroups(hand)
 
-        return current_g_n,current_i_n,pair_presance
+        return maxGroupNum, maxTaatsuNum, maxPairPresence
 
-    def splits_fullhand(hand):
-        current_split = [0,0,False]
-        for i in hand[:3]:
-            current_arr = splits(0, i)
-            current_split[0] += current_arr[0]
-            current_split[1] += current_arr[1]
-            if current_arr[2] == True:
-                current_split[2] = True
-        for i in hand[3]:
-            if i == 3:
-                current_split[0] += 1
-            elif i == 2:
-                current_split[1] +=1
-                current_split[2] = True
-        return current_split
+
+    def splitsTotal(hand):
+        totalSplit = [0,0,False]
+
+        for suitTiles in hand[:3]:
+            suitSplit = splits( hand=suitTiles )
+            totalSplit[0] += suitSplit[0]
+            totalSplit[1] += suitSplit[1]
+            if suitSplit[2] == True:
+                totalSplit[2] = True
+
+        for honourTile in hand[3]:
+            if honourTile == 3:
+                totalSplit[0] += 1
+            elif honourTile == 2:
+                totalSplit[1] +=1
+                totalSplit[2] = True
+
+        return totalSplit
+
 
     def general_shanten(handArray):
-        split_arr = splits_fullhand(handArray)
-        i = split_arr[1]
-        g = split_arr[0]
-        pair_presence = split_arr[2]
+        totalSplit = splitsTotal(handArray)
+        tatNum = totalSplit[1]
+        groupNum = totalSplit[0]
+        pairPresence = totalSplit[2]
         p=0
 
         #checking for the edge cases:
-        if i >= 5-g and pair_presence == False:
+        if (tatNum >= 5-groupNum) and (not pairPresence):
             p=1
-        return 8 - 2*g - min(i, 4-g) - min(1, max(0,i+g-4)) + p
+
+        return 8 - 2*groupNum - min(tatNum, 4 - groupNum) - min(1, max(0, tatNum + groupNum - 4) ) + p
+
+
     def chiitoistu_shanten(handArray):
-        pairs = 0
+        numPairs = 0
+
         for suit in handArray:
-            for num in suit:
-                pairs += num//2      #counts number of pairs, 4 of the same tile are treated as 2 pairs
-        return 6 - pairs
+            for tile in suit:
+                
+                numPairs += tile//2      #counts number of pairs, 4 of the same tile are treated as 2 pairs
+        
+        return 6 - numPairs
+
 
     def orphanSource_shanten(handArray):
         diffTerminals = 0
         pairsTerminals = 0
-        pair_const = 0
+        pairConstant = 0
+
         for i in (0,8):                  #iterates over numbered suits
             for suit in handArray[:3]:
                 pairsTerminals += min(1, suit[i]//2)
-                diffTerminals += min(1, suit[i]//1)
+                diffTerminals += min(1, suit[i])
+
         for num in handArray[3]:        #iterates over honours
-                pairsTerminals += min(1, num//2)
-                diffTerminals += min(1, num//1)
+            pairsTerminals += min(1, num//2)
+            diffTerminals += min(1, num//1)
+
         if pairsTerminals > 0:
-            pair_const=1
-        return 13 - diffTerminals - pair_const
+            pairConstant=1
+
+        return 13 - diffTerminals - pairConstant
+
 
     return min(general_shanten(handArray), chiitoistu_shanten(handArray), orphanSource_shanten(handArray))
 
@@ -306,3 +330,14 @@ def decodeMeld(data): #chi:0, pon:1, kan: 2, chakan:3
     else:
         meld = decodeKan(data, False)
     return meld
+
+
+
+# def files_match(file1, file2):
+#     with open(file1, 'r') as f1, open(file2, 'r') as f2:
+#         content1 = f1.read()
+#         content2 = f2.read()
+        
+#     return content1 == content2
+
+# print(files_match("out.txt", "out2.txt"))

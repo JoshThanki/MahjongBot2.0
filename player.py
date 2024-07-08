@@ -39,9 +39,9 @@ class Player:
 
 
         elif canClosedKan(player) or canChakan(player):   #placeholder
-            self.gameData.buildMatrix(player=playerNo, forMeld=True, forClosedMeld=True, callTile=0 )
-            matrix = self.gameData.getMatrix(player)
-            prediction = getPrediction(kanModel, matrix)
+            self.gameData.buildMatrix( player=playerNo, forMeld=True, forClosedMeld=True, callTile=0 )
+            matrix = self.gameData.getMatrix( player )
+            prediction = getPrediction( kanModel, matrix )
 
             if prediction:
                 action = Action(self.playerNo, 3,)

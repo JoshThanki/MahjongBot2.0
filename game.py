@@ -284,6 +284,17 @@ class Game():
         self.running = False
 
 
+    # calculates actual shanten on the player (melds mess this up)
+    def totalHandShanten(self, player):
+        shantenHand = calcShanten( self.privateHand[player] )
+        return shantenHand - 2*self.getOpenMeldNum( player )
+ 
+
+    def canTsumo(self, player):
+        meldNum = self.getOpenMeldNum( player )
+        return calcShanten( hand = self.privateHand(player), Open ) == -1 
+ 
+
 
 
     

@@ -2,5 +2,7 @@
 *.db
 matrixformat.pptm
 out.txt
+out2.txt
 Data/*
 __pycache__/*
+Junk/*

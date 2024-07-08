@@ -91,7 +91,7 @@ class Matrix:
                 self.gameState[0][30] = self.lastDiscardTile
             
 
-    def getMatrix(self, player):  
+    def getMatrix(self):  
         return self.gameState
     
     def addPlayerPonTiles(self, player, tiles):
@@ -238,6 +238,40 @@ class Matrix:
             elif t == 7: return (h[tile-1]>0 and h[tile-2]>0) or (h[tile-1]>0 and h[tile+1]>0)
             # else:  3 <= tileNum <= 7 so can make any chi with it
             else: return (h[tile-1]>0 and h[tile-2]>0) or (h[tile-1]>0 and h[tile+1]>0) or (h[tile+1]>0 and h[tile+2]>0)
+
+
+    def canClosedKan(self, player):
+        hand = self.privateHands[player]
+        canClosedKan = False
+        callTile = None
+
+        for tile in range(34):
+            if hand[tile] == 4:
+                canClosedKan = True
+                callTile = tile
+                break
+
+        return canClosedKan, callTile
+
+
+    def canChackan(self, player):
+        hand = self.privateHands[player]
+        canChackan = False
+        callTile = None
+
+        for tile in range(34):
+            playerHasTile_inHand = (hand[tile]>0)
+            playerHasTile_inPon = (tile in self.playerPons[player])
+
+            if playerHasTile_inHand and playerHasTile_inPon:
+                canChackan = True
+                callTile = tile
+                break
+        
+        return canChackan, callTile
+
+
+        
     
     def setOpen(self, player):
         self.Closed[player] = False

@@ -110,30 +110,26 @@ def matrixifymelds(arr):
 
         closedKanLabel, chankanLabel = 0, 0
 
+
         ### CLOSED KAN ###
         # If the player has 4 of the same tile then builds the matrix and appends it with the label to kanArr
-        for tile in range(34):
-            if hand[tile] == 4:
-                callTile = tile
-                matrix.buildMatrix(player=drawPlayer, forMeld=True, forClosedMeld=True, callTile=callTile)
-                if isNextMoveCall:
-                    closedKanLabel = 1
-                kanArr.append([copy.deepcopy(matrix.getMatrix()), closedKanLabel])
-                break
-                ##### perhaps have lastDiscard = lastDraw in this,  altough that would cause issues
+        canClosedKan, callTile = matrix.canClosedKan(drawPlayer)
+        
+        if canClosedKan:
+            matrix.buildMatrix(player=drawPlayer, forMeld=True, forClosedMeld=True, callTile=callTile)
+            if isNextMoveCall:
+                closedKanLabel = 1
+            kanArr.append([copy.deepcopy(matrix.getMatrix()), closedKanLabel])
+
 
         ### CHANKAN ###
-        for tile in range(34):
-            playerHasTile_inHand = (hand[tile]>0)
-            playerHasTile_inPon = (tile in matrix.getPlayerPonTiles(drawPlayer))
+        canChackan, callTile = matrix.canChackan(drawPlayer)
 
-            if playerHasTile_inHand and playerHasTile_inPon:
-                callTile = tile
-                matrix.buildMatrix(player=drawPlayer, forMeld=True, forClosedMeld=True, callTile=callTile)
-                if isNextMoveCall:
-                    chankanLabel = 1
-                kanArr.append([copy.deepcopy(matrix.getMatrix()), chankanLabel])
-                break
+        if canChackan:
+            matrix.buildMatrix(player=drawPlayer, forMeld=True, forClosedMeld=True, callTile=callTile)
+            if isNextMoveCall:
+                chankanLabel = 1
+            kanArr.append([copy.deepcopy(matrix.getMatrix()), chankanLabel])
 
 
     for index,item in enumerate(arr): 
@@ -190,7 +186,7 @@ def matrixify(arr):
     #checks for riichi conditions, and then appends to reachArr if passes necessary conditions
     def handleRiichi(p):
         hand = matrix.getPrivateHand(p)
-        if (not matrix.getRiichi(p)) and matrix.getClosed(p) and (calcShanten(hand) <= 2*matrix.getClosedKan(p)) and matrix.getWallTiles() >= 4:
+        if (not matrix.getRiichi(p)) and matrix.getClosed(p) and (calcShanten(hand=hand) <= 2*matrix.getClosedKan(p)) and matrix.getWallTiles() >= 4:
             riichiLabel = 0
             matrix.buildMatrix(player=p)
             # if riichis then sets to riichi
@@ -309,7 +305,7 @@ def printStates(states, file = None):
 
 def printTestToFile(gameNum):
 
-    with open("out.txt" , "w+") as file:
+    with open("out2.txt" , "w+") as file:
 
         tupl = out[gameNum]
         game = tupl[1]
@@ -433,7 +429,7 @@ def saveAll():
         #IMPORTANT - if you don't include this parameter it will save EVERYTHING
         saveFilesPerYear(year, 500)
 
-
+printTestToFile(0)
 
 
 # start_time = time.time()
