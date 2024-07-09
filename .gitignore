@@ -8,3 +8,6 @@ __pycache__/*
 Junk/*
 Junk/test.py
 __pycache__/*
+.vscode/*
+
+Model/__pycache__/*

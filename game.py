@@ -213,9 +213,11 @@ class Game():
 
         meld = [[drawTile]*3, 3]
         
+        print(player, "Declares: ChaKan", file=self.file)
+
         self.gameData.handleMeld(player, meld)
 
-        print(player, "Declares: ChaKan", file=self.file)
+        
 
         self.drawStep()
         self.drawActionStep()
