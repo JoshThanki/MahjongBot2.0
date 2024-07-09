@@ -7,3 +7,4 @@ Data/*
 __pycache__/*
 Junk/*
 Junk/test.py
+__pycache__/*

@@ -104,22 +104,26 @@ class Player:
             self.gameData.buildMatrix( player=self.playerNo, forMeld=True )
             prediction = self.getPrediction( self.chiModel )
 
-            if prediction:
-                return Action(self.playerNo, 7)
+
+            # if prediction:
+
+            return Action(self.playerNo, 7)
             
         if self.gameData.canPon(self.playerNo):
             self.gameData.buildMatrix( player=self.playerNo, forMeld=True )
             prediction = self.getPrediction( self.ponModel )
 
-            if prediction:
-                return Action(self.playerNo, 5)   
+            # if prediction:
+
+            return Action(self.playerNo, 5)   
 
         if self.gameData.canKan(self.playerNo):
             self.gameData.buildMatrix( player=self.playerNo, forMeld=True )
             prediction = self.getPrediction( self.kanModel )
 
-            if prediction:
-                return Action(self.playerNo, 6)  
+            # if prediction:
+            
+            return Action(self.playerNo, 6)  
             
         return Action(self.playerNo, 0)
        
@@ -133,9 +137,22 @@ class Player:
         pred = prediction[0].numpy()
         hand = self.gameData.getPrivateHand(self.playerNo)
 
+        bestTile = -1
+        minShanten = 10
+
+        for tile, number in enumerate(hand):
+            if number > 0:
+                handCopy = hand[:]
+                handCopy[tile]-=1
+                newShanten = calcShanten(handCopy)
+                if newShanten <= minShanten:
+                    minShanten = newShanten
+                    bestTile = tile
+
+
         filtered_prediction = [pred[i] if hand[i] != 0 else 0 for i in range(34)]
 
-        return np.argmax(filtered_prediction)
+        return np.argmax(bestTile)
 
 
 
