@@ -33,6 +33,9 @@ class Player:
         self.ponModel = tf.keras.models.load_model('Saved Models\ponModel')
         self.kanModel = tf.keras.models.load_model('Saved Models\kanModel')    
 
+    def updateGameData(self, gameData):
+        self.gameData = gameData
+        
     def getPrediction(self, model):
         state = self.gameData.getMatrix()
         prediction = model( np.array([state.flatten()]) )
@@ -71,8 +74,9 @@ class Player:
 
             prediction = self.getPrediction( self.kanModel )
 
-            if prediction:
-                return Action(self.playerNo, 3)        
+            # if prediction:
+
+            return Action(self.playerNo, 3)        
         
         if self.gameData.canChakan( self.playerNo )[0]:
             callTile = self.gameData.canChakan( self.playerNo )[1]
@@ -80,8 +84,9 @@ class Player:
         
             prediction = self.getPrediction( self.kanModel )
             
-            if prediction:
-                return Action(self.playerNo, 4)  
+            # if prediction:
+            
+            return Action(self.playerNo, 4)  
 
 
         if self.gameData.canRiichi(self.playerNo):
@@ -98,16 +103,14 @@ class Player:
 
     def discardAction(self):
         if self.canRon():
-            return Action(self.playerNo, 4)
+            return Action(self.playerNo, 5)
         
         if self.gameData.canChi(self.playerNo):
             self.gameData.buildMatrix( player=self.playerNo, forMeld=True )
             prediction = self.getPrediction( self.chiModel )
 
-
-            # if prediction:
-
-            return Action(self.playerNo, 7)
+            if prediction:
+                return Action(self.playerNo, 8)
             
         if self.gameData.canPon(self.playerNo):
             self.gameData.buildMatrix( player=self.playerNo, forMeld=True )
@@ -115,7 +118,7 @@ class Player:
 
             # if prediction:
 
-            return Action(self.playerNo, 5)   
+            return Action(self.playerNo, 6)   
 
         if self.gameData.canKan(self.playerNo):
             self.gameData.buildMatrix( player=self.playerNo, forMeld=True )
@@ -123,7 +126,7 @@ class Player:
 
             # if prediction:
             
-            return Action(self.playerNo, 6)  
+            return Action(self.playerNo, 7)  
             
         return Action(self.playerNo, 0)
        
@@ -137,22 +140,22 @@ class Player:
         pred = prediction[0].numpy()
         hand = self.gameData.getPrivateHand(self.playerNo)
 
-        bestTile = -1
-        minShanten = 10
+        # bestTile = -1
+        # minShanten = 10
 
-        for tile, number in enumerate(hand):
-            if number > 0:
-                handCopy = hand[:]
-                handCopy[tile]-=1
-                newShanten = calcShanten(handCopy)
-                if newShanten <= minShanten:
-                    minShanten = newShanten
-                    bestTile = tile
+        # for tile, number in enumerate(hand):
+        #     if number > 0:
+        #         handCopy = hand[:]
+        #         handCopy[tile]-=1
+        #         newShanten = calcShanten(handCopy)
+        #         if newShanten <= minShanten:
+        #             minShanten = newShanten
+        #             bestTile = tile
 
 
         filtered_prediction = [pred[i] if hand[i] != 0 else 0 for i in range(34)]
 
-        return np.argmax(bestTile)
+        return np.argmax(filtered_prediction)
 
 
 

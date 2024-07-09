@@ -14,19 +14,22 @@ class Game():
         #points = [250,250,250,250] 
         #round = east
         #dealer = east
-        #honba sticks = 0
-        
+        #honba sticks = 0 
+
+        self.file = open("out.txt", "w+") 
         self.running = True
         self.newGame = True
-        self.gameData = GameData(eastOnly=True) 
+        self.gameData = GameData(eastOnly=False) 
 
         self.players = [Player(i, self.gameData) for i in range(4)]
 
     def main(self):
+        
+        
         while self.running:
-
+            
             if self.newGame:
-                print("Starting a new game")
+                print("Starting a new game", file=self.file)
                 # print(self.gameData)
             
             self.newGame = False
@@ -38,11 +41,11 @@ class Game():
                 continue
 
 
-            self.gameData.printGood(self.gameData.playerTurn)
+            self.gameData.printGood(self.gameData.playerTurn, self.file)
 
             self.discardStep()
 
-            self.gameData.printGood(self.gameData.playerTurn)
+            self.gameData.printGood(self.gameData.playerTurn, self.file)
 
             self.discardActionStep()
 
@@ -50,6 +53,7 @@ class Game():
                 continue
 
             if self.checkRyuukyoku():
+
                 continue
             
             
@@ -62,9 +66,7 @@ class Game():
         turnPlayer = self.gameData.playerTurn
         draw = self.gameData.getRandTile()
         
-        print()
-        print()
-        print(turnPlayer, "Draws: ", tile_dic[draw])
+        print(f"\n{turnPlayer} Draws:  {tile_dic[draw]}", file=self.file)
 
         self.gameData.handleDraw(turnPlayer, draw)
     
@@ -77,27 +79,27 @@ class Game():
         #, arr : [], player : (0-3)}
         actionType = action.type
 
-        print(f"Draw Action type: {actionType}")
+        print(f"\nDraw Action type: {actionType}", file=self.file)
 
         if actionType == 1:
             self.handleTsumo(turnPlayer)
-            print(turnPlayer, "Declares: Tsumo: ")
+            
         elif actionType == 2:
             self.handleRiichi(turnPlayer)
-            print(turnPlayer, "Declares: Riichi: ")
+            
         elif actionType == 3:
             self.handleCKAN(turnPlayer)
-            print(turnPlayer, "Declares: Closed Kan: ")
+            
         elif actionType == 4:
             self.handleCHAKAN(turnPlayer)
-            print(turnPlayer, "Declares: ChaKan")
+            
 
 
     # Have the given POV Player discard a tile   
     def discardStep(self):
         turnPlayer = self.gameData.playerTurn
         discard = self.players[turnPlayer].discard()
-        print(turnPlayer, "Discards: ", tile_dic[discard])
+        print(turnPlayer, "Discards: ", tile_dic[discard], file=self.file)
         self.gameData.handleDiscard(turnPlayer, discard)
         self.gameData.addPlayerPool(turnPlayer, discard)
     
@@ -121,9 +123,9 @@ class Game():
 
         ronList = []
         
-        actionTypeList = [action.type for action in filtered_actions]
+        actionTypeList = [f"Type: {action.type}, player: {action.player}, fromPlayer: {turnPlayer}, last Discard: {self.gameData.lastDiscardTile}" for action in filtered_actions]
 
-        print(f"Discard Step Actions: {actionTypeList}")
+        print(f"Discard Step Actions: {actionTypeList}", file=self.file)
 
         if filtered_actions:
 
@@ -133,25 +135,21 @@ class Game():
                 elif ronList:
                     self.handleRon([action.player for action in ronList],[action.arr[0] for action in ronList], fromPlayer=turnPlayer)
 
-                    print([action.player for action in ronList], "Declare: Ron")
-
                     break
 
                 elif action.type == 6 :
                     self.handlePon(action.player, fromPlayer=turnPlayer)
-                    print(action.player, "Declares: Pon")
-
+                    
                     break
 
                 elif action.type == 7:
                     self.handleKan(action.player, fromPlayer=turnPlayer)
-                    print(action.player, "Declares: Kan")
+                    
 
                     break
                 elif action.type == 8:
                     self.handleChi(action.player, action.arr, fromPlayer=turnPlayer)
-                    print(action.player, "Declares: Chi")
-
+                
                     break
                 
         else:
@@ -168,7 +166,7 @@ class Game():
     def checkRyuukyoku(self):
         if self.gameData.getWallTiles() == 0:
             
-            print("Game Draws")
+            print("Game Draws", file=self.file)
 
             condition = 3
 
@@ -187,10 +185,14 @@ class Game():
 
         newPoints = self.pointExchange(condition, player)
 
+        print(player, "Declares: Tsumo: ", file=self.file)
+
         self.newRound(newPoints, player)
 
 
     def handleRiichi(self, player):
+
+        print(player, "Declares: Riichi: ", file=self.file)
 
         self.gameData.setRiichi(player)
 
@@ -200,16 +202,20 @@ class Game():
 
         self.gameData.handleMeld(player, meld, isClosedCall=True)
 
+        print(player, "Declares: Closed Kan: ", file=self.file)
+
         self.drawStep()
         self.drawActionStep()
 
 
-    def handleCHAKAN(self, player, tile):
+    def handleCHAKAN(self, player, tile = None):
         drawTile = self.gameData.lastDrawTile
 
         meld = [[drawTile]*3, 3]
         
         self.gameData.handleMeld(player, meld)
+
+        print(player, "Declares: ChaKan", file=self.file)
 
         self.drawStep()
         self.drawActionStep()
@@ -220,18 +226,22 @@ class Game():
 
         newPoints = self.pointExchange(condition, player, fromPlayer)
 
+        print(f"Player {player} Declare: Ron, From Player: {fromPlayer}", file=self.file)
+
+
         self.newRound(newPoints, player)
     
     def handlePon(self, player, fromPlayer):
         discard = self.gameData.lastDiscardTile
 
         meld = [[discard]*3, 1]
+
+        print(player, "Declares: Pon", file=self.file)
         
         self.gameData.handleMeld(player, meld, fromPlayer = fromPlayer)
-
+        
         self.gameData.setPlayerTurn(player)
 
-        
         self.discardStep()
         self.discardActionStep()
 
@@ -240,21 +250,29 @@ class Game():
 
         meld = [[discard]*3, 2]
         
+
+        print(player, "Declares: Open Kan", file=self.file)
+        
         self.gameData.handleMeld(player, meld, fromPlayer = fromPlayer)
 
         self.gameData.setPlayerTurn(player)
 
-        self.discardStep()
-        self.discardActionStep()
+
+
+        self.drawStep()
+        self.drawActionStep()
 
     def handleChi(self, player, tileList, fromPlayer):
 
-        meld = [tileList, 3]
+        meld = [tileList, 0]
+
+        
+        print(player, "Declares: Chi", file=self.file)
 
         self.gameData.handleMeld(player, meld, fromPlayer = fromPlayer)
 
         self.gameData.setPlayerTurn(player)
-        
+
         self.discardStep()
         self.discardActionStep()
 
@@ -268,7 +286,7 @@ class Game():
     def newRound(self, newPoints, winningPlayer = -1):
         
         #NOT IMPLEMENTING HONBA JUST YET
-        print(newPoints)
+        print(newPoints, file=self.file)
 
         oldDealer = self.gameData.roundDealer
         eastOnly = self.gameData.eastOnly
@@ -292,10 +310,11 @@ class Game():
         
         self.newGame = True
         self.gameData = GameData(newPoints, newDealer, newRound, honbaSticks, eastOnly)
-        self.players = [Player(i, self.gameData) for i in range(4)]
+        for player in self.players:
+            player.updateGameData(self.gameData)
+        
 
     def printScore(self, points):
-        # print(points)
         self.running = False
 
 

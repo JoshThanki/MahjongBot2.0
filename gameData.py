@@ -99,20 +99,19 @@ class GameData(Matrix):
     
     def decPlayerPool(self, player, tile):
         self.playerPool[player][tile] -= 1
-        self.orderedPool[player].pop(tile)
+        self.orderedPool[player].remove(tile)
 
     def addDoraIndicator(self, doraIndicator):
         self.orderedDora.append(doraIndicator)
         super().addDoraIndicator(doraIndicator)
 
 
-    def printGood(self, player):
+    def printGood(self, player, file):
         self.buildMatrix(player)
-        print()
-        printNice(self.gameState)
-        print()
-        print(f"Shanten: {calcShanten(self.privateHands[player])}")
-
+        print(file=file)
+        printNice(self.gameState,file=file)
+        print(f"Shanten: {calcShanten(self.privateHands[player])}",file=file)
+        print(file=file)
 
     def __str__(self):
 
@@ -159,6 +158,8 @@ class GameData(Matrix):
 
         return calcShanten( hand=hand, numCalledMelds=numCalledMelds)
     
+    
+    #meldType 0-Chi, 1-Pon, 2-Kon, 3-Chakan
     def handleMeld(self, player, meldInfo, isClosedCall=False, fromPlayer = None):
         meldTiles = meldInfo[0]
         meldType = meldInfo[1]
