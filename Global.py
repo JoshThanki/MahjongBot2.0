@@ -249,7 +249,6 @@ tile_dic.update(honour_entries)
 
 
 
-
 # formats hand into web format (can be plugged into: https://tenhou.net/2/?q=4566788m456p2246s)
 def webFormat(handArray):
     dict = {0: 'm',

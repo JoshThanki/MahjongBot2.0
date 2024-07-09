@@ -37,6 +37,9 @@ class Game():
             if self.checkOver():
                 continue
 
+
+            self.gameData.printGood(self.gameData.playerTurn)
+
             self.discardStep()
 
             self.gameData.printGood(self.gameData.playerTurn)
@@ -58,8 +61,10 @@ class Game():
     def drawStep(self):
         turnPlayer = self.gameData.playerTurn
         draw = self.gameData.getRandTile()
-
-        print(turnPlayer, "Draws: ", draw)
+        
+        print()
+        print()
+        print(turnPlayer, "Draws: ", tile_dic[draw])
 
         self.gameData.handleDraw(turnPlayer, draw)
     
@@ -71,6 +76,8 @@ class Game():
         #action = {actionType : (0-8) 0-Nothing, 1-TSUMO, 2-RIICHI, 3-CLOSEDKAN, 4-CHAKAN, 4-RON, 5-PON, 6-KAN, 7-CHI
         #, arr : [], player : (0-3)}
         actionType = action.type
+
+        print(f"Draw Action type: {actionType}")
 
         if actionType == 1:
             self.handleTsumo(turnPlayer)
@@ -90,7 +97,7 @@ class Game():
     def discardStep(self):
         turnPlayer = self.gameData.playerTurn
         discard = self.players[turnPlayer].discard()
-        print(turnPlayer, "Discards: ", discard)
+        print(turnPlayer, "Discards: ", tile_dic[discard])
         self.gameData.handleDiscard(turnPlayer, discard)
         self.gameData.addPlayerPool(turnPlayer, discard)
     
@@ -113,6 +120,10 @@ class Game():
         filtered_actions.sort(key=lambda x: x.type)
 
         ronList = []
+        
+        actionTypeList = [action.type for action in filtered_actions]
+
+        print(f"Discard Step Actions: {actionTypeList}")
 
         if filtered_actions:
 

@@ -111,7 +111,8 @@ class GameData(Matrix):
         print()
         printNice(self.gameState)
         print()
-        
+        print(f"Shanten: {calcShanten(self.privateHands[player])}")
+
 
     def __str__(self):
 
@@ -169,7 +170,7 @@ class GameData(Matrix):
             self.decPon(player)
             self.playerMelds[player][ meldTiles[0] ] = 4
             self.orderedMelds[player].pop(([meldTiles[0]*3],1))
-            self.orderedMelds[player].add(([meldTiles[0]*4],1))
+            self.orderedMelds[player].append(([meldTiles[0]*4],1))
             self.addKan(player)
             self.privateHands[player][ meldTiles[0] ] = 0
        
@@ -178,14 +179,14 @@ class GameData(Matrix):
             self.privateHands[player][ meldTiles[0] ] = 0
             self.addKan(player)
             self.playerMelds[player][ meldTiles[0] ] = 4
-            self.orderedMelds[player].add(([meldTiles[0]*4],0))
+            self.orderedMelds[player].append(([meldTiles[0]*4],0))
 
         # handles regular call
         else:
             lastDiscard = self.lastDiscardTile
             self.setOpen(player)
             # adds meld tiles to meld attribute
-            self.orderedMelds[player].add(meldTiles)
+            self.orderedMelds[player].append(meldTiles)
             self.decPlayerPool(fromPlayer, lastDiscard) 
 
             for tile in meldTiles:
