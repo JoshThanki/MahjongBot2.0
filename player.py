@@ -70,13 +70,15 @@ class Player:
         
         #canClosedkan returns (CanClosedKan, Call Tile)
         if self.gameData.canClosedKan(self.playerNo)[0]:
-            self.gameData.buildMatrix( player=self.playerNo, forMeld=True, forClosedMeld=True, callTile=0 )
+            callTile = self.gameData.canClosedKan( self.playerNo )[1]
+
+            self.gameData.buildMatrix( player=self.playerNo, forMeld=True, forClosedMeld=True, callTile=callTile )
 
             prediction = self.getPrediction( self.kanModel )
 
             # if prediction:
 
-            return Action(self.playerNo, 3)        
+            return Action(self.playerNo, 3, [callTile])        
         
         if self.gameData.canChakan( self.playerNo )[0]:
             callTile = self.gameData.canChakan( self.playerNo )[1]
@@ -86,7 +88,7 @@ class Player:
             
             # if prediction:
             
-            return Action(self.playerNo, 4)  
+            return Action(self.playerNo, 4, [callTile])  
 
 
         if self.gameData.canRiichi(self.playerNo):
@@ -109,8 +111,8 @@ class Player:
             self.gameData.buildMatrix( player=self.playerNo, forMeld=True )
             prediction = self.getPrediction( self.chiModel )
 
-            if prediction:
-                return Action(self.playerNo, 8)
+            # if prediction:
+            #     return Action(self.playerNo, 8)
             
         if self.gameData.canPon(self.playerNo):
             self.gameData.buildMatrix( player=self.playerNo, forMeld=True )

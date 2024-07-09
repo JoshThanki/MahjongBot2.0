@@ -88,10 +88,10 @@ class Game():
             self.handleRiichi(turnPlayer)
             
         elif actionType == 3:
-            self.handleCKAN(turnPlayer)
+            self.handleCKAN(turnPlayer, action.arr[0])
             
         elif actionType == 4:
-            self.handleCHAKAN(turnPlayer)
+            self.handleCHAKAN(turnPlayer, action.arr[0])
             
 
 
@@ -197,10 +197,9 @@ class Game():
         self.gameData.setRiichi(player)
 
     def handleCKAN(self, player, tile):
-        drawTile = self.gameData.lastDrawTile
-        meld = [[drawTile]*4, 2]
+        meld = [[tile]*4, 3]
 
-        self.gameData.handleMeld(player, meld, isClosedCall=True)
+        self.gameData.handleMeld(player, meld)
 
         print(player, "Declares: Closed Kan: ", file=self.file)
 
@@ -208,16 +207,12 @@ class Game():
         self.drawActionStep()
 
 
-    def handleCHAKAN(self, player, tile = None):
-        drawTile = self.gameData.lastDrawTile
+    def handleCHAKAN(self, player, tile):
+        meld = [[tile]*4, 4]
 
-        meld = [[drawTile]*3, 3]
-        
         print(player, "Declares: ChaKan", file=self.file)
 
         self.gameData.handleMeld(player, meld)
-
-        
 
         self.drawStep()
         self.drawActionStep()
@@ -252,7 +247,6 @@ class Game():
 
         meld = [[discard]*3, 2]
         
-
         print(player, "Declares: Open Kan", file=self.file)
         
         self.gameData.handleMeld(player, meld, fromPlayer = fromPlayer)
@@ -265,10 +259,11 @@ class Game():
         self.drawActionStep()
 
     def handleChi(self, player, tileList, fromPlayer):
+        
+        tileList.sort()
 
         meld = [tileList, 0]
 
-        
         print(player, "Declares: Chi", file=self.file)
 
         self.gameData.handleMeld(player, meld, fromPlayer = fromPlayer)

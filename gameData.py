@@ -159,35 +159,41 @@ class GameData(Matrix):
         return calcShanten( hand=hand, numCalledMelds=numCalledMelds)
     
     
-    #meldType 0-Chi, 1-Pon, 2-Kon, 3-Chakan
-    def handleMeld(self, player, meldInfo, isClosedCall=False, fromPlayer = None):
-        meldTiles = meldInfo[0]
+    #meldType 0-Chi, 1-Pon, 2-Kon, 3-Closedkan, 4-Chakan
+
+    #ordered Meld Type (Tile, meldType (0-chi, 1-Pon, 2-kan, 3-closedkan))
+    def handleMeld(self, player, meldInfo, fromPlayer = None):
+        meldTiles = meldInfo[0] #tiles in ascending order
         meldType = meldInfo[1]
 
         # (ordering of if and elif is important here)
         # handles chakan
-        if meldType == 3: 
+        if meldType == 4: 
+
             self.decPlayerPonTiles(player, meldTiles)
             self.decPon(player)
             self.playerMelds[player][ meldTiles[0] ] = 4
-            self.orderedMelds[player].pop(([meldTiles[0]*3],1))
-            self.orderedMelds[player].append(([meldTiles[0]*4],1))
+            print(self.orderedMelds[player], meldTiles)
+            self.orderedMelds[player].append((meldTiles[0], 1)) #remove pon
+            self.orderedMelds[player].append((meldTiles[0], 2)) #add kan
             self.addKan(player)
-            self.privateHands[player][ meldTiles[0] ] = 0
+            self.privateHands[player][ meldTiles[0]] = 0
        
         # handles closed kan       
-        elif isClosedCall:
-            self.privateHands[player][ meldTiles[0] ] = 0
+        elif meldType == 3: 
+            self.privateHands[player][ meldTiles[0]] = 0
+            print(self.orderedMelds[player], meldTiles)
             self.addKan(player)
-            self.playerMelds[player][ meldTiles[0] ] = 4
-            self.orderedMelds[player].append(([meldTiles[0]*4],0))
+            self.playerMelds[player][ meldTiles[0]] = 4
+            self.orderedMelds[player].append((meldTiles[0], meldType))
 
         # handles regular call
         else:
+        
             lastDiscard = self.lastDiscardTile
             self.setOpen(player)
             # adds meld tiles to meld attribute
-            self.orderedMelds[player].append(meldTiles)
+            self.orderedMelds[player].append((meldTiles[0], meldType))
             self.decPlayerPool(fromPlayer, lastDiscard) 
 
             for tile in meldTiles:
