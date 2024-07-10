@@ -170,9 +170,18 @@ class Game():
 
             condition = 3
 
-            newPoints = self.pointExchange(condition)
+            tempaiPlayers = []
+            nonTempaiPlayers = []
 
-            self.newRound(newPoints)
+            for i in range(0,3):
+                hand = self.gameData.privateHands[i]
+                if calcShanten(hand) == 1: # Shanten being 1 means the player is in tenpai
+                    tempaiPlayers.append(i)
+                else:
+                    nonTempaiPlayers.append(i)
+            
+            match len(tempaiPlayers):
+                case 3:
 
             return True
         
@@ -277,6 +286,25 @@ class Game():
     def pointExchange(self, condition, player = None , fromPlayer = None):
         lastDraw = self.gameData.lastDrawTile
         lastDiscard = self.gameData.lastDiscardTile
+
+        arrPoints = self.gameData.getPlayerScores()
+
+        if condition == 3:
+            tPointer = 0
+            fPointer = 0
+
+            pointsToGive = 30 / len(player)
+
+            while (fPointer < len(fromPlayer) and tPointer < len(player)):
+                if fPointer < len(fromPlayer): 
+                    arrPoints[fPointer] -= pointsToGive
+                    fPointer += 1 
+                if tPointer < len(player):
+                    arrPoints[tPointer] += pointsToGive 
+                    tPointer += 1
+            return arrPoints 
+            
+
 
         return [250] * 4 #random ahh point assingment
     
