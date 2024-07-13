@@ -183,7 +183,7 @@ class Game():
             match len(tempaiPlayers):
                 case 3:
 
-            return True
+                 return True
         
         return False
 

@@ -154,7 +154,7 @@ class GameData(Matrix):
         # calculates actual shanten on the player (melds mess this up)
     def totalHandShanten(self, player):
         hand = self.privateHands[player]
-        numCalledMelds = self.getOpenMeldNum(player)
+        numCalledMelds = self.getMeldNum(player)
 
         return calcShanten( hand=hand, numCalledMelds=numCalledMelds)
     
