@@ -178,7 +178,7 @@ class Game():
 
             newPoints = self.pointExchange(condition, tempaiPlayers, nonTempaiPlayers)
 
-            self.newRound(newPoints)
+            self.newRound(condition, newPoints)
 
 
     def handleTsumo(self, player):
@@ -189,7 +189,7 @@ class Game():
 
         print(player, "Declares: Tsumo: ", file=self.file)
 
-        self.newRound(newPoints, player)
+        self.newRound(condition, newPoints, player)
 
 
     def handleRiichi(self, player):
@@ -233,7 +233,7 @@ class Game():
         #For now just take the first ron player
         winningPlayer = self.gameData.roundDealer if self.gameData.roundDealer in players else players[0]
 
-        self.newRound(newPoints, winningPlayer)
+        self.newRound(condition, newPoints, winningPlayer)
     
     def handlePon(self, player, fromPlayer):
         discard = self.gameData.lastDiscardTile
@@ -293,7 +293,7 @@ class Game():
             fPointer = 0
 
             if player:
-                pointsToGive = 30 / len(player)
+                pointsToGive = 30 / len(player) 
 
                 while (fPointer < len(fromPlayer) and tPointer < len(player)):
                     if fPointer < len(fromPlayer): 
@@ -302,14 +302,19 @@ class Game():
                     if tPointer < len(player):
                         arrPoints[tPointer] += pointsToGive 
                         tPointer += 1
-        
 
+    
         elif condition == 1:
             #player [player]
             #fromPlayer (0-3)
 
-            totalPoints = 30  #Point calc required
+            honbaSticks = self.gameData.honbaSticks
 
+            ####MATAS FIX THIS####
+             
+            totalPoints = 30  + 3 * honbaSticks
+
+            #Point calc required 
 
             pointsToGive = totalPoints
             for p in player:
@@ -335,7 +340,7 @@ class Game():
 
         return arrPoints
     
-    def newRound(self, newPoints, winningPlayer = -1):
+    def newRound(self, condition, newPoints, winningPlayer = -1):
         
         #NOT IMPLEMENTING HONBA JUST YET
         print(newPoints, file=self.file)
@@ -345,11 +350,12 @@ class Game():
         honbaSticks = self.gameData.honbaSticks
         newRound = self.gameData.roundWind
 
-        if not (oldDealer == winningPlayer):
+        if not (oldDealer == winningPlayer) and condition != 3:
             newDealer = oldDealer + 1
     
         else:
             newDealer = oldDealer
+            honbaSticks =+ 1 
         
         if newDealer > 3:
             if eastOnly:
@@ -370,9 +376,8 @@ class Game():
         self.running = False
 
 
-    
-game = Game()
 
+game = Game()
 start = time.time()
 game.main()
 end = time.time()
