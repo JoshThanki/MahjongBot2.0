@@ -135,7 +135,7 @@ class Matrix:
         elif meldType == 2:
             self.addKan(player)    
 
-    def getOpenMeldNum(self, player):
+    def getMeldNum(self, player):
         return self.chisNum[player] + self.ponsNum[player] + self.kansNum[player]
 
     # initialises starting hands for each player

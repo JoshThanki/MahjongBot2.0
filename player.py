@@ -61,6 +61,65 @@ class Player:
         return calcShanten( hand=copyHand, numCalledMelds=numCalledMelds ) == -1 
 
 
+    # returns an array of possible chis which are represented by the base tile (lowest tile in the chi)
+    def possibleChis(self):
+        tile = self.gameData.lastDiscardTile
+        hand = self.gameData.privateHands[ self.playerNo ]
+
+        if tile//9 == 3: return False
+
+        tileNum = tile%9
+
+        tile0 = hand[tile-2]>0 if tile>=2 else False 
+        tile1 = hand[tile-1]>0 if tile>=1 else False
+        tile2 = hand[tile+1]>0
+        tile3 = hand[tile+2]>0
+
+        possibleChis = []
+
+        if tile0 and tile1 and (tileNum>=2):
+            possibleChis.append(tile-2)
+
+        if tile1 and tile2 and (tileNum%8 != 0):
+            possibleChis.append(tile-1)
+
+        if tile2 and tile3 and (tileNum <= 6):
+            possibleChis.append(tile)
+
+        return possibleChis   
+
+
+    def bestChi(self):
+        currenthand = self.gameData.privateHands[ self.playerNo ]
+        calledTile = self.gameData.lastDiscardTile 
+
+        resMeldNum = self.gameData.getMeldNum( self.playerNo )+1    
+    
+        minShanten = 128
+        bestChiBase = None
+
+        for chiBaseTile in self.possibleChis():
+            curShanten = calcShanten(hand=self.handAfterChi(currenthand, chiBaseTile, calledTile),  numCalledMelds=resMeldNum)
+
+            if curShanten < minShanten:
+                minShanten = curShanten
+                bestChiBase = chiBaseTile
+
+        return bestChiBase
+    
+    def handAfterChi(hand, chiBase, called):
+        handCopy= copy.copy(hand)
+
+        chiTiles = [chiBase,chiBase+1,chiBase+2]
+        chiTiles.remove(called)
+
+        for i in chiTiles:
+            handCopy[i] -= 1
+
+        return handCopy
+             
+
+
     def drawAction(self):
 
         if self.canTsumo():
@@ -113,6 +172,7 @@ class Player:
 
             # if prediction:
             #     return Action(self.playerNo, 8)
+            return Action(self.playerNo, 8, self.bestChi())
             
         if self.gameData.canPon(self.playerNo):
             self.gameData.buildMatrix( player=self.playerNo, forMeld=True )
