@@ -176,7 +176,7 @@ class Matrix:
     def getWallTiles(self):
         return self.wallTiles
     
-    def getPlayerScores(self, scores):
+    def getPlayerScores(self):
         return self.playerScores
     
     def setPlayerScore(self, scores):

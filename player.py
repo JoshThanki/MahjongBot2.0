@@ -56,7 +56,7 @@ class Player:
         copyHand = copy.copy( self.gameData.privateHands[ self.playerNo ] )
         copyHand[ self.gameData.lastDiscardTile ] +=1
 
-        numCalledMelds = self.gameData.getOpenMeldNum( self.playerNo )
+        numCalledMelds = self.gameData.getMeldNum( self.playerNo )
 
         return calcShanten( hand=copyHand, numCalledMelds=numCalledMelds ) == -1 
 
@@ -107,7 +107,7 @@ class Player:
 
         return bestChiBase
     
-    def handAfterChi(hand, chiBase, called):
+    def handAfterChi(self, hand, chiBase, called):
         handCopy= copy.copy(hand)
 
         chiTiles = [chiBase,chiBase+1,chiBase+2]
@@ -172,7 +172,7 @@ class Player:
 
             # if prediction:
             #     return Action(self.playerNo, 8)
-            return Action(self.playerNo, 8, self.bestChi())
+            return Action(self.playerNo, 8, [int(self.bestChi()) + i for i in range(3)])
             
         if self.gameData.canPon(self.playerNo):
             self.gameData.buildMatrix( player=self.playerNo, forMeld=True )
@@ -201,18 +201,6 @@ class Player:
 
         pred = prediction[0].numpy()
         hand = self.gameData.getPrivateHand(self.playerNo)
-
-        # bestTile = -1
-        # minShanten = 10
-
-        # for tile, number in enumerate(hand):
-        #     if number > 0:
-        #         handCopy = hand[:]
-        #         handCopy[tile]-=1
-        #         newShanten = calcShanten(handCopy)
-        #         if newShanten <= minShanten:
-        #             minShanten = newShanten
-        #             bestTile = tile
 
 
         filtered_prediction = [pred[i] if hand[i] != 0 else 0 for i in range(34)]

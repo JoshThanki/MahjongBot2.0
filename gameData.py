@@ -110,7 +110,7 @@ class GameData(Matrix):
         self.buildMatrix(player)
         print(file=file)
         printNice(self.gameState,file=file)
-        print(f"Shanten: {calcShanten(self.privateHands[player])}",file=file)
+        print(f"Shanten: {self.totalHandShanten(player)}",file=file)
         print(file=file)
 
     def __str__(self):
@@ -173,7 +173,6 @@ class GameData(Matrix):
             self.decPlayerPonTiles(player, meldTiles)
             self.decPon(player)
             self.playerMelds[player][ meldTiles[0] ] = 4
-            print(self.orderedMelds[player], meldTiles)
             self.orderedMelds[player].append((meldTiles[0], 1)) #remove pon
             self.orderedMelds[player].append((meldTiles[0], 2)) #add kan
             self.addKan(player)
@@ -182,7 +181,6 @@ class GameData(Matrix):
         # handles closed kan       
         elif meldType == 3: 
             self.privateHands[player][ meldTiles[0]] = 0
-            print(self.orderedMelds[player], meldTiles)
             self.addKan(player)
             self.playerMelds[player][ meldTiles[0]] = 4
             self.orderedMelds[player].append((meldTiles[0], meldType))

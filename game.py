@@ -16,10 +16,14 @@ class Game():
         #dealer = east
         #honba sticks = 0 
 
-        self.file = open("out.txt", "w+") 
+        #uncomment this line to print to out
+
+        #self.file = open("out.txt", "w+") 
+        self.file = None
+
         self.running = True
         self.newGame = True
-        self.gameData = GameData(eastOnly=False) 
+        self.gameData = GameData(eastOnly=True) 
 
         # Comment this to test specific functions
         self.players = [Player(i, self.gameData) for i in range(4)] 
@@ -41,7 +45,6 @@ class Game():
             if self.checkOver():
                 continue
 
-
             self.gameData.printGood(self.gameData.playerTurn, self.file)
 
             self.discardStep()
@@ -52,14 +55,7 @@ class Game():
 
             if self.checkOver():
                 continue
-
-            if self.checkRyuukyoku():
-
-                continue
             
-            
-
-
 
     
     # Have the given POV Player draw a tile    
@@ -117,46 +113,45 @@ class Game():
         
         # Get the discard actions of the players that choose to actually take an action (0 indicates the player does nothing)
         actionList = [self.players[player].discardAction() for player in otherPlayers]
-        filtered_actions = [action for action in actionList if action.type != 0]
 
         # Sort the player actions based on a given priority (Ron -> Pon -> Kan -> Chii)
-        filtered_actions.sort(key=lambda x: x.type)
 
-        ronList = []
+        ronList = [action for action in actionList if action.type == 5]
+
+        otherActions = [action for action in actionList if action.type != 5 and action.type !=0]
+
+        otherActions.sort(key=lambda x: x.type)
+    
+        formatActionList = lambda actionList: [f"Type: {action.type}, player: {action.player}, fromPlayer: {turnPlayer}, last Discard: {self.gameData.lastDiscardTile}" for action in actionList]
+
+        print(f"Discard Step Actions: Ron list: {formatActionList(ronList)} ,  Other Actions: {formatActionList(otherActions)}", file=self.file)
+
+        if ronList:
+
+            self.handleRon([action.player for action in ronList], fromPlayer=turnPlayer)
         
-        actionTypeList = [f"Type: {action.type}, player: {action.player}, fromPlayer: {turnPlayer}, last Discard: {self.gameData.lastDiscardTile}" for action in filtered_actions]
+        elif otherActions:
 
-        print(f"Discard Step Actions: {actionTypeList}", file=self.file)
+            if otherActions[0].type == 6 :
+                self.handlePon(otherActions[0].player, fromPlayer=turnPlayer)    
 
-        if filtered_actions:
-
-            for action in filtered_actions:
-                if action.type == 5:
-                    ronList.append(action)
-                elif ronList:
-                    self.handleRon([action.player for action in ronList],[action.arr[0] for action in ronList], fromPlayer=turnPlayer)
-
-                    break
-
-                elif action.type == 6 :
-                    self.handlePon(action.player, fromPlayer=turnPlayer)
-                    
-                    break
-
-                elif action.type == 7:
-                    self.handleKan(action.player, fromPlayer=turnPlayer)
-                    
-
-                    break
-                elif action.type == 8:
-                    self.handleChi(action.player, action.arr, fromPlayer=turnPlayer)
+            elif otherActions[0].type == 7:
+                self.handleKan(otherActions[0].player, fromPlayer=turnPlayer)
                 
-                    break
-                
+            elif otherActions[0].type == 8:
+                self.handleChi(otherActions[0].player, otherActions[0].arr, fromPlayer=turnPlayer)
+
+            else:
+                print("Unknown Action Type")
+            
+        
         else:
             self.gameData.incPlayerTurn()
 
+
+
         self.gameData.incTurnNumber()
+        self.checkRyuukyoku()
 
 
 
@@ -180,15 +175,14 @@ class Game():
                     tempaiPlayers.append(i)
                 else:
                     nonTempaiPlayers.append(i)
-            
 
-            return True
-        
-        return False
+            newPoints = self.pointExchange(condition, tempaiPlayers, nonTempaiPlayers)
+
+            self.newRound(newPoints)
 
 
     def handleTsumo(self, player):
-        #condition TSUMO = 0, RON = 1,(For now)
+        #condition TSUMO = 0, RON = 1, DRAW = 3 (For now)
         condition = 0
 
         newPoints = self.pointExchange(condition, player)
@@ -225,17 +219,21 @@ class Game():
         self.drawStep()
         self.drawActionStep()
 
-    #player - [player], #from-player - [player]
-    def handleRon(self, player, fromPlayer):
+    #players - [player], #from-player - [player]
+    def handleRon(self, players, fromPlayer):
         #condition TSUMO = 0, RON = 1,(For now)
+        lastDiscard = self.gameData.lastDiscardTile
+
         condition = 1
 
-        newPoints = self.pointExchange(condition, player, fromPlayer)
+        newPoints = self.pointExchange(condition, players, fromPlayer)
 
-        print(f"Player {player} Declare: Ron, From Player: {fromPlayer}", file=self.file)
+        print(f"Player(s) {players} Declare: Ron, On tile: {lastDiscard}, From Player: {fromPlayer}", file=self.file)
 
+        #For now just take the first ron player
+        winningPlayer = self.gameData.roundDealer if self.gameData.roundDealer in players else players[0]
 
-        self.newRound(newPoints, player)
+        self.newRound(newPoints, winningPlayer)
     
     def handlePon(self, player, fromPlayer):
         discard = self.gameData.lastDiscardTile
@@ -284,36 +282,58 @@ class Game():
 
 
     def pointExchange(self, condition, player = None , fromPlayer = None):
-        #lastDraw = self.gameData.lastDrawTile
-        #lastDiscard = self.gameData.lastDiscardTile
 
         arrPoints = self.gameData.getPlayerScores()
 
-        # Uncomment this and comment the above for testing (add points as an argument)
-        #arrPoints = points
-
-
+        #condition TSUMO = 0, RON = 1, DRAW = 3 (For now)
         if condition == 3:
-            tPointer = -1
-            fPointer = -1
+            #player [player]
+            #fromPlayer [player]
+            tPointer = 0
+            fPointer = 0
 
-            pointsToGive = 30 / max(len(player), len(fromPlayer))
+            if player:
+                pointsToGive = 30 / len(player)
 
-            while (fPointer < len(fromPlayer)-1 or tPointer < len(player)-1):
+                while (fPointer < len(fromPlayer) and tPointer < len(player)):
+                    if fPointer < len(fromPlayer): 
+                        arrPoints[fPointer] -= pointsToGive
+                        fPointer += 1 
+                    if tPointer < len(player):
+                        arrPoints[tPointer] += pointsToGive 
+                        tPointer += 1
+        
 
-                if fPointer < len(fromPlayer)-1: 
-                    fPointer += 1 
-                if tPointer < len(player)-1: 
-                    tPointer += 1
+        elif condition == 1:
+            #player [player]
+            #fromPlayer (0-3)
 
-                arrPoints[fromPlayer[fPointer]] -= pointsToGive
-                arrPoints[player[tPointer]] += pointsToGive
-                
-            return arrPoints 
+            totalPoints = 30  #Point calc required
+
+
+            pointsToGive = totalPoints
+            for p in player:
+                arrPoints[fromPlayer] -= pointsToGive
+                arrPoints[p] += pointsToGive
             
 
+        elif condition == 0:
+            #player (0-3)
+            #fromPlayer None
+            
+            totalPoints = 30 #Point calc required
 
-        return [250] * 4 #random ahh point assingment
+            otherPlayers = [i for i in range(4)]
+            otherPlayers.remove(player)
+
+            pointsToGive = totalPoints // len(otherPlayers)
+
+            for p in otherPlayers:
+                arrPoints[p] -= pointsToGive
+                arrPoints[player] += pointsToGive
+
+
+        return arrPoints
     
     def newRound(self, newPoints, winningPlayer = -1):
         
