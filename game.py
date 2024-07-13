@@ -180,10 +180,8 @@ class Game():
                 else:
                     nonTempaiPlayers.append(i)
             
-            match len(tempaiPlayers):
-                case 3:
 
-                 return True
+            return True
         
         return False
 
@@ -226,6 +224,7 @@ class Game():
         self.drawStep()
         self.drawActionStep()
 
+    #player - [player], #from-player - [player]
     def handleRon(self, player, fromPlayer):
         #condition TSUMO = 0, RON = 1,(For now)
         condition = 1
