@@ -3,22 +3,12 @@ from gameData import GameData
 from action import Action
 
 from pathlib import Path
-import tensorflow as tf
-import keras
-
+from keras import models
 
 #action = actionType : (0-8) 0-Nothing, 1-TSUMO, 2-RIICHI, 3-CLOSEDKAN, 4-CHAKAN, 4-RON, 5-PON, 6-KAN, 7-CHI
         #, arr : [], player : (0-3)
 
 #discard returns tile (0-33)
-
-discardModel = tf.keras.models.load_model('Saved Models\discardModel')
-riichiModel = tf.keras.models.load_model('Saved Models\discardModel')   ##############
-chiModel = tf.keras.models.load_model('Saved Models\chiModel')
-ponModel = tf.keras.models.load_model('Saved Models\ponModel')
-kanModel = tf.keras.models.load_model('Saved Models\kanModel')
-
-
 
 class Player:
     def __init__(self, playerNo, gameData: GameData) -> None:
@@ -27,11 +17,11 @@ class Player:
         self.discardTile = -1
 
 
-        self.discardModel = tf.keras.models.load_model('Saved Models\discardModel')
-        self.riichiModel = tf.keras.models.load_model('Saved Models\discardModel')   ##############
-        self.chiModel = tf.keras.models.load_model('Saved Models\chiModel')
-        self.ponModel = tf.keras.models.load_model('Saved Models\ponModel')
-        self.kanModel = tf.keras.models.load_model('Saved Models\kanModel')    
+        self.discardModel = models.load_model('Saved Models\discardModel')
+        self.riichiModel = models.load_model('Saved Models\chiModel')   ##############
+        self.chiModel = models.load_model('Saved Models\chiModel')
+        self.ponModel = models.load_model('Saved Models\ponModel')
+        self.kanModel = models.load_model('Saved Models\kanModel')    
 
     def updateGameData(self, gameData):
         self.gameData = gameData
@@ -47,7 +37,7 @@ class Player:
 
     def getPredictionDiscard(self):
         state = self.gameData.getMatrix()
-        prediction = self.discardModel( np.array([state.flatten()]) )
+        prediction = self.discardModel( np.array([state.flatten()]) )[0].numpy()
 
         hand = self.gameData.getPrivateHand(self.playerNo)
         prediction = [prediction[i] if hand[i] != 0 else 0 for i in range(34)]

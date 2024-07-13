@@ -18,8 +18,8 @@ class Game():
 
         #uncomment this line to print to out
 
-        #self.file = open("out.txt", "w+") 
-        self.file = None
+        self.file = open("out.txt", "w+") 
+        # self.file = None
 
         self.running = True
         self.newGame = True
@@ -377,8 +377,11 @@ if False:
 
 
 
-    
-# game = Game()
-# game.main()
 
+game = Game()
+start = time.time()
+
+game.main()
+end = time.time()
+print(f"time: {end - start}")
 
