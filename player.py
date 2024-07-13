@@ -1,9 +1,7 @@
 from Global import *
 from gameData import GameData
 from action import Action
-
 from pathlib import Path
-from keras import models
 
 #action = actionType : (0-8) 0-Nothing, 1-TSUMO, 2-RIICHI, 3-CLOSEDKAN, 4-CHAKAN, 4-RON, 5-PON, 6-KAN, 7-CHI
         #, arr : [], player : (0-3)
@@ -11,17 +9,12 @@ from keras import models
 #discard returns tile (0-33)
 
 class Player:
-    def __init__(self, playerNo, gameData: GameData) -> None:
+    def __init__(self, playerNo, gameData: GameData, models) -> None:
         self.gameData = gameData
         self.playerNo = playerNo
         self.discardTile = -1
+        self.discardModel, self.riichiModel , self.chiModel, self.ponModel, self.kanModel = models
 
-
-        self.discardModel = models.load_model('Saved Models\discardModel')
-        self.riichiModel = models.load_model('Saved Models\chiModel')   ##############
-        self.chiModel = models.load_model('Saved Models\chiModel')
-        self.ponModel = models.load_model('Saved Models\ponModel')
-        self.kanModel = models.load_model('Saved Models\kanModel')    
 
     def updateGameData(self, gameData):
         self.gameData = gameData

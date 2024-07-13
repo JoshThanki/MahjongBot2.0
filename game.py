@@ -2,9 +2,7 @@ from Global import *
 
 from player import Player
 from gameData import GameData
-
-
- #Creates a dictionary containing an entire set of tiles
+import tensorflow as tf
 
 class Game():
     
@@ -26,7 +24,9 @@ class Game():
         self.gameData = GameData(eastOnly=True) 
 
         # Comment this to test specific functions
-        self.players = [Player(i, self.gameData) for i in range(4)] 
+        models = [tf.keras.models.load_model('Saved Models\discardModel'), tf.keras.models.load_model('Saved Models\discardModel'), tf.keras.models.load_model('Saved Models\chiModel'), tf.keras.models.load_model('Saved Models\ponModel'), tf.keras.models.load_model('Saved Models\kanModel') ]
+        
+        self.players = [Player(i, self.gameData, models=models) for i in range(4)] 
 
     def main(self):
         
@@ -370,18 +370,11 @@ class Game():
         self.running = False
 
 
-
-if False:
-    game = Game()
-    game.pointExchange(3, [0], [1,2,3])
-
-
-
-
+    
 game = Game()
-start = time.time()
 
+start = time.time()
 game.main()
 end = time.time()
-print(f"time: {end - start}")
+print(f"Time: {end - start}")
 
