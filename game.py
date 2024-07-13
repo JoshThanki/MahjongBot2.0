@@ -21,7 +21,8 @@ class Game():
         self.newGame = True
         self.gameData = GameData(eastOnly=False) 
 
-        self.players = [Player(i, self.gameData) for i in range(4)]
+        # Comment this to test specific functions
+        self.players = [Player(i, self.gameData) for i in range(4)] 
 
     def main(self):
         
@@ -283,24 +284,31 @@ class Game():
 
 
     def pointExchange(self, condition, player = None , fromPlayer = None):
-        lastDraw = self.gameData.lastDrawTile
-        lastDiscard = self.gameData.lastDiscardTile
+        #lastDraw = self.gameData.lastDrawTile
+        #lastDiscard = self.gameData.lastDiscardTile
 
         arrPoints = self.gameData.getPlayerScores()
 
+        # Uncomment this and comment the above for testing (add points as an argument)
+        #arrPoints = points
+
+
         if condition == 3:
-            tPointer = 0
-            fPointer = 0
+            tPointer = -1
+            fPointer = -1
 
-            pointsToGive = 30 / len(player)
+            pointsToGive = 30 / max(len(player), len(fromPlayer))
 
-            while (fPointer < len(fromPlayer) and tPointer < len(player)):
-                if fPointer < len(fromPlayer): 
-                    arrPoints[fPointer] -= pointsToGive
+            while (fPointer < len(fromPlayer)-1 or tPointer < len(player)-1):
+
+                if fPointer < len(fromPlayer)-1: 
                     fPointer += 1 
-                if tPointer < len(player):
-                    arrPoints[tPointer] += pointsToGive 
+                if tPointer < len(player)-1: 
                     tPointer += 1
+
+                arrPoints[fromPlayer[fPointer]] -= pointsToGive
+                arrPoints[player[tPointer]] += pointsToGive
+                
             return arrPoints 
             
 
@@ -343,12 +351,14 @@ class Game():
 
 
 
- 
+if False:
+    game = Game()
+    game.pointExchange(3, [0], [1,2,3])
 
 
 
     
-game = Game()
-game.main()
+# game = Game()
+# game.main()
 
 
