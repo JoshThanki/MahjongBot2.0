@@ -218,16 +218,19 @@ class Matrix:
             
     def canPon(self, player):
         tile = self.lastDiscardTile
-        return (self.privateHands[player][tile] >= 2)
+        return (self.privateHands[player][tile] >= 2) and not self.getRiichi(player)
 
     def canKan(self, player):
         tile = self.lastDiscardTile
-        return (self.privateHands[player][tile] == 3)
+        return (self.privateHands[player][tile] == 3) and not self.getRiichi(player)
 
     def canChi(self, player): 
-        #checks whether it's a honour tile
+        
         tile = self.lastDiscardTile
-        if tile//9 == 3: return False
+        fromPlayer = self.lastDiscardPlayer
+
+        #checks whether it's a honour tile, that the call is from the player before in ordering, and that Riichi has not been called
+        if tile//9 == 3 or not((fromPlayer + 1) % 4 == player) or self.getRiichi(player) : return False
         else:
             #number of the tile
             t = tile % 9
@@ -274,14 +277,11 @@ class Matrix:
                 callTile = tile
                 break
         
-        return canChackan, callTile
+        return canChackan , callTile
 
     def canRiichi(self, player):
         return (not self.Riichi[player])  and  (self.Closed[player])  and  (calcShanten(hand=self.privateHands[player]) <= 2*self.closedKans[player])  and  (self.wallTiles >= 4)
 
-
-        
-    
     def setOpen(self, player):
         self.Closed[player] = False
     

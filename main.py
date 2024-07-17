@@ -1,9 +1,8 @@
 from game import Game
-from player import Player
+import time
 
-testGame = Game()
-player1 = Player(testGame)
-
-if True: #add tests here
-    print(player1.getReadableHand())
-    print(player1.getVectorHand())
+game = Game()
+start = time.time()
+game.main()
+end = time.time()
+print(f"Time: {end - start}")

@@ -29,6 +29,9 @@ class GameData(Matrix):
 
         self.orderedDora = []
 
+        #Last Draw action - Action, Player 
+        self.lastDrawAction = (None, None)
+
         super().__init__()
 
         ### Initialise Game ###
@@ -54,7 +57,13 @@ class GameData(Matrix):
         self.newDora()
 
 
-        
+    
+    def setLastDrawAction(self, action, player):
+        self.lastDrawAction = (action, player)
+
+    def getLastDrawAction(self):
+        return self.lastDrawAction
+
     def incPlayerTurn(self):
         
         self.playerTurn = (self.playerTurn + 1) % 4

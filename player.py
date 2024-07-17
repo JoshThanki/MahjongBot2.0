@@ -12,7 +12,6 @@ class Player:
     def __init__(self, playerNo, gameData: GameData, models) -> None:
         self.gameData = gameData
         self.playerNo = playerNo
-        self.discardTile = -1
         self.discardModel, self.riichiModel , self.chiModel, self.ponModel, self.kanModel = models
 
 
@@ -34,7 +33,27 @@ class Player:
 
         hand = self.gameData.getPrivateHand(self.playerNo)
         prediction = [prediction[i] if hand[i] != 0 else 0 for i in range(34)]
-    
+        
+        if self.gameData.getRiichi(self.playerNo):
+            action, player = self.gameData.getLastDrawAction()
+
+
+            if action == 2 and player == self.playerNo:
+
+                meldNo = self.gameData.getMeldNum(self.playerNo)
+            
+                def simDiscard(hand, discard):
+                    hand.remove(discard)
+                    return hand
+
+                shantenDiscards = [calcShanten(simDiscard(hand[:], tile), meldNo) for tile in hand]
+
+                prediction = [prediction[i] if shantenDiscards[i] == 0 else 0 for i in range(34)]
+
+            else:
+                prediction = [self.gameData.lastDrawTile]
+
+
         return np.argmax(prediction)  
 
     def canTsumo(self):
@@ -124,9 +143,9 @@ class Player:
 
             prediction = self.getPredictionMeld( self.kanModel )
 
-            # if prediction:
+            if prediction:
 
-            return Action(self.playerNo, 3, [callTile])        
+                return Action(self.playerNo, 3, [callTile])        
         
         if self.gameData.canChakan( self.playerNo )[0]:
             callTile = self.gameData.canChakan( self.playerNo )[1]
@@ -134,9 +153,9 @@ class Player:
         
             prediction = self.getPredictionMeld( self.kanModel )
             
-            # if prediction:
-            
-            return Action(self.playerNo, 4, [callTile])  
+            if prediction:
+
+                return Action(self.playerNo, 4, [callTile])  
 
 
         if self.gameData.canRiichi(self.playerNo):
@@ -159,25 +178,24 @@ class Player:
             self.gameData.buildMatrix( player=self.playerNo, forMeld=True )
             prediction = self.getPredictionMeld( self.chiModel )
 
-            # if prediction:
-            #     return Action(self.playerNo, 8)
-            return Action(self.playerNo, 8, [int(self.bestChi()) + i for i in range(3)])
+            if prediction:
+                return Action(self.playerNo, 8, [int(self.bestChi()) + i for i in range(3)])
             
         if self.gameData.canPon(self.playerNo):
             self.gameData.buildMatrix( player=self.playerNo, forMeld=True )
             prediction = self.getPredictionMeld( self.ponModel )
 
-            # if prediction:
+            if prediction:
 
-            return Action(self.playerNo, 6)   
+                return Action(self.playerNo, 6)   
 
         if self.gameData.canKan(self.playerNo):
             self.gameData.buildMatrix( player=self.playerNo, forMeld=True )
             prediction = self.getPredictionMeld( self.kanModel )
 
-            # if prediction:
+            if prediction:
             
-            return Action(self.playerNo, 7)  
+                return Action(self.playerNo, 7)  
             
         return Action(self.playerNo, 0)
        

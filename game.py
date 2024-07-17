@@ -45,11 +45,7 @@ class Game():
             if self.checkOver():
                 continue
 
-            self.gameData.printGood(self.gameData.playerTurn, self.file)
-
             self.discardStep()
-
-            self.gameData.printGood(self.gameData.playerTurn, self.file)
 
             self.discardActionStep()
 
@@ -77,6 +73,8 @@ class Game():
         actionType = action.type
 
         print(f"\nDraw Action type: {actionType}", file=self.file)
+        
+        self.gameData.printGood(self.gameData.playerTurn, self.file)
 
         if actionType == 1:
             self.handleTsumo(turnPlayer)
@@ -89,7 +87,10 @@ class Game():
             
         elif actionType == 4:
             self.handleCHAKAN(turnPlayer, action.arr[0])
-            
+        
+
+        self.gameData.setLastDrawAction(actionType, turnPlayer)
+        
 
 
     # Have the given POV Player discard a tile   
@@ -99,6 +100,8 @@ class Game():
         print(turnPlayer, "Discards: ", tile_dic[discard], file=self.file)
         self.gameData.handleDiscard(turnPlayer, discard)
         self.gameData.addPlayerPool(turnPlayer, discard)
+
+        self.gameData.printGood(self.gameData.playerTurn, self.file)
     
     # On Discard, all other players can chii, pon, kan or ron. Handles the discard actions a player can make
     def discardActionStep(self):
@@ -125,6 +128,7 @@ class Game():
         formatActionList = lambda actionList: [f"Type: {action.type}, player: {action.player}, fromPlayer: {turnPlayer}, last Discard: {self.gameData.lastDiscardTile}" for action in actionList]
 
         print(f"Discard Step Actions: Ron list: {formatActionList(ronList)} ,  Other Actions: {formatActionList(otherActions)}", file=self.file)
+        
 
         if ronList:
 
@@ -377,9 +381,4 @@ class Game():
 
 
 
-game = Game()
-start = time.time()
-game.main()
-end = time.time()
-print(f"Time: {end - start}")
 
