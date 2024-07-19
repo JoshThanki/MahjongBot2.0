@@ -49,5 +49,33 @@ def Iipeikou(gameData, player):
 
 # ONE HAN
 
+def Haitei_raoyue_Houtei_raoyui(gameData, typeWin):
+    if (gameData.wallTiles == 0):
+        if(typeWin == 3):
+            yakus[5] = 1
+        elif(typeWin == 2):
+            yakus[6] = 1
+
+# def Rinshan_kaihou (will do)
+# def Chankan (will do)
+
+def Tanyao(gameData, player):
+    hand = checkYaku.checkYaku(gameData.privateHands[player])
+
+    for i in range (0, 5):
+        if hand[i][0] != 1 and hand[i][len(hand[i]) - 1] != 9:
+            yakus[9] = 1
+
+def Yakuhai(gameData, player):
+    trips = checkYaku.getTriplets(player)
+    temp = 0
+    for i in range (0, len(trips)):
+        if trips[i][0] in range(31, 34):
+            temp += 1
+    if temp > 0:
+        yakus[10] = temp
+
+# TWO HAN
+
 
 
