@@ -121,48 +121,84 @@ def convertHand(hand):
     for tile, count in enumerate(hand):
         while count > 0:
             res.append(Tile(sprite_sheet_pos=convertIndex(tile), scale=HANDTILESCALE, handTile=True))
+            count-=1
 
     return res  
 
 def convertOrderedPool(pool):
     return [[Tile(sprite_sheet_pos=convertIndex(tile)) for tile in playerpool] for playerpool in pool]
 
+def convertPlayerWinds(winds):
+    windDict = {
+        0: "E",
+        1: "S",
+        2: "W",
+        3: "N"
+    }
+
+    return [windDict[wind] for wind in winds]
+
+def convertOrderedDora(dora):
+    return [Tile(sprite_sheet_pos=convertIndex(tile)) for tile in dora]
+
+def convertPoints(points):
+    return [playerPoints * 100 for playerPoints in points]
+
+def convertRoundWind(wind):
+    windDict = {
+        0: "East",
+        1: "South",
+    }
+    
+    return windDict[wind]
+
+from gameData import GameData
 
 class GUI:
     #orderedMelds =  [i = player]  (lowestTile, meldType = (0 - chi, 1 - pon, 2 - kan, 3 - closed kan))
 
-    def __init__(self, hand = [1 if i in [i for i in range(13)] else 0 for i in range(34)], 
-                    orderedMelds = [[(1,0)],[(1,0), (2,0)],[(1,0), (2,0), (3,0), (3,0)],[(1,0), (2,0), (3,0)]],
-                    orderedPool = [[1,2,3],[4,5,6],[7,7,6],[]],
-                    playerWinds = [0,1,2,3], 
-                    wallTiles = 70
-
-
-
+    def __init__(self, gameData : GameData = None):
         
-                    ):
 
-        # Load the background image
         self.screen = screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE | pygame.SCALED)
         pygame.display.set_caption("Mahjong with Pygame")
         background_image_path = os.path.join(ASSETS_PATH, BACKGROUND_IMAGE_NAME)
         self.background_image = load_image(background_image_path)
-    
+        
+                
+        self.playerNo = 0
 
-        self.handTiles = convertHand(hand)
+        self.gameData = gameData
 
-        self.melds = convertOrderedMelds(orderedMelds)
-
-        self.pool = convertOrderedPool(orderedPool) 
-
+        if self.gameData:
+            self.hand = convertHand(self.gameData.privateHands(self.playerNo))
+            self.orderedMelds = convertOrderedMelds(self.gameData.orderedMelds())
+            self.orderedPool = convertOrderedPool(self.gameData.orderedPool())
+            self.orderedDora = convertOrderedDora(self.gameData.orderedDora())
+            self.playerWinds = convertPlayerWinds(self.gameData.playerWinds)
+            self.wallTiles = self.gameData.wallTiles
+            self.points = convertPoints(self.gameData.playerScores)
+            self.roundWind = convertRoundWind(self.gameData.roundWind)
+            self.round = str(self.gameData.round)
+            self.dealer = self.gameData.roundDealer
+            self.playerTurn = self.gameData.playerTurn
+            self.riichi = self.gameData.Riichi
+        else:
+            self.hand = convertHand([1 if i in [i for i in range(13)] else 0 for i in range(34)])
+            self.orderedMelds = convertOrderedMelds([[(1,0)],[(1,0), (2,0)],[(1,0), (2,0), (3,0), (3,0)],[(1,0), (2,0), (3,0)]])
+            self.orderedPool = convertOrderedPool([[1,2,3],[4,5,6],[7,7,6],[9,9,9]])
+            self.orderedDora = convertOrderedDora([1,2,3])
+            self.playerWinds = convertPlayerWinds([0,1,2,3])
+            self.wallTiles = 70
+            self.points=convertPoints([25000, 25000, 25000, 25000])
+            self.roundWind=convertRoundWind(0)
+            self.round=str(10)
+            self.dealer=0
+            self.playerTurn=1 
+            self.riichi=[False, True, False, True]
 
         self.screen.blit(self.background_image, (0, 0))
-
-    def update(self, hand, orderedMelds = [0,0,0,0], playerWinds = [0,1,2,3], wallTiles = 70):
-        pass
-        
-        self.handTiles = [Tile(position=(50 + 20*tile, 50), sprite_sheet_pos=convertIndex(tile)) for tile in range(len(hand)) if hand[tile] > 0]
-
+    
 
     def main(self):
             
@@ -175,16 +211,16 @@ class GUI:
 
             # Blit the background image
             
-            for i, tile in enumerate(self.handTiles):
+            for i, tile in enumerate(self.hand):
                 
                 totalWidth = 1024 
-                lenTiles = (SPRITE_FRAME_WIDTH * HANDTILESCALE  + 5) * len(self.handTiles)
+                lenTiles = (SPRITE_FRAME_WIDTH * HANDTILESCALE  + 5) * len(self.hand)
                 xoffset = (totalWidth - lenTiles) // 2 
                 yoffset = 925
 
                 tile.update(self.screen, (xoffset + (SPRITE_FRAME_WIDTH * HANDTILESCALE  + 5) * i, yoffset))
 
-            for i, player in enumerate(self.melds):
+            for i, player in enumerate(self.orderedMelds):
 
                 playerWidth, playerSurface = create_player_surface(player)
 
@@ -216,9 +252,10 @@ class GUI:
             
                 self.screen.blit(newSurface, (playerOffset))
 
-            for i, discards in self.pool:
+            for i, discards in enumerate(self.orderedPool):
                 
-                discardSurface = create_discard_surface()
+                width, height, discardSurface = create_discard_surface()
+
                 for tileNo, tile in enumerate(discards):
                     x = SPRITE_FRAME_WIDTH * SPRITE_SCALE * (tileNo % 6)
                     y = SPRITE_FRAME_HEIGHT * SPRITE_SCALE * (tileNo // 6)
@@ -227,22 +264,22 @@ class GUI:
 
                 if i == 0:
                     playerOffset = (512 - 108, 512 + 108)
-                    newSurface = pygame.transform.rotate(surface, 0)
+                    newSurface = pygame.transform.rotate(discardSurface, 0)
                 elif i == 1:
-                    playerOffset = (512 + 108 , 512 + 108)
-                    newSurface = pygame.transform.rotate(surface, 90)
+                    playerOffset = (512 + 108 , 512 + 108 - width)
+                    newSurface = pygame.transform.rotate(discardSurface, 90)
                 elif i == 2:
-                    playerOffset = (512 + 108, 512 - 108)
-                    newSurface = pygame.transform.rotate(surface, 180)
+                    playerOffset = (512 + 108 - width , 512 - 108 - height)
+                    newSurface = pygame.transform.rotate(discardSurface, 180)
                 else:
-                    playerOffset = (512 - 108, 512 - 108)
-                    newSurface = pygame.transform.rotate(surface, 270)
+                    playerOffset = (512 - 108 - height , 512 - 108)
+                    newSurface = pygame.transform.rotate(discardSurface, 270)
                 
                 self.screen.blit(newSurface, (playerOffset))
 
 
             size = 216
-            center_surface = create_center_surface()
+            center_surface = create_center_surface(self.playerWinds, self.points, self.roundWind, self.round, self.wallTiles, self.dealer, self.playerTurn, self.riichi)
             pos = (1024//2) - (size//2)
 
             self.screen.blit(center_surface, (pos,pos))
@@ -271,8 +308,6 @@ def create_meld_surface(meld):
 
     meld_surface = pygame.Surface((width, height), pygame.SRCALPHA).convert_alpha()
     
-    meld_surface.set_alpha(150) 
-
     return width, meld_surface
 
 def create_player_surface(melds):
@@ -284,9 +319,6 @@ def create_player_surface(melds):
         width+=meldWidth
     
     player_surface = pygame.Surface((width, height), pygame.SRCALPHA).convert_alpha()
-    
-    player_surface.set_alpha(150) 
-
 
     return width, player_surface
 
@@ -295,9 +327,8 @@ def create_discard_surface(rows = 4):
     height = SPRITE_FRAME_HEIGHT * SPRITE_SCALE * rows
 
     discard_surface =  pygame.Surface((width, height), pygame.SRCALPHA).convert_alpha()
-    discard_surface.set_alpha(120)
 
-    return discard_surface
+    return width, height, discard_surface
 
 
 DARKGREY = (60, 60, 60)
@@ -307,7 +338,8 @@ LIGHT_BLUE = (32, 178, 170)
 WHITE = (255, 255, 255)
 
 
-def create_center_surface(winds=["E", "S", "W", "N"], points=[25000, 25000, 25000, 25000], roundWind="East", round="10", wallTiles=50, dealer=0, playerTurn=1, riichi=[False, True, False, True]):
+def create_center_surface(winds, points, roundWind, round, wallTiles, dealer, playerTurn, riichi):
+    
     size = 216
     radius = 20
     inward_offset = 10  # Define inward offset
@@ -324,9 +356,6 @@ def create_center_surface(winds=["E", "S", "W", "N"], points=[25000, 25000, 2500
     # Create a new surface with alpha transparency
     center_surface = pygame.Surface((size, size), pygame.SRCALPHA).convert_alpha()
 
-    # Fill the entire surface with dark grey
-    center_surface.fill((50, 50, 50))  # DARKGREY is (50, 50, 50)
-    
     # Draw a rounded rectangle
     pygame.draw.rect(center_surface, (50, 50, 50), (0, 0, size, size), border_radius=radius)
     

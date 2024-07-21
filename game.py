@@ -353,6 +353,8 @@ class Game():
         eastOnly = self.gameData.eastOnly
         honbaSticks = self.gameData.honbaSticks
         newRound = self.gameData.roundWind
+        round = self.gameData.round
+        round+=1
 
         if not (oldDealer == winningPlayer) and condition != 3:
             newDealer = oldDealer + 1
@@ -368,10 +370,11 @@ class Game():
                 self.printScore(newPoints)
             else:
                 newRound+=1
+                round = 1
                 newDealer = 0
         
         self.newGame = True
-        self.gameData = GameData(newPoints, newDealer, newRound, honbaSticks, eastOnly)
+        self.gameData = GameData(newPoints, newDealer, newRound, honbaSticks, eastOnly, round)
         for player in self.players:
             player.updateGameData(self.gameData)
         

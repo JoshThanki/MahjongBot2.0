@@ -9,7 +9,7 @@ class GameData(Matrix):
     
     #points [1,2,3,4], dealer (0-3), roundWind (0-3) honbaSticks (int)
 
-    def __init__(self, points = [250,250,250,250], dealer = 0, roundWind = 0, honbaSticks = 0, eastOnly = False):
+    def __init__(self, points = [250,250,250,250], dealer = 0, roundWind = 0, honbaSticks = 0, eastOnly = False, round = 1):
         
         ### Define Variables ###
 
@@ -42,6 +42,8 @@ class GameData(Matrix):
         
         #sets points
         self.setPlayerScore(points)
+        
+        self.round = round
         
         #sets player winds
         self.setDealer(dealer)
