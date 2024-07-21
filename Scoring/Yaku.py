@@ -8,22 +8,27 @@ yakus = {}
 
 # ONE HAN CLOSED ONLY
 
+
+
+
+
+
+
 def Menzenchin_tsumohou(gameData, player, typeWin):
     if (typeWin==3) and (gameData.getClosed(player)):
-        yakus[0] = 1
+        return 1
 
 def Riichi(gameData, player):
     if gameData.getRiichi(player):
-        yakus[1] = 1
+        return 1
 
 #def Ippatsu(gameData, player):
     # Will do
 
 
 def Pinfu(gameData, player, typeWin):
-    if (gameData.getClosed(player)) and (checkYaku.getSeq() == 4):
-        if checkYaku.getLastSet()[0] != 1 or checkYaku.getLastSet()[1] != 9:
-            yakus[3] = typeWin
+    if gameData.getClosed(player) and getFu(split)==20:######
+        return 1
         
 
 
