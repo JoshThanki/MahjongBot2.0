@@ -1,17 +1,27 @@
 import numpy as np
 from gameData import GameData
-import checkYaku 
+import checkYaku
+import SplitHand
 
 #gameData, player, typeWin, tile
 
-yakus = {}
-
 # ONE HAN CLOSED ONLY
 
+hand = []
+trips = []
+seqs = []
+pair = 0
+elements = [[0, 1, 2, 3, 4, 5, 6, 7, 8], [9, 10, 11, 12, 13, 14, 15, 16, 17], [18, 19, 20, 21, 22, 23, 24, 25, 26]]
 
 
-
-
+def getHand(gameData, player, typeWin):
+    hand = SplitHand.findWinningHandSplits(gameData, player, typeWin)
+    for i in range(0, 4):
+        if hand[i][0] == hand[i][1]:
+            trips.append(hand[i])
+        else:
+            seqs.append(hand[i])
+    pair = hand[4]
 
 
 def Menzenchin_tsumohou(gameData, player, typeWin):
@@ -34,9 +44,8 @@ def Pinfu(gameData, player, typeWin):
 
 def Iipeikou(gameData, player):
     if (gameData.getClosed(player)):
-        hand = checkYaku.checkYaku(gameData.privateHands[player])
         
-        tuples = [tuple(trip) for trip in hand]
+        tuples = [tuple(trip) for trip in trips]
 
         count_set = {}
         duplicate_array = []
@@ -49,43 +58,40 @@ def Iipeikou(gameData, player):
                 count_set.add(t)
 
         if len(count_set) > 0:
-            yakus[4] = len(count_set)
+            return len(count_set)
         
 
 # ONE HAN
 
-def Haitei_raoyue_Houtei_raoyui(gameData, typeWin):
-    if (gameData.wallTiles == 0):
-        if(typeWin == 3):
-            yakus[5] = 1
-        elif(typeWin == 2):
-            yakus[6] = 1
+def Haitei_raoyue(gameData, typeWin):
+    if (gameData.wallTiles == 0 and typeWin == 3):
+        return 1
+
+def Houtei_raoyui(gameData, typeWin):
+    if (gameData.wallTiles == 0 and typeWin == 2):
+        return 1
 
 # def Rinshan_kaihou (will do)
 # def Chankan (will do)
 
-def Tanyao(gameData, player):
-    hand = checkYaku.checkYaku(gameData.privateHands[player])
-
+def Tanyao():
     for i in range (0, 5):
         if hand[i][0] != 1 and hand[i][len(hand[i]) - 1] != 9:
-            yakus[9] = 1
+            return 1
 
-def Yakuhai(gameData, player):
-    trips = checkYaku.getTriplets(player)
+def Yakuhai():
     temp = 0
     for i in range (0, len(trips)):
         if trips[i][0] in range(31, 34):
             temp += 1
     if temp > 0:
-        yakus[10] = temp
+        return temp
 
 # TWO HAN
 
 # def Double_riichi (will do)
 
 def Chintaiyao(gameData, player):
-    hand = checkYaku.checkYaku(gameData.privateHands[player])
     target_numbers = {0, 8, 9, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33}
     check = True
 
@@ -95,35 +101,144 @@ def Chintaiyao(gameData, player):
             break
     
     if check == True:
-        yakus[12] = 1
+        if gameData.getClosed[player] > 0:
+            return 2
+        else:
+            return 1
 
 def Sanshoku_doujun(gameData, player):
-    seqs = checkYaku.getSequences(player)
     if len(seqs) > 2:
-        # Will complete
+        count_set = {}
+        count = 0
+        for seq in seqs:
+            norm_set = tuple(sorted(((tile % 9) + 1) for tile in seq))
+            
+            set_index = None
+            if 0 <= seq[0] <= 8:
+                set_index = 0
+            elif 10 <= seq[0] <= 17:
+                set_index = 1
+            elif 18 <= seq[0] <= 26:
+                set_index = 2
 
-# def Ittsu (will do)
+            if set_index is None:
+                continue
+
+            # Check if the normalized group is already in the dictionary
+            if norm_set not in count_set:
+                count_set[norm_set] = set()
+            
+            # Add the set index to the set of this normalized group
+            count_set[norm_set].add(set_index)
+            
+            # If there are at least 2 different sets for the same normalized group
+            if len(count_set[norm_set]) >= 2:
+                if gameData.getClosed[player] > 0:
+                    return 2
+                else:
+                    return 1
+
+
+def Ittsu(gameData, player):
+    if len(seqs) > 2:
+        for i in range(len(seqs) - 2):
+            if seqs[i][0] == seqs[i+1][0] - 3 and seqs[i+1][0] == seqs[i+2][0] - 3:
+                if gameData.getClosed[player] > 0:
+                    return 2
+                else:
+                    return 1
     
 def Toitoi(gameData, player):
-    if len(checkYaku.getTriplets(player)) == 4:
-        yakus[15] = 1
+    if len(trips) == 4:
+        return 1
 
 def Sanankou_or_doukou(gameData, player):
-    trips = checkYaku.getPrivSets(player)
-    if len(trips) >= 3:
-        for trip in trips:
-            # will complete
+    if len(trips) == 3 and len(gameData.getPlayerPonTiles(player)) == 0:
+        for i in range (0, 1):
+            if ((trips[i] % 9) + 1) != ((trips[i+1] % 9) + 1):
+                return 2
+        return 4
+
 
 def Sankantsu(gameData, player):
-    sets = checkYaku.getPrivSets(player)
-    if len(sets) >= 3:
-        yakus[18] = 1
-        for set in sets:
-            if len(set) != 4:
-                del yakus[18]
-                break
+    if gameData.get
 
 # def chitoitsu (will do)
+
+def Honroutou(gameData, player):
+    if len(trips) == 4:
+        target_numbers = {0, 8, 9, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33}
+
+        if pair in target_numbers:
+            for trip in trips:
+                if trip[0] not in target_numbers:
+                    return 0
+            return 2
+        
+def Shousangen(gameData, player):
+    target_numbers = {31, 32, 34}
+    if len(trips) > 1 and pair in target_numbers:
+        target_numbers.remove(pair)
+        for trip in trips:
+            if trip[0] in target_numbers:
+                target_numbers.remove(trip[0])
+            if len(target_numbers) == 0:
+                return 2
+            
+
+# THREE HAN 
+
+def Honitsu(gameData, player):
+    sets = trips + seqs
+    for set_i in elements:
+        if sets[0][0] in set_i:
+            check = set(set_i)
+            check.update({27, 28, 29, 30, 31, 32, 33})
+            break
+    for grp in sets:
+        for tile in grp:
+            if tile not in check:
+                return 0
+    if pair not in check:
+        return 0
+    else:
+        if gameData.getClosed[player] > 0:
+            return 3
+        else:
+            return 2
+        
+def Junchan_taiyao(gameData, player):
+    if (pair % 9) not in {0, 8}:
+        return 0
+    else:
+        sets = trips + seqs
+        for i in sets:
+            if i[0] % 9 not in {0, 8}:
+                return 0
+        if gameData.getClosed[player] > 0:
+            return 3
+        else:
+            return 2
+        
+# SIX HAN
+
+def Chinitsu(gameData, player):
+    for i in elements:
+        if pair in i:
+            check = set(i)
+            break
+    sets = trips + seqs
+    for i in sets:
+        if i[0] not in check:
+            return 0
+    if gameData.getClosed[player] > 0:
+        return 6
+    else:
+        return 5
+        
+
+
+        
 
 
                 
