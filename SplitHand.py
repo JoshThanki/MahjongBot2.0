@@ -12,7 +12,6 @@ def getGroups(gameData, player):
     souTriplets = [[tile]*3 for tile in range(18,27) if hand[tile]>=3]
     honourTriplets = [[tile]*3 for tile in range(27,34) if hand[tile]>=3]
 
-
     manSequences = []
     pinSequences = []
     souSequences = []
@@ -45,9 +44,10 @@ def getGroups(gameData, player):
 
 def findWinningHandSplits(gameData, player, typeWin):
     if typeWin == 5:
-        gameData.addTilePrivateHand( gameData.lastDiscardTile )
+        gameData.addTilePrivateHand(gameData.lastDiscardTile)
 
     hand = gameData.privateHands[player]
+    print(hand)
     groups = getGroups(gameData, player)
     GroupsToFind = 4 - gameData.getMeldNum(player)
 
@@ -55,11 +55,13 @@ def findWinningHandSplits(gameData, player, typeWin):
     for combination in combinations(groups, GroupsToFind):
         out = np.zeros(34, dtype=int)        
         for group in combination:
+            validCombinations.append(group)
             for tile in group:
                 out[tile]+=1
 
         if np.all(out <= hand) and np.isin(2, hand-out):
-            validCombinations.append(list(combination)+ [(hand-out).tolist().index(2)])
+            pair_tile_index = (hand - out).tolist().index(2)
+            validCombinations.append(pair_tile_index)
 
     
     return validCombinations
@@ -88,9 +90,9 @@ def Fu(gameData, player):
     return fu
 
 hand = [0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 3, 0]
-hand = [0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0]
+hand = [0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0]
 
 gamedata = GameData()
 print(gamedata.privateHands)
 
-print(findWinningHandSplits(gamedata, 0, None))
+print(findWinningHandSplits(gamedata, 3, 4))
