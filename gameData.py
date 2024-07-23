@@ -126,11 +126,11 @@ class GameData(Matrix):
 
     def __str__(self):
 
-        # self.buildMatrix(0)
-        # printNice(self.gameState)
-        print("")
-        print(self.privateHands)
-        print("")
+        self.buildMatrix(0)
+        printNice(self.gameState)
+        # print("")
+        # print(self.privateHands)
+        # print("")
 
         return ""
     

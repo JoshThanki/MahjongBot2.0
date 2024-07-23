@@ -258,18 +258,26 @@ class GUI:
             self.playerTurn=1 
             self.riichi=[False, True, False, True]
 
+    def updateGameData(self, gamedata):
+        self.gameData = gamedata
+        
     def main(self):
         clock = pygame.time.Clock()
         # Main loop
         running = True
         while running:
+            # print("UPDATE")
             self.update()
+
+            # print(self.gameData)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
 
             # Blit the background image
+
+            self.screen.fill((0,0,0))
 
             self.screen.blit(self.background_image, (0, 0))
 

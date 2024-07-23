@@ -1,5 +1,7 @@
+import threading
 from Global import *
 
+from gui import GUI
 from player import Player
 from gameData import GameData
 import tensorflow as tf
@@ -7,31 +9,48 @@ import tensorflow as tf
 class Game():
     
     def __init__(self):
-
-        
-        #points = [250,250,250,250] 
-        #round = east
-        #dealer = east
-        #honba sticks = 0 
-
-        #uncomment this line to print to out
-
-        # self.file = open("out.txt", "w+") 
         self.file = None
-
         self.running = True
         self.newGame = True
-        self.gameData = GameData(eastOnly=True) 
-        # Comment this to test specific functions
-        models = [tf.keras.models.load_model('Saved Models\discardModel'), tf.keras.models.load_model('Saved Models\discardModel'), tf.keras.models.load_model('Saved Models\chiModel'), tf.keras.models.load_model('Saved Models\ponModel'), tf.keras.models.load_model('Saved Models\kanModel') ]
+        self.gameData = GameData(eastOnly=True)
+
+        # Load models
+        models = [tf.keras.models.load_model('Saved Models/discardModel'),
+                  tf.keras.models.load_model('Saved Models/discardModel'),
+                  tf.keras.models.load_model('Saved Models/chiModel'),
+                  tf.keras.models.load_model('Saved Models/ponModel'),
+                  tf.keras.models.load_model('Saved Models/kanModel')]
+
+        # Initialize players
+        self.players = [Player(i, self.gameData, models=models) for i in range(4)]
         
-        self.players = [Player(i, self.gameData, models=models) for i in range(4)] 
+        # Initialize the GUI with game data
+        self.gui = GUI(self.gameData)
+
+        # Event to signal stopping the threads
+        self.stop_threads = threading.Event()
+
+    def game_logic_thread(self):
+        print("Starting game logic thread")
+        try:
+            self.main()  # Run the game logic
+        except Exception as e:
+            print(f"Exception in game logic thread: {e}")
+        finally:
+            print("Finished game logic thread")
+
+    def gui_thread(self):
+        print("Starting GUI thread")
+        try:
+            while not self.stop_threads.is_set():
+                self.gui.main()  # Run the Pygame loop (handling events, rendering, etc.)
+        except Exception as e:
+            print(f"Exception in GUI thread: {e}")
+        finally:
+            print("Finished GUI thread")
 
     def main(self):
-        
-        
         while self.running:
-            
             if self.newGame:
                 print("Starting a new game", file=self.file)
                 # print(self.gameData)
@@ -43,6 +62,8 @@ class Game():
 
             if self.checkOver():
                 continue
+            
+            time.sleep(0.5)
 
             self.discardStep()
 
@@ -51,10 +72,21 @@ class Game():
             if self.checkOver():
                 continue
 
+            time.sleep(0.5)
 
-            time.sleep(1)
+            #manage game time
 
-            
+    def start(self):
+        # Create and start the game logic thread
+        game_thread = threading.Thread(target=self.game_logic_thread)
+        game_thread.start()
+
+        # Run the GUI loop in the main thread
+        try:
+            self.gui_thread()
+        except KeyboardInterrupt:
+            print("Interrupted by user")
+                    
 
     
     # Have the given POV Player draw a tile    
@@ -378,6 +410,9 @@ class Game():
         
         self.newGame = True
         self.gameData = GameData(newPoints, newDealer, newRound, honbaSticks, eastOnly, round)
+
+        self.gui.updateGameData(self.gameData)
+
         for player in self.players:
             player.updateGameData(self.gameData)
         
