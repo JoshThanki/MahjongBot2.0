@@ -1,3 +1,5 @@
+import time
+from typing import List
 import pygame
 import sys
 import os
@@ -14,6 +16,14 @@ HANDTILESCALE = 0.6
 SPRITE_COLOR_KEY = (0, 0, 0)  # Color key for transparency in the sprite sheet
 SPRITE_SPACING = 10  # Spacing between sprites
 
+
+
+
+    
+
+
+
+
 fontPath = "Assets//Fonts//"
 font1 = "HanYiShuHunTiJian-1.ttf"
 font2 = "JinXiHaoLong-1.otf"
@@ -28,7 +38,10 @@ YELLOW = (179, 168, 114)
 # Initialize Pygame
 pygame.init()
 
+
 class Spritesheet:
+
+
     def __init__(self, filename, scale, colour_key, width, height):
         filepath = os.path.join(ASSETS_PATH, filename)
         self.spriteSheet = pygame.image.load(filepath).convert_alpha()
@@ -62,6 +75,33 @@ class Spritesheet:
         image.set_colorkey(self.colour_key)
 
         return image
+
+
+
+class HandTile(pygame.sprite.Sprite):
+    def __init__(self, hand_index, handLen, spriteSheet, sprite_sheet_pos=(0, 0)):
+        super().__init__()
+        self.image = spriteSheet.get_image(sprite_sheet_pos)
+        self.rect = self.image.get_rect()
+        self.hand_index = hand_index  # Index of this tile in the hand
+        self.handLen = handLen  # Reference to the hand list
+
+    def update(self):
+        # Calculate the new position based on the index in the hand
+        total_width = WIDTH
+        tile_width = self.rect.width
+        len_tiles = (tile_width + SPRITE_SPACING) * self.handLen
+        xoffset = (total_width - len_tiles) // 2
+        yoffset = 925
+
+        # Update position based on index
+        self.rect.topleft = (xoffset + (tile_width + SPRITE_SPACING) * self.hand_index, yoffset)
+
+    def __str__(self):
+        return (
+            f"Tile(position=({self.rect.x}, {self.rect.y}), "
+            f"sprite_sheet_pos={self.sprite_sheet_pos})"
+        )
     
 
 def load_image(image_path):
@@ -88,7 +128,7 @@ def convertIndex(index):
     else:
         return((3, number))
     
-def convertOrderedMelds(orderedMelds):
+def convertOrderedMelds(orderedMelds, spriteSheet):
     res = []
 
     for melds in orderedMelds:
@@ -108,25 +148,42 @@ def convertOrderedMelds(orderedMelds):
                 print("Unknown Meld")
                 exit()
                 
-        res.append([[Tile(sprite_sheet_pos=convertIndex(tile)) for tile in meld] for meld in playerMelds])
+        res.append([[spriteSheet.get_image(convertIndex(tile)) for tile in meld] for meld in playerMelds])
     
     # print([[[str(tile) for tile in melds] for melds in player] for player in res])
 
     return res
 
 
-def convertHand(hand):
-    res = []
+def convertHand(hand, prevHand, spriteSheet):
+    res = pygame.sprite.Group()
+    
+    if prevHand:
+        for sprite in prevHand:
+            sprite.kill()
 
+    index = 0
     for tile, count in enumerate(hand):
         while count > 0:
-            res.append(Tile(sprite_sheet_pos=convertIndex(tile), scale=HANDTILESCALE, handTile=True))
+            index +=1
             count-=1
+
+    handLen = index
+
+    index = 0
+    for tile, count in enumerate(hand):
+        while count > 0:
+            sprite = HandTile(sprite_sheet_pos=convertIndex(tile), hand_index=index, handLen = handLen, spriteSheet=spriteSheet)
+            res.add(sprite)
+            index +=1
+            count-=1
+
+        
 
     return res  
 
-def convertOrderedPool(pool):
-    return [[Tile(sprite_sheet_pos=convertIndex(tile)) for tile in playerpool] for playerpool in pool]
+def convertOrderedPool(pool, spriteSheet):
+    return [[spriteSheet.get_image(convertIndex(tile)) for tile in playerpool] for playerpool in pool]
 
 def convertPlayerWinds(winds):
     windDict = {
@@ -138,8 +195,8 @@ def convertPlayerWinds(winds):
 
     return [windDict[wind] for wind in winds]
 
-def convertOrderedDora(dora):
-    return [Tile(sprite_sheet_pos=convertIndex(tile)) for tile in dora]
+def convertOrderedDora(dora, spriteSheet):
+    return [spriteSheet.get_image(convertIndex(tile)) for tile in dora]
 
 def convertPoints(points):
     return [playerPoints * 100 for playerPoints in points]
@@ -158,23 +215,27 @@ class GUI:
     #orderedMelds =  [i = player]  (lowestTile, meldType = (0 - chi, 1 - pon, 2 - kan, 3 - closed kan))
 
     def __init__(self, gameData : GameData = None):
-        
-
-        self.screen = screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE | pygame.SCALED)
+        self.screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE | pygame.SCALED)
         pygame.display.set_caption("Mahjong with Pygame")
+
         background_image_path = os.path.join(ASSETS_PATH, BACKGROUND_IMAGE_NAME)
         self.background_image = load_image(background_image_path)
         
-                
         self.playerNo = 0
-
+        self.hand = None
         self.gameData = gameData
 
+        self.tileSheet = Spritesheet(SPRITESHEET_IMAGE_NAME, SPRITE_SCALE, SPRITE_COLOR_KEY, SPRITE_FRAME_WIDTH, SPRITE_FRAME_HEIGHT)
+
+        self.handTileSheet = Spritesheet(SPRITESHEET_IMAGE_NAME, HANDTILESCALE, SPRITE_COLOR_KEY, SPRITE_FRAME_WIDTH, SPRITE_FRAME_HEIGHT)
+    
+
+    def update(self):
         if self.gameData:
-            self.hand = convertHand(self.gameData.privateHands(self.playerNo))
-            self.orderedMelds = convertOrderedMelds(self.gameData.orderedMelds())
-            self.orderedPool = convertOrderedPool(self.gameData.orderedPool())
-            self.orderedDora = convertOrderedDora(self.gameData.orderedDora())
+            self.hand = convertHand(self.gameData.privateHands[self.playerNo], self.hand, self.handTileSheet)
+            self.orderedMelds = convertOrderedMelds(self.gameData.orderedMelds, self.tileSheet)
+            self.orderedPool = convertOrderedPool(self.gameData.orderedPool, self.tileSheet)
+            self.orderedDora = convertOrderedDora(self.gameData.orderedDora, self.tileSheet)
             self.playerWinds = convertPlayerWinds(self.gameData.playerWinds)
             self.wallTiles = self.gameData.wallTiles
             self.points = convertPoints(self.gameData.playerScores)
@@ -184,10 +245,10 @@ class GUI:
             self.playerTurn = self.gameData.playerTurn
             self.riichi = self.gameData.Riichi
         else:
-            self.hand = convertHand([1 if i in [i for i in range(13)] else 0 for i in range(34)])
-            self.orderedMelds = convertOrderedMelds([[(1,0)],[(1,0), (2,0)],[(1,0), (2,0), (3,0), (3,0)],[(1,0), (2,0), (3,0)]])
-            self.orderedPool = convertOrderedPool([[1,2,3],[4,5,6],[7,7,6],[9,9,9]])
-            self.orderedDora = convertOrderedDora([1,2,3])
+            self.hand = convertHand([1 if i in [i for i in range(13)] else 0 for i in range(34)], self.hand, self.handTileSheet)
+            self.orderedMelds = convertOrderedMelds([[(1,0)],[(1,0), (2,0)],[(1,0), (2,0), (3,0), (3,0)],[(1,0), (2,0), (3,0)]], self.tileSheet)
+            self.orderedPool = convertOrderedPool([[1,2,3],[4,5,6],[7,7,6],[9,9,9]], self.tileSheet)
+            self.orderedDora = convertOrderedDora([1,2,3], self.tileSheet)
             self.playerWinds = convertPlayerWinds([0,1,2,3])
             self.wallTiles = 70
             self.points=convertPoints([25000, 25000, 25000, 25000])
@@ -197,28 +258,24 @@ class GUI:
             self.playerTurn=1 
             self.riichi=[False, True, False, True]
 
-        self.screen.blit(self.background_image, (0, 0))
-    
-
     def main(self):
-            
+        clock = pygame.time.Clock()
         # Main loop
         running = True
         while running:
+            self.update()
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
 
             # Blit the background image
-            
-            for i, tile in enumerate(self.hand):
-                
-                totalWidth = 1024 
-                lenTiles = (SPRITE_FRAME_WIDTH * HANDTILESCALE  + 5) * len(self.hand)
-                xoffset = (totalWidth - lenTiles) // 2 
-                yoffset = 925
 
-                tile.update(self.screen, (xoffset + (SPRITE_FRAME_WIDTH * HANDTILESCALE  + 5) * i, yoffset))
+            self.screen.blit(self.background_image, (0, 0))
+
+            self.hand.update()
+            self.hand.draw(self.screen)
+
 
             for i, player in enumerate(self.orderedMelds):
 
@@ -229,7 +286,7 @@ class GUI:
                     meldWidth, surface = create_meld_surface(meld)
 
                     for tileNo, tile in enumerate(meld):
-                        surface.blit(tile.image, (SPRITE_FRAME_WIDTH * SPRITE_SCALE*tileNo, 0))
+                        surface.blit(tile, (SPRITE_FRAME_WIDTH * SPRITE_SCALE*tileNo, 0))
                     
                     playerSurface.blit(surface, (runningMeldWidth, 0))
 
@@ -260,7 +317,7 @@ class GUI:
                     x = SPRITE_FRAME_WIDTH * SPRITE_SCALE * (tileNo % 6)
                     y = SPRITE_FRAME_HEIGHT * SPRITE_SCALE * (tileNo // 6)
 
-                    discardSurface.blit(tile.image, (x,y))
+                    discardSurface.blit(tile, (x,y))
 
                 if i == 0:
                     playerOffset = (512 - 108, 512 + 108)
@@ -283,9 +340,12 @@ class GUI:
             pos = (1024//2) - (size//2)
 
             self.screen.blit(center_surface, (pos,pos))
-
+            
             # Update the display
             pygame.display.flip()
+
+            clock.tick(30)
+
 
         pygame.quit()
         sys.exit()
@@ -313,11 +373,15 @@ def create_meld_surface(meld):
 def create_player_surface(melds):
     width = -10
     height = SPRITE_FRAME_HEIGHT * SPRITE_SCALE 
+    if not melds:
+        width = 0
+
     for meld in melds:
         width+=10
         meldWidth = SPRITE_FRAME_WIDTH * SPRITE_SCALE * len(meld)
         width+=meldWidth
     
+
     player_surface = pygame.Surface((width, height), pygame.SRCALPHA).convert_alpha()
 
     return width, player_surface
@@ -527,32 +591,3 @@ def rot_center(image, angle):
     rot_rect.center = rot_image.get_rect().center
     rot_image = rot_image.subsurface(rot_rect).copy()
     return rot_image
-
-
-class Tile:
-    def __init__(self, position = (0,0), handTile = False, scale = SPRITE_SCALE, sprite_sheet_pos = (0,0), colourKey = SPRITE_COLOR_KEY):
-
-        self.x = position[0]
-        self.y = position[1]
-        self.width = SPRITE_FRAME_WIDTH
-        self.height = SPRITE_FRAME_HEIGHT
-        self.handTile = handTile
-        self.sprite_sheet_pos = sprite_sheet_pos
-        self.spritesheet = Spritesheet(SPRITESHEET_IMAGE_NAME, scale, colourKey, self.width, self.height)
-        self.image = self.spritesheet.get_image(self.sprite_sheet_pos)
-
-    def update(self, screen, position = None):
-        if position:
-            self.x = position[0]
-            self.y = position[1]
-
-        screen.blit(self.image, (self.x, self.y))
-
-    def __str__(self):
-        return (
-            f"Tile(position=({self.x}, {self.y}), "
-            f"sprite_sheet_pos={self.sprite_sheet_pos}, "
-        )
-
-gui = GUI()
-gui.main()

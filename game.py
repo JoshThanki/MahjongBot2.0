@@ -16,13 +16,12 @@ class Game():
 
         #uncomment this line to print to out
 
-        self.file = open("out.txt", "w+") 
-        # self.file = None
+        # self.file = open("out.txt", "w+") 
+        self.file = None
 
         self.running = True
         self.newGame = True
         self.gameData = GameData(eastOnly=True) 
-
         # Comment this to test specific functions
         models = [tf.keras.models.load_model('Saved Models\discardModel'), tf.keras.models.load_model('Saved Models\discardModel'), tf.keras.models.load_model('Saved Models\chiModel'), tf.keras.models.load_model('Saved Models\ponModel'), tf.keras.models.load_model('Saved Models\kanModel') ]
         
@@ -51,6 +50,10 @@ class Game():
 
             if self.checkOver():
                 continue
+
+
+            time.sleep(1)
+
             
 
     
