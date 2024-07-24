@@ -1,6 +1,5 @@
 import numpy as np
 from gameData import GameData
-import checkYaku
 import SplitHand
 
 #gameData, player, typeWin, tile
@@ -71,19 +70,27 @@ def Houtei_raoyui(gameData, typeWin):
     if (gameData.wallTiles == 0 and typeWin == 2):
         return 1
 
-# def Rinshan_kaihou (will do)
-# def Chankan (will do)
+# def Rinshan_kaihou (will ignore)
+# def Chankan (will ignore)
 
 def Tanyao():
     for i in range (0, 5):
-        if hand[i][0] != 1 and hand[i][len(hand[i]) - 1] != 9:
-            return 1
+        if hand[i][0] == 1 or hand[i][-1] == 9:
+            return 0
+    return 1
 
-def Yakuhai():
+def Yakuhai(gameData, player):
+    target_numbers = {31, 32, 33}
+    target_numbers.add(gameData.roundWind + 27)
+    target_numbers.add(gameData.playerWinds[player] + 27)
+
     temp = 0
     for i in range (0, len(trips)):
         if trips[i][0] in range(31, 34):
-            temp += 1
+            if gameData.roundWind == gameData.playerWinds[player]:
+                temp += 2
+            else:
+                temp += 1
     if temp > 0:
         return temp
 
@@ -96,7 +103,7 @@ def Chintaiyao(gameData, player):
     check = True
 
     for i in range (0, 5):
-        if hand[i][0] not in target_numbers and hand[i][len(hand[i]) - 1] not in target_numbers:
+        if hand[i][0] not in target_numbers or hand[i][-1] not in target_numbers:
             check = False
             break
     
@@ -111,8 +118,10 @@ def Sanshoku_doujun(gameData, player):
         count_set = {}
         count = 0
         for seq in seqs:
-            norm_set = tuple(sorted(((tile % 9) + 1) for tile in seq))
+            # convert each sequence to its normalised format (1-9) as a tuple so it can be compared within a set
+            norm_set = tuple(sorted(((tile % 9) + 1) for tile in seq)) 
             
+            # Calculate whether the given sequence is of man (0-8), pin (9-17) or sou (18-26)
             set_index = None
             if 0 <= seq[0] <= 8:
                 set_index = 0
@@ -131,8 +140,8 @@ def Sanshoku_doujun(gameData, player):
             # Add the set index to the set of this normalized group
             count_set[norm_set].add(set_index)
             
-            # If there are at least 2 different sets for the same normalized group
-            if len(count_set[norm_set]) >= 2:
+            # If there are at least 3 different sets for the same normalized group return some han
+            if len(count_set[norm_set]) >= 3:
                 if gameData.getClosed[player] > 0:
                     return 2
                 else:
@@ -141,12 +150,35 @@ def Sanshoku_doujun(gameData, player):
 
 def Ittsu(gameData, player):
     if len(seqs) > 2:
-        for i in range(len(seqs) - 2):
-            if seqs[i][0] == seqs[i+1][0] - 3 and seqs[i+1][0] == seqs[i+2][0] - 3:
+        set_seqs = {0: set(), 1: set(), 2: set()}
+    
+        # Iterate through each group (sequence of 3 tiles)
+        for group in seqs:
+            # Normalize the group
+            normalized_seqs = {normalize_tile(tile) for tile in group}
+            
+            # Determine the set index
+            if 0 <= group[0] <= 8:
+                set_index = 0
+            elif 10 <= group[0] <= 17:
+                set_index = 1
+            elif 18 <= group[0] <= 26:
+                set_index = 2
+            else:
+                continue
+            
+            # Add normalized values to the corresponding set index
+            set_seqs[set_index].update(normalized_seqs)
+        
+        # Check if any set contains all numbers from 1 to 9
+        for key in set_seqs:
+            if set_seqs[key] == set(range(1, 10)):
                 if gameData.getClosed[player] > 0:
                     return 2
                 else:
                     return 1
+        
+        return 0
     
 def Toitoi(gameData, player):
     if len(trips) == 4:
@@ -176,7 +208,7 @@ def Honroutou(gameData, player):
             return 2
         
 def Shousangen(gameData, player):
-    target_numbers = {31, 32, 34}
+    target_numbers = {31, 32, 33}
     if len(trips) > 1 and pair in target_numbers:
         target_numbers.remove(pair)
         for trip in trips:
