@@ -26,7 +26,7 @@ class Player:
 
         return np.argmax(prediction)   
     
-
+    
     def getPredictionDiscard(self):
         state = self.gameData.getMatrix()
         prediction = self.discardModel( np.array([state.flatten()]) )[0].numpy()
@@ -51,8 +51,9 @@ class Player:
                 prediction = [prediction[i] if shantenDiscards[i] == 0 else 0 for i in range(34)]
 
             else:
-                prediction = [self.gameData.lastDrawTile]
+                print(f"Last Draw Tile: {self.gameData.lastDrawTile}")
 
+                return self.gameData.lastDrawTile
 
         return np.argmax(prediction)  
 

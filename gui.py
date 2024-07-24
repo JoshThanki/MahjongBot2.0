@@ -260,7 +260,7 @@ class GUI:
 
     def updateGameData(self, gamedata):
         self.gameData = gamedata
-        
+
     def main(self):
         clock = pygame.time.Clock()
         # Main loop
@@ -348,6 +348,12 @@ class GUI:
             pos = (1024//2) - (size//2)
 
             self.screen.blit(center_surface, (pos,pos))
+
+            dora_surface = create_dora_surface(dora=self.orderedDora, spriteSheet=self.tileSheet)
+
+
+            self.screen.blit(dora_surface, (35,35))
+            
             
             # Update the display
             pygame.display.flip()
@@ -368,6 +374,22 @@ def loadText(text, font, color = (0, 0, 0)):
 
     return text_surface
 
+
+def create_dora_surface(dora, spriteSheet):
+    width = SPRITE_FRAME_WIDTH * SPRITE_SCALE * 5
+    height = SPRITE_FRAME_HEIGHT * SPRITE_SCALE 
+
+    dora_surface = pygame.Surface((width, height), pygame.SRCALPHA).convert_alpha()
+
+    for tileNo in range(5):
+        x = SPRITE_FRAME_WIDTH * SPRITE_SCALE * tileNo
+        y = 0
+        if tileNo < len(dora):
+            dora_surface.blit(dora[tileNo], (x, y))
+        else:
+            dora_surface.blit(spriteSheet.get_image(convertIndex(34)), (x, y))
+    
+    return dora_surface
 
 def create_meld_surface(meld):
     # Calculate the width of the surface based on the length of the meld
