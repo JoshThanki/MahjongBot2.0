@@ -267,6 +267,59 @@ def Chinitsu(gameData, player):
         return 6
     else:
         return 5
+    
+# YAKUMAN
+
+def Kokushi_musou(gameData, player):
+    target_tiles = {0, 8, 9, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33}
+    # Will complete
+
+def Suuankou(gameData, player, typeWin):
+    if typeWin == 3 and len(trips) == 4:
+        return 12
+    
+def Daisangen():
+    if len(trips) < 3:
+        return 0
+    else:
+        count = 0
+        for trip in trips:
+            if trip[0] in range(31, 34):
+                count += 1
+        if count == 3:
+            return 12
+        else:
+            return 0
+        
+def Shousuushii():
+    target_tiles = {27, 28, 29, 30}
+    if pair not in target_tiles or len(trips) < 3:
+        return 0
+    else:
+        target_tiles.remove(pair)
+        for trip in trips:
+            if trip[0] in target_tiles:
+                target_tiles.remove(trip[0])
+        if len(target_tiles) == 0:
+            return 12
+        else:
+            return 0
+        
+def Daisuushii():
+    if len(trips) == 4:
+        target_tiles = {27, 28, 29, 30}
+        for trip in trips:
+            if trip[0] not in target_tiles:
+                return 0
+        return 12
+    else:
+        return 0
+    
+def Tsuuiisou():
+    
+
+        
+
         
 
 
