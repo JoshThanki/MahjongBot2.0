@@ -17,6 +17,12 @@ HANDTILESCALE = 0.6
 SPRITE_COLOR_KEY = (0, 0, 0)  # Color key for transparency in the sprite sheet
 SPRITE_SPACING = 10  # Spacing between sprites
 
+DARKGREY = (60, 60, 60)
+BLACK = (0, 0, 0)
+YELLOW = (204, 153, 0)
+LIGHT_BLUE = (32, 178, 170)
+WHITE = (255, 255, 255)
+
 
 fontPath = "Assets//Fonts//"
 font1 = "HanYiShuHunTiJian-1.ttf"
@@ -153,22 +159,54 @@ class HandTileGroup(pygame.sprite.Group):
 
 
 class HandTile(pygame.sprite.Sprite):
-    def __init__(self, hand_index, tileNo, handLen, spriteSheet, sprite_sheet_pos=(0, 0)):
+    def __init__(self, hand_index, tileNo, handLen, spriteSheet, sprite_sheet_pos):
         super().__init__()
-        self.image = spriteSheet.get_image(sprite_sheet_pos)
-        self.rect = self.image.get_rect()
+        
+        # Load the original image
+        self.originalImage = spriteSheet.get_image(sprite_sheet_pos)
+        self.rect = self.originalImage.get_rect()
+        self.image = self.originalImage
         self.hand_index = hand_index  # Index of this tile in the hand
         self.handLen = handLen  # Reference to the hand list
         self.tileNo = tileNo
 
+        # Position calculation
         total_width = WIDTH
         tile_width = self.rect.width
         len_tiles = (tile_width + SPRITE_SPACING) * self.handLen
         xoffset = (total_width - len_tiles) // 2
         yoffset = 925
-
-        # Update position based on index
         self.rect.topleft = (xoffset + (tile_width + SPRITE_SPACING) * self.hand_index, yoffset)
+    def _apply_glow(self):
+
+        # Create a surface with the same size as the original image
+        glow_surface = pygame.Surface(self.originalImage.get_size(), pygame.SRCALPHA)
+
+
+        # Blit the glow effect onto the original image
+        self.image.blit(glow_surface, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
+
+        # Create a softer arrow
+        arrow_size = 18
+        arrow_surface = pygame.Surface((arrow_size, arrow_size), pygame.SRCALPHA)
+        pygame.draw.polygon(arrow_surface, (255, 255, 0), [(arrow_size // 2, arrow_size), (arrow_size, 0), (0, 0)], width=0)
+        
+        # Optionally add a semi-transparent outer glow to the arrow to soften it
+        soft_arrow_surface = pygame.Surface((arrow_size, arrow_size), pygame.SRCALPHA)
+        pygame.draw.polygon(soft_arrow_surface, (255, 255, 0, 128), [(arrow_size // 2, arrow_size), (arrow_size, 0), (0, 0)], width=0)
+        
+        # Blit the soft arrow on top of the original arrow
+        arrow_surface.blit(soft_arrow_surface, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
+        
+        # Position the arrow in the top middle of the tile
+        self.image.blit(arrow_surface, (self.rect.width // 2 - arrow_size // 2, 0))
+
+
+    def update(self, buffer):
+        request_type, request_data = buffer.get_request()
+
+        if request_type == 0 and request_data[self.tileNo] > 0:
+            self._apply_glow()
 
     def check_interaction(self, mouse_pos, buffer : Buffer):
         """
@@ -400,6 +438,8 @@ class GUI:
 
             self.screen.blit(self.background_image, (0, 0))
 
+            self.hand.update(self.buffer)
+
             self.hand.draw(self.screen)
 
             self.buttons.draw(self.screen)
@@ -543,14 +583,6 @@ def create_discard_surface(rows = 4):
     discard_surface =  pygame.Surface((width, height), pygame.SRCALPHA).convert_alpha()
 
     return width, height, discard_surface
-
-
-DARKGREY = (60, 60, 60)
-BLACK = (0, 0, 0)
-YELLOW = (204, 153, 0)
-LIGHT_BLUE = (32, 178, 170)
-WHITE = (255, 255, 255)
-
 
 def create_center_surface(winds, points, roundWind, round, wallTiles, dealer, playerTurn, riichi):
     
