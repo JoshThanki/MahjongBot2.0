@@ -10,12 +10,14 @@ import tensorflow as tf
 
 class Game():
     
-    def __init__(self):
+    def __init__(self, manual = False, time = 0.001):
         self.file = None
         self.running = True
         self.newGame = True
         self.gameData = GameData(eastOnly=True)
         self.buffer = Buffer()
+        self.timeStep = time
+        self.manual = manual
         
 
         # Load models
@@ -28,13 +30,18 @@ class Game():
         # guiPlayer = GUIPlayer(i)
 
         # Initialize players
-        
-        guiPlayer = MPlayer(0, self.gameData, buffer=self.buffer)
-        botPlayers = [Player(i, self.gameData, models=models) for i in range(1,4)]
-
         self.players = []
-        self.players.append(guiPlayer)
+
+        if self.manual:
+            guiPlayer = MPlayer(0, self.gameData, buffer=self.buffer)
+            botPlayers = [Player(i, self.gameData, models=models) for i in range(1,4)]
+            self.players.append(guiPlayer)
+
+        else:
+            botPlayers = [Player(i, self.gameData, models=models) for i in range(4)]
+    
         self.players.extend(botPlayers)
+
 
         self.gui = GUI(self.buffer, self.gameData)
     
@@ -73,7 +80,7 @@ class Game():
             if self.checkOver():
                 continue
             
-            time.sleep(0.5)
+            time.sleep(self.timeStep)
 
             self.discardStep()
 
@@ -82,7 +89,7 @@ class Game():
             if self.checkOver():
                 continue
 
-            time.sleep(0.5)
+            time.sleep(self.timeStep)
 
             #manage game time
 
