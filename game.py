@@ -1,7 +1,9 @@
 import threading
 from Global import *
 
+from buffer import Buffer
 from gui import GUI
+from guiPlayer import MPlayer
 from player import Player
 from gameData import GameData
 import tensorflow as tf
@@ -13,6 +15,8 @@ class Game():
         self.running = True
         self.newGame = True
         self.gameData = GameData(eastOnly=True)
+        self.buffer = Buffer()
+        
 
         # Load models
         models = [tf.keras.models.load_model('Saved Models/discardModel'),
@@ -20,14 +24,20 @@ class Game():
                   tf.keras.models.load_model('Saved Models/chiModel'),
                   tf.keras.models.load_model('Saved Models/ponModel'),
                   tf.keras.models.load_model('Saved Models/kanModel')]
+    
+        # guiPlayer = GUIPlayer(i)
 
         # Initialize players
-        self.players = [Player(i, self.gameData, models=models) for i in range(4)]
         
-        # Initialize the GUI with game data
-        self.gui = GUI(self.gameData)
+        guiPlayer = MPlayer(0, self.gameData, buffer=self.buffer)
+        botPlayers = [Player(i, self.gameData, models=models) for i in range(1,4)]
 
-        # Event to signal stopping the threads
+        self.players = []
+        self.players.append(guiPlayer)
+        self.players.extend(botPlayers)
+
+        self.gui = GUI(self.buffer, self.gameData)
+    
         self.stop_threads = threading.Event()
 
     def game_logic_thread(self):
@@ -78,7 +88,7 @@ class Game():
 
     def start(self):
         # Create and start the game logic thread
-        game_thread = threading.Thread(target=self.game_logic_thread)
+        game_thread = threading.Thread(target=self.game_logic_thread, daemon=True)
         game_thread.start()
 
         # Run the GUI loop in the main thread
@@ -86,6 +96,8 @@ class Game():
             self.gui_thread()
         except KeyboardInterrupt:
             print("Interrupted by user")
+        finally:
+            exit()
                     
 
     
@@ -423,3 +435,6 @@ class Game():
 
 
 
+if __name__ == "__main__":
+    game = Game()
+    game.start()

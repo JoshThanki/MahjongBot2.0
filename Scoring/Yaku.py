@@ -192,8 +192,8 @@ def Sanankou_or_doukou(gameData, player):
         return 4
 
 
-def Sankantsu(gameData, player):
-    if gameData.get
+# def Sankantsu(gameData, player):
+#     if gameData.get
 
 # def chitoitsu (will do)
 

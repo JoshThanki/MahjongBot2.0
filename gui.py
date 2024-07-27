@@ -3,6 +3,7 @@ from typing import List
 import pygame
 import sys
 import os
+from buffer import Buffer
 
 # Constants
 WIDTH, HEIGHT = 1024, 1024  # Adjusted window height for better display
@@ -15,13 +16,6 @@ SPRITE_SCALE = 0.45  # Scale factor for the sprite
 HANDTILESCALE = 0.6
 SPRITE_COLOR_KEY = (0, 0, 0)  # Color key for transparency in the sprite sheet
 SPRITE_SPACING = 10  # Spacing between sprites
-
-
-
-
-    
-
-
 
 
 fontPath = "Assets//Fonts//"
@@ -37,6 +31,7 @@ YELLOW = (179, 168, 114)
 
 # Initialize Pygame
 pygame.init()
+
 
 
 class Spritesheet:
@@ -76,18 +71,96 @@ class Spritesheet:
 
         return image
 
+class ButtonGroup(pygame.sprite.Group):
+    def check_interactions(self, mouse_pos, buffer):
+
+        for sprite in self.sprites():
+            if hasattr(sprite, 'check_interaction'):
+                sprite.check_interaction(mouse_pos, buffer)
+
+class Button(pygame.sprite.Sprite):
+    def __init__(self, action, button_index, totalLen):
+        super().__init__()
+
+        self.action = action
+        self.width = 200
+        self.height = 100
+        self.fontSize = 20
+
+        # Create a surface with a grey background
+        self.image = pygame.Surface((self.width , self.height))
+        self.image.fill((128, 128, 128))  # Grey color
+
+        #action = {actionType : (0-8) 0-Nothing, 1-TSUMO, 2-RIICHI, 3-CLOSEDKAN, 4-CHAKAN, 5-RON, 6-PON, 7-KAN, 8-CHI
+        #, arr : [], player : (0-3)}
+
+        actionDict = {
+            0: "Pass",
+            1: "Tsumo",
+            2: "Riichi",
+            3: "Kan",
+            4: "Kan",
+            5:"Ron",
+            6:"Pon",
+            7:"Kan",
+            8:"Chi"
+        }
+
+        # Render the text
+        self.font = loadFont(font2, self.fontSize)
+
+        self.text_surface = self.font.render(actionDict[self.action.type], True, (0, 0, 0))  # Black text
+
+        # Blit the text onto the grey surface
+        self.image.blit(self.text_surface, (10, 10))  # Position the text with some padding
+        
+
+        self.rect = self.image.get_rect()
+        self.button_index = button_index  # Index of this tile in the hand
+        self.totalLen = totalLen  # Reference to the hand list
+
+        total_width = WIDTH
+        width = self.rect.width
+        len_buttons = (width + SPRITE_SPACING) * self.totalLen
+        xoffset = ((total_width - len_buttons) // 2) + 300
+        yoffset = 800
+
+        # Update position based on index
+        self.rect.topleft = (xoffset + (width + SPRITE_SPACING) * self.button_index, yoffset)
+
+    def check_interaction(self, mouse_pos, buffer : Buffer):
+        """
+        Check if the mouse interacts with the tile and process request if clicked.
+
+        :param mouse_pos: The position of the mouse click.
+        :param buffer: The buffer object to get the request from.
+        """
+        
+        print(f"Mouse pos: {mouse_pos}, rect: {self.rect}")
+
+        if self.rect.collidepoint(mouse_pos):
+            print(f"Button clicked: {self.action.type}")
+            
+            buffer.signal(3, [self.action])
+
+
+class HandTileGroup(pygame.sprite.Group):
+    def check_interactions(self, mouse_pos, buffer):
+        
+        for sprite in self.sprites():
+            if hasattr(sprite, 'check_interaction'):
+                sprite.check_interaction(mouse_pos, buffer)
 
 
 class HandTile(pygame.sprite.Sprite):
-    def __init__(self, hand_index, handLen, spriteSheet, sprite_sheet_pos=(0, 0)):
+    def __init__(self, hand_index, tileNo, handLen, spriteSheet, sprite_sheet_pos=(0, 0)):
         super().__init__()
         self.image = spriteSheet.get_image(sprite_sheet_pos)
         self.rect = self.image.get_rect()
         self.hand_index = hand_index  # Index of this tile in the hand
         self.handLen = handLen  # Reference to the hand list
+        self.tileNo = tileNo
 
-    def update(self):
-        # Calculate the new position based on the index in the hand
         total_width = WIDTH
         tile_width = self.rect.width
         len_tiles = (tile_width + SPRITE_SPACING) * self.handLen
@@ -96,6 +169,25 @@ class HandTile(pygame.sprite.Sprite):
 
         # Update position based on index
         self.rect.topleft = (xoffset + (tile_width + SPRITE_SPACING) * self.hand_index, yoffset)
+
+    def check_interaction(self, mouse_pos, buffer : Buffer):
+        """
+        Check if the mouse interacts with the tile and process request if clicked.
+
+        :param mouse_pos: The position of the mouse click.
+        :param buffer: The buffer object to get the request from.
+        """
+
+        if self.rect.collidepoint(mouse_pos):
+            print(f"Tile clicked: {self.tileNo}")
+            
+            # Get request from buffer
+            request_type, request_data = buffer.get_request()
+            
+            # Check if request type is 0 and respond with type 2 and tileNo
+            if request_type == 0:
+                buffer.signal(2, [self.tileNo])
+
 
     def __str__(self):
         return (
@@ -156,7 +248,7 @@ def convertOrderedMelds(orderedMelds, spriteSheet):
 
 
 def convertHand(hand, prevHand, spriteSheet):
-    res = pygame.sprite.Group()
+    res = HandTileGroup()
     
     if prevHand:
         for sprite in prevHand:
@@ -173,7 +265,7 @@ def convertHand(hand, prevHand, spriteSheet):
     index = 0
     for tile, count in enumerate(hand):
         while count > 0:
-            sprite = HandTile(sprite_sheet_pos=convertIndex(tile), hand_index=index, handLen = handLen, spriteSheet=spriteSheet)
+            sprite = HandTile(sprite_sheet_pos=convertIndex(tile), tileNo = tile, hand_index=index, handLen = handLen, spriteSheet=spriteSheet)
             res.add(sprite)
             index +=1
             count-=1
@@ -209,12 +301,28 @@ def convertRoundWind(wind):
     
     return windDict[wind]
 
+def convertButtons(buffer):
+    type, data = buffer.get_request()
+    res = ButtonGroup()
+
+    if type == 1:
+        
+        totalI = len(data)
+
+        for i, action in enumerate(data):
+
+            res.add(Button(action, i, totalI))
+
+    return res
+
+
+from buffer import Buffer
 from gameData import GameData
 
 class GUI:
     #orderedMelds =  [i = player]  (lowestTile, meldType = (0 - chi, 1 - pon, 2 - kan, 3 - closed kan))
 
-    def __init__(self, gameData : GameData = None):
+    def __init__(self, buffer : Buffer = None, gameData : GameData = None):
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE | pygame.SCALED)
         pygame.display.set_caption("Mahjong with Pygame")
 
@@ -224,6 +332,7 @@ class GUI:
         self.playerNo = 0
         self.hand = None
         self.gameData = gameData
+        self.buffer = buffer
 
         self.tileSheet = Spritesheet(SPRITESHEET_IMAGE_NAME, SPRITE_SCALE, SPRITE_COLOR_KEY, SPRITE_FRAME_WIDTH, SPRITE_FRAME_HEIGHT)
 
@@ -232,7 +341,9 @@ class GUI:
 
     def update(self):
         if self.gameData:
-            self.hand = convertHand(self.gameData.privateHands[self.playerNo], self.hand, self.handTileSheet)
+
+            self.buttons : ButtonGroup = convertButtons(self.buffer)
+            self.hand : HandTileGroup = convertHand(self.gameData.privateHands[self.playerNo], self.hand, self.handTileSheet)
             self.orderedMelds = convertOrderedMelds(self.gameData.orderedMelds, self.tileSheet)
             self.orderedPool = convertOrderedPool(self.gameData.orderedPool, self.tileSheet)
             self.orderedDora = convertOrderedDora(self.gameData.orderedDora, self.tileSheet)
@@ -245,7 +356,8 @@ class GUI:
             self.playerTurn = self.gameData.playerTurn
             self.riichi = self.gameData.Riichi
         else:
-            self.hand = convertHand([1 if i in [i for i in range(13)] else 0 for i in range(34)], self.hand, self.handTileSheet)
+            self.buttons : ButtonGroup = ButtonGroup()
+            self.hand : HandTileGroup = convertHand([1 if i in [i for i in range(13)] else 0 for i in range(34)], self.hand, self.handTileSheet)
             self.orderedMelds = convertOrderedMelds([[(1,0)],[(1,0), (2,0)],[(1,0), (2,0), (3,0), (3,0)],[(1,0), (2,0), (3,0)]], self.tileSheet)
             self.orderedPool = convertOrderedPool([[1,2,3],[4,5,6],[7,7,6],[9,9,9]], self.tileSheet)
             self.orderedDora = convertOrderedDora([1,2,3], self.tileSheet)
@@ -274,6 +386,13 @@ class GUI:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_pos = event.pos  # Get mouse position on click
+                    
+                    # Check interaction with the tile group
+                    self.hand.check_interactions(mouse_pos, self.buffer)
+                    self.buttons.check_interactions(mouse_pos, self.buffer)
+
 
             # Blit the background image
 
@@ -281,8 +400,9 @@ class GUI:
 
             self.screen.blit(self.background_image, (0, 0))
 
-            self.hand.update()
             self.hand.draw(self.screen)
+
+            self.buttons.draw(self.screen)
 
 
             for i, player in enumerate(self.orderedMelds):

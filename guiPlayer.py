@@ -3,17 +3,18 @@ from gameData import GameData
 from action import Action
 from pathlib import Path
 
+from buffer import Buffer
+
 #action = actionType : (0-8) 0-Nothing, 1-TSUMO, 2-RIICHI, 3-CLOSEDKAN, 4-CHAKAN, 4-RON, 5-PON, 6-KAN, 7-CHI
         #, arr : [], player : (0-3)
 
 #discard returns tile (0-33)
 
-class Player:
-    def __init__(self, playerNo, gameData: GameData, models) -> None:
+class MPlayer:
+    def __init__(self, playerNo, gameData: GameData, buffer : Buffer) -> None:
         self.gameData = gameData
         self.playerNo = playerNo
-        self.discardModel, self.riichiModel , self.chiModel, self.ponModel, self.kanModel = models
-
+        self.buffer = buffer
 
     def updateGameData(self, gameData):
         self.gameData = gameData
@@ -28,18 +29,17 @@ class Player:
     
     
     def getPredictionDiscard(self):
-        state = self.gameData.getMatrix()
-        prediction = self.discardModel( np.array([state.flatten()]) )[0].numpy()
-
         hand = self.gameData.getPrivateHand(self.playerNo)
-        prediction = [prediction[i] if hand[i] != 0 else 0 for i in range(34)]
         
+        tile = None
+
+
         if self.gameData.getRiichi(self.playerNo):
             action, player = self.gameData.getLastDrawAction()
 
+            
 
             if action == 2 and player == self.playerNo:
-
                 meldNo = self.gameData.getMeldNum(self.playerNo)
             
                 def simDiscard(hand, discard):
@@ -48,14 +48,17 @@ class Player:
 
                 shantenDiscards = [calcShanten(simDiscard(hand[:], tile), meldNo)  if tileCount > 0 else None for tile, tileCount in enumerate(hand)]
 
-                prediction = [prediction[i] if shantenDiscards[i] == 0 else 0 for i in range(34)]
+                tile = self.buffer.request(0,[1 if shantenDiscards[i] == 0 else 0 for i in range(34)])[0]
 
             else:
-                print(f"Last Draw Tile: {self.gameData.lastDrawTile}")
 
                 return self.gameData.lastDrawTile
+            
+        if not tile:
 
-        return np.argmax(prediction)  
+            tile = self.buffer.request(0,hand)[0]
+
+        return tile
 
     def canTsumo(self):
         return self.gameData.totalHandShanten( self.playerNo ) == -1
@@ -130,75 +133,64 @@ class Player:
 
 
     def drawAction(self):
+        actionList = []
 
+        res = Action(self.playerNo, 0)
+        
         if self.canTsumo():
 
-            return Action(self.playerNo, 1)
+            actionList.append(Action(self.playerNo, 1))
         
         
         #canClosedkan returns (CanClosedKan, Call Tile)
         if self.gameData.canClosedKan(self.playerNo)[0]:
             callTile = self.gameData.canClosedKan( self.playerNo )[1]
 
-            self.gameData.buildMatrix( player=self.playerNo, forMeld=True, forClosedMeld=True, callTile=callTile )
+            actionList.append(Action(self.playerNo, 3, [callTile]))      
 
-            prediction = self.getPredictionMeld( self.kanModel )
-
-            if prediction:
-
-                return Action(self.playerNo, 3, [callTile])        
         
         if self.gameData.canChakan( self.playerNo )[0]:
             callTile = self.gameData.canChakan( self.playerNo )[1]
-            self.gameData.buildMatrix( player=self.playerNo, forMeld=True, forClosedMeld=True, callTile=callTile )
-        
-            prediction = self.getPredictionMeld( self.kanModel )
-            
-            if prediction:
 
-                return Action(self.playerNo, 4, [callTile])  
+            actionList.append(Action(self.playerNo, 4, [callTile]))
 
 
         if self.gameData.canRiichi(self.playerNo):
-            self.gameData.buildMatrix(self.playerNo)
+            actionList.append(Action(self.playerNo, 2))
+        
+        if actionList:
+            actionList.append(Action(self.playerNo, 0))
+            res = self.buffer.request(1, actionList)[0]
+    
+        return res
 
-            prediction = self.getPredictionMeld(self.riichiModel )
-
-            if prediction:
-                return Action(self.playerNo, 2)
-            
-
-        return Action(self.playerNo, 0)
 
 
     def discardAction(self):
+        actionList = []
+
+        res = Action(self.playerNo, 0)
+    
         if self.canRon():
-            return Action(self.playerNo, 5)
+            actionList.append((self.playerNo, 5))
         
         if self.gameData.canChi(self.playerNo):
-            self.gameData.buildMatrix( player=self.playerNo, forMeld=True )
-            prediction = self.getPredictionMeld( self.chiModel )
 
-            if prediction:
-                return Action(self.playerNo, 8, [int(self.bestChi()) + i for i in range(3)])
+            actionList.append(Action(self.playerNo, 8, [int(self.bestChi()) + i for i in range(3)]))
             
         if self.gameData.canPon(self.playerNo):
-            self.gameData.buildMatrix( player=self.playerNo, forMeld=True )
-            prediction = self.getPredictionMeld( self.ponModel )
 
-            if prediction:
-
-                return Action(self.playerNo, 6)   
+            actionList.append(Action(self.playerNo, 6))
 
         if self.gameData.canKan(self.playerNo):
-            self.gameData.buildMatrix( player=self.playerNo, forMeld=True )
-            prediction = self.getPredictionMeld( self.kanModel )
 
-            if prediction:
+            actionList.append(Action(self.playerNo, 7))  
             
-                return Action(self.playerNo, 7)  
-            
-        return Action(self.playerNo, 0)
+        if actionList:
+            actionList.append(Action(self.playerNo, 0))
+            res = self.buffer.request(1, actionList)[0]
+    
+        return res
        
 
 
