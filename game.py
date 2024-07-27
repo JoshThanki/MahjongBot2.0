@@ -443,5 +443,7 @@ class Game():
 
 
 if __name__ == "__main__":
+    #If you want to play bots, set maunal = True
+    #To slow down the time step, set time = 0.5
     game = Game()
     game.start()
