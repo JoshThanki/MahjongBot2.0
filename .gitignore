@@ -9,5 +9,7 @@ Junk/*
 Junk/test.py
 __pycache__/*
 .vscode/*
-
 Model/__pycache__/*
+dist/*
+build/*
+
