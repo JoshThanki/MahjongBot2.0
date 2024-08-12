@@ -24,7 +24,9 @@ class Player:
 
         prediction = prediction[0].numpy()
 
-        return np.argmax(prediction)   
+        # prediction = np.random.choice(range(len(prediction)), p = prediction)
+        
+        return np.argmax(prediction)
     
     
     def getPredictionDiscard(self):
@@ -51,8 +53,6 @@ class Player:
                 prediction = [prediction[i] if shantenDiscards[i] == 0 else 0 for i in range(34)]
 
             else:
-                print(f"Last Draw Tile: {self.gameData.lastDrawTile}")
-
                 return self.gameData.lastDrawTile
 
         return np.argmax(prediction)  
@@ -162,10 +162,10 @@ class Player:
         if self.gameData.canRiichi(self.playerNo):
             self.gameData.buildMatrix(self.playerNo)
 
-            prediction = self.getPredictionMeld(self.riichiModel )
+            # prediction = self.getPredictionMeld(self.riichiModel )
 
-            if prediction:
-                return Action(self.playerNo, 2)
+            # if prediction:
+            return Action(self.playerNo, 2)
             
 
         return Action(self.playerNo, 0)

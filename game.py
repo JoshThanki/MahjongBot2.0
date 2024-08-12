@@ -10,8 +10,9 @@ import tensorflow as tf
 
 class Game():
     
-    def __init__(self, manual = False, time = 0.001):
-        self.file = None
+    def __init__(self, manual = False, time = 0.25):
+        self.file = open("out.txt", "w+")
+
         self.running = True
         self.newGame = True
         self.gameData = GameData(eastOnly=True)
@@ -21,11 +22,11 @@ class Game():
         
 
         # Load models
-        models = [tf.keras.models.load_model('model_epoch_07.h5'),
-                  tf.keras.models.load_model('Saved Models/discardModel'),
-                  tf.keras.models.load_model('Saved Models/chiModel'),
-                  tf.keras.models.load_model('Saved Models/ponModel'),
-                  tf.keras.models.load_model('Saved Models/kanModel')]
+        models = [tf.keras.models.load_model("Saved Models/discardnew_model_epoch_03.h5"),  #Discard 
+                  tf.keras.models.load_model('Saved Models/discardModelOLD'), #Riichi
+                  tf.keras.models.load_model('Saved Models/chiModel'),  #Chi Model
+                  tf.keras.models.load_model('Saved Models/ponModel'), #Pon Model
+                  tf.keras.models.load_model('Saved Models/kanModel')] #Kan Model
     
         # guiPlayer = GUIPlayer(i)
 
@@ -443,5 +444,5 @@ class Game():
 
 
 
-game = Game(manual=False, time=0.01)
+game = Game(manual=False, time  = 0)
 game.start()
