@@ -21,7 +21,7 @@ class Game():
         
 
         # Load models
-        models = [tf.keras.models.load_model('Saved Models/discardModel'),
+        models = [tf.keras.models.load_model('model_epoch_07.h5'),
                   tf.keras.models.load_model('Saved Models/discardModel'),
                   tf.keras.models.load_model('Saved Models/chiModel'),
                   tf.keras.models.load_model('Saved Models/ponModel'),
